@@ -8,7 +8,7 @@ type Props = {
   align?: "start" | "end";
   placement?: "bottom" | "top";
   className?: string;
-  children: (close: () => void) => React.ReactNode;
+  children: React.ReactNode;
 };
 
 /** Menú desplegable accesible: flechas para moverse, Esc para cerrar, clic fuera cierra y el foco vuelve al botón. */
@@ -68,12 +68,16 @@ export function Menu({ trigger, align = "end", placement = "bottom", className, 
           id={id}
           role="menu"
           className="menu"
+          onClick={(e) => {
+            // Elegir una opción cierra el menú y devuelve el foco al botón.
+            if ((e.target as HTMLElement).closest('[role="menuitem"]')) close();
+          }}
           style={{
             [align === "end" ? "right" : "left"]: 0,
             ...(placement === "bottom" ? { top: "calc(100% + 6px)" } : { bottom: "calc(100% + 6px)" }),
           }}
         >
-          {children(() => close())}
+          {children}
         </div>
       )}
     </div>

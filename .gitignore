@@ -8,3 +8,5 @@ playwright-report/
 .env*
 !.env.example
 .claude/
+.taste-skill/*
+!.taste-skill/direction.json

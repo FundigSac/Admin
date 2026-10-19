@@ -13,8 +13,8 @@ export const keys = {
   activity: (p: ActivityParams) => ["activity", p] as const,
 };
 
-export function useUserList(params: UserListParams) {
-  return useQuery({ queryKey: keys.list(params), queryFn: () => api.listUsers(params), placeholderData: keepPreviousData });
+export function useUserList(params: UserListParams, enabled = true) {
+  return useQuery({ queryKey: keys.list(params), queryFn: () => api.listUsers(params), placeholderData: keepPreviousData, enabled });
 }
 
 export function useUser(id: string) {
