@@ -148,12 +148,16 @@ export const mockAdapter: UsersApi = {
     let newInRange = 0;
     let newPrevRange = 0;
     let activeWeek = 0;
+    const funnel = { registered: 0, verified: 0, quoted: 0 };
 
     for (const u of customers) {
       byStatus[u.status] += 1;
       if (u.lastActiveAt && u.lastActiveAt >= now - 7 * DAY) activeWeek += 1;
       if (u.registeredAt >= start) {
         newInRange += 1;
+        funnel.registered += 1;
+        if (u.emailVerified) funnel.verified += 1;
+        if (u.quotes > 0) funnel.quoted += 1;
         byMethod[u.method] += 1;
         sources.set(u.source, (sources.get(u.source) ?? 0) + 1);
         cities.set(u.city, (cities.get(u.city) ?? 0) + 1);
@@ -162,6 +166,7 @@ export const mockAdapter: UsersApi = {
       } else if (u.registeredAt >= prevStart) newPrevRange += 1;
     }
 
+    const pending = customers.filter((u) => u.status === "pending").sort((a, b) => a.registeredAt - b.registeredAt);
     const sortDesc = (map: Map<string, number>) => [...map].sort((a, b) => b[1] - a[1]);
     const stats: DashboardStats = {
       total: customers.length,
@@ -180,6 +185,10 @@ export const mockAdapter: UsersApi = {
         .slice(0, 5)
         .map(([city, count]) => ({ city, count })),
       latest: [...customers].sort((a, b) => b.registeredAt - a.registeredAt).slice(0, 6),
+      funnel,
+      pendingOldest: pending.slice(0, 4),
+      pendingOver48h: pending.filter((u) => now - u.registeredAt > 2 * DAY).length,
+      generatedAt: now,
     };
     return delay(stats, 320);
   },

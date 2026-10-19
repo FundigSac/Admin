@@ -41,6 +41,12 @@ export type DashboardStats = {
   bySource: { source: string; count: number }[];
   byCity: { city: string; count: number }[];
   latest: User[];
+  /** Embudo del periodo: cuentas nuevas que verificaron su correo y que enviaron al menos una cotización. */
+  funnel: { registered: number; verified: number; quoted: number };
+  /** Pendientes de verificar, la más antigua primero, y cuántas llevan más de 48 h. */
+  pendingOldest: User[];
+  pendingOver48h: number;
+  generatedAt: number;
 };
 
 export type ActivityParams = { page: number; size: number; q?: string; type?: ActivityType | "all"; userId?: string };

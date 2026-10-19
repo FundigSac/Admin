@@ -391,8 +391,10 @@ input.checkbox:indeterminate {
 }
 
 .panel__meta {
-  color: var(--faint);
-  font-size: var(--fs-small);
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
 }
 
 /* Encabezado de sección fuera de la tarjeta (riel derecho). */
@@ -814,6 +816,7 @@ input.checkbox:indeterminate {
 
 .kbd {
   display: inline-flex;
+  font-family: inherit;
   height: 20px;
   align-items: center;
   padding: 0 6px;

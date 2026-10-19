@@ -1,0 +1,267 @@
+/* Piezas comunes de las pantallas del panel: fila de alcance, franja de KPIs, filas de lista y gráficos. */
+
+.scope-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: var(--gap);
+}
+
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--faint);
+  font-size: 13px;
+}
+
+/* ===== KPIs: un contenedor dividido por líneas, etiqueta sobre cifra, sin íconos ===== */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+}
+
+.kpi {
+  min-width: 0;
+  padding: 16px var(--card-pad);
+}
+
+.kpi + .kpi {
+  border-left: 1px solid var(--border);
+}
+
+.kpi__label {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.kpi__value {
+  display: block;
+  margin-top: 6px;
+  font-size: var(--fs-kpi);
+  font-weight: 600;
+  line-height: 30px;
+  letter-spacing: -0.01em;
+}
+
+.kpi__value--lead {
+  font-size: var(--fs-lead-figure);
+  line-height: 36px;
+}
+
+.kpi__caption {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.is-good {
+  color: var(--positive);
+  font-weight: 600;
+}
+
+.is-bad {
+  color: var(--negative);
+  font-weight: 600;
+}
+
+/* ===== Gráficos ===== */
+.chart {
+  position: relative;
+  min-width: 0;
+}
+
+.chart__tick {
+  fill: var(--faint);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__tip {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.chart__tip span {
+  color: var(--muted);
+}
+
+.chart__tip strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-table {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* ===== Listas con reglas entre filas ===== */
+.rows {
+  display: grid;
+}
+
+.row {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.row + .row {
+  border-top: 1px solid var(--rule);
+}
+
+.row__main {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+}
+
+.row__main strong,
+.row__main a {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row__main a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.row__sub {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row__end {
+  flex: none;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ===== Lista de barras: etiqueta, barra de 8px y valor ===== */
+.barlist {
+  display: grid;
+  gap: 14px;
+}
+
+.barlist__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  align-items: baseline;
+}
+
+.barlist__label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.barlist__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+
+.barlist__value small {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: var(--fs-small);
+  font-weight: 400;
+}
+
+.barlist__track {
+  grid-column: 1 / -1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--raised);
+}
+
+:root[data-theme="dark"] .barlist__track {
+  background: var(--active);
+}
+
+.barlist__fill {
+  height: 100%;
+  min-width: 0;
+  border-radius: 999px;
+  background: var(--chart-muted);
+}
+
+.barlist__fill--lead {
+  background: var(--text);
+}
+
+.barlist__fill--accent {
+  background: var(--chart-1);
+}
+
+/* ===== Tablas ===== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  height: 38px;
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: var(--fs-small);
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 0 12px;
+  height: var(--row-h);
+  border-bottom: 1px solid var(--rule);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table .n {
+  text-align: right;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: 0;
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: 0;
+}
