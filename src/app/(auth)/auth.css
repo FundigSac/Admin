@@ -216,31 +216,6 @@
   text-wrap: balance;
 }
 
-/* ===== Selector de idioma ===== */
-.lang-toggle {
-  display: inline-flex;
-  padding: 2px;
-  border-radius: 8px;
-  background: var(--active);
-}
-
-.lang-toggle button {
-  min-width: 36px;
-  height: 30px;
-  padding: 0 8px;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.lang-toggle button[aria-pressed="true"] {
-  background: var(--surface);
-  color: var(--text);
-}
-
 /* ===== Tablet y móvil: la foto pasa a ser una franja superior con el título ===== */
 @media (max-width: 960px) {
   .auth {

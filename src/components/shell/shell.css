@@ -218,6 +218,8 @@
   border-radius: var(--radius-sheet);
   background: var(--surface);
   outline: none;
+  scrollbar-color: var(--control) transparent;
+  scrollbar-width: thin;
 }
 
 .sheet > * {
@@ -459,4 +461,80 @@
 
 :root[data-theme="dark"] .nav-item[aria-current="page"] .nav-count {
   color: #04131d;
+}
+
+/* ===== Guía rápida ===== */
+.guide {
+  display: grid;
+  gap: 24px;
+}
+
+.guide__title {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.guide__list {
+  display: grid;
+  margin: 0;
+}
+
+.guide__item {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 12px;
+  padding: 9px 0;
+}
+
+.guide__item + .guide__item {
+  border-top: 1px solid var(--rule);
+}
+
+.guide__item dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.guide__item dt svg {
+  color: var(--accent);
+}
+
+.guide__item dd {
+  margin: 0;
+  color: var(--muted);
+  line-height: 20px;
+}
+
+.guide__colors {
+  display: grid;
+  gap: 10px;
+}
+
+.guide__colors li {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.guide__colors .pill {
+  justify-self: start;
+}
+
+ul.guide__tips {
+  display: grid;
+  gap: 6px;
+  padding-left: 18px;
+  color: var(--muted);
+  list-style: disc;
+}
+
+@media (max-width: 560px) {
+  .guide__item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
 }

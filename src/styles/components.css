@@ -159,6 +159,31 @@
   text-decoration: underline;
 }
 
+/* ===== Selector de idioma ===== */
+.lang-toggle {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--active);
+}
+
+.lang-toggle button {
+  min-width: 36px;
+  height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lang-toggle button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--text);
+}
+
 /* ===== Campos: etiqueta arriba, 38px, borde un paso más fuerte que las tarjetas ===== */
 .field {
   display: grid;
@@ -888,4 +913,52 @@ input.checkbox:indeterminate {
 
 .not-found p:not(.not-found__code) {
   color: var(--muted);
+}
+
+/* ===== Ayuda contextual (i) ===== */
+.infotip {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.infotip__btn {
+  display: inline-grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  margin: -4px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--faint);
+  transition: color var(--t-hover) ease;
+}
+
+.infotip__btn:hover,
+.infotip__btn[aria-expanded="true"] {
+  color: var(--accent);
+}
+
+.infotip__bubble {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 8px);
+  left: 50%;
+  width: max-content;
+  max-width: min(280px, 80vw);
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 19px;
+  text-align: left;
+  white-space: normal;
+  transform: translateX(-50%);
+  animation: menu-in var(--t-press) var(--ease);
 }
