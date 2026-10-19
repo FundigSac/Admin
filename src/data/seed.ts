@@ -1,5 +1,5 @@
-import { ADMIN_EMAIL, ADMIN_NAME } from "./demo-account";
-import type { Activity, ActivityType, SignupMethod, SignupSource, User, UserRole, UserStatus } from "./types";
+import { ADMIN_EMAIL, ADMIN_NAME, STAFF } from "./demo-account";
+import type { Activity, ActivityType, SignupMethod, SignupSource, User, UserStatus } from "./types";
 
 // Datos de demostración: personas y empresas ficticias. Se generan con una semilla fija para que el panel se vea
 // igual en cada carga, y las fechas se calculan desde "ahora" para que la demo nunca envejezca.
@@ -121,15 +121,7 @@ export function buildSeed(now: number): { users: User[]; activity: Activity[] } 
   }
 
   // Personal de FUNDIGSAC con roles de gestión (cuentas STAFF del Backend).
-  const staff: [string, string, UserRole[]][] = [
-    [ADMIN_NAME, ADMIN_EMAIL, ["administrator"]],
-    ["Karina Lozano Paz", "ventas@fundigsac.local", ["sales"]],
-    ["Pedro Alvarado Núñez", "pedro.alvarado@fundigsac.local", ["sales", "read_only"]],
-    ["Silvia Ramos Ortiz", "legal@fundigsac.local", ["legal_support"]],
-    ["Tomás Herrera Vega", "catalogo@fundigsac.local", ["catalog_editor"]],
-    ["Lorena Campos Díaz", "revision@fundigsac.local", ["catalog_reviewer"]],
-  ];
-  staff.forEach(([name, email, roles], i) => {
+  STAFF.forEach(({ name, email, roles }, i) => {
     users.push({
       id: uuid(r),
       kind: "staff",
@@ -140,7 +132,7 @@ export function buildSeed(now: number): { users: User[]; activity: Activity[] } 
       phone: null,
       method: "email",
       status: "active",
-      roles,
+      roles: [...roles],
       emailVerified: true,
       newsletter: false,
       privacyNoticeVersion: PRIVACY_VERSION,

@@ -1,69 +1,218 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, CircleAlert, Eye, EyeOff, KeyRound, Lock, Mail, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, ArrowRight, CircleAlert, Mail, MailCheck } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { ADMIN_EMAIL, DEMO_PASSWORD } from "@/data/demo-account";
+import { useEffect, useRef, useState } from "react";
+import { ADMIN_EMAIL } from "@/data/demo-account";
 import { useT } from "@/lib/prefs";
-import { checkDemoCredentials, startSession } from "@/lib/session";
+import { maskEmail, requestCode, RESEND_COOLDOWN_MS, startSession, verifyCode } from "@/lib/session";
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const LENGTH = 6;
 
 /** Solo rutas internas: evita redirecciones abiertas con ?next=//sitio-ajeno. */
 function safeNext(next: string | null) {
   return next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/login") ? next : "/panel";
 }
 
+function useNow(active: boolean) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [active]);
+  return now;
+}
+
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export function LoginForm() {
   const t = useT();
   const router = useRouter();
   const params = useSearchParams();
-  const [showPassword, setShowPassword] = useState(false);
-  const [caps, setCaps] = useState(false);
-  const [authError, setAuthError] = useState(false);
+  const [step, setStep] = useState<"email" | "code">("email");
+  const [email, setEmail] = useState("");
+  const [remember, setRemember] = useState(true);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [locked, setLocked] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [sent, setSent] = useState<{ expiresAt: number; sentAt: number; demoCode: string | null } | null>(null);
+  const now = useNow(step === "code");
+  const codeInput = useRef<HTMLInputElement>(null);
 
-  const schema = useMemo(
-    () =>
-      z.object({
-        email: z.string().trim().min(1, t.login.required).email(t.login.invalidEmail),
-        password: z.string().min(1, t.login.required).min(8, t.login.short),
-        remember: z.boolean(),
-      }),
-    [t],
-  );
-  type Values = z.infer<typeof schema>;
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "", remember: true } });
-
-  const onSubmit = handleSubmit(async (values) => {
-    setAuthError(false);
-    // Tiempo de respuesta realista del login; el Backend responderá en /api/v1/auth/login.
-    await new Promise((r) => setTimeout(r, 650));
-    const user = checkDemoCredentials(values.email, values.password);
-    if (!user) {
-      setAuthError(true);
-      return;
-    }
-    startSession(user, values.remember);
-    router.replace(safeNext(params.get("next")));
-    router.refresh();
-  });
-
-  const fillDemo = () => {
-    setValue("email", ADMIN_EMAIL, { shouldValidate: true });
-    setValue("password", DEMO_PASSWORD, { shouldValidate: true });
-    setAuthError(false);
+  const send = async (target: string, resend = false) => {
+    setSending(true);
+    setNotice(null);
+    // POST /api/v1/auth/login/code en el Backend: siempre responde igual, exista o no la cuenta.
+    await wait(700);
+    setSent(requestCode(target));
+    setSending(false);
+    setCode("");
+    setCodeError(null);
+    setLocked(false);
+    setStep("code");
+    if (resend) setNotice(t.login.resent);
+    requestAnimationFrame(() => codeInput.current?.focus());
   };
 
-  const onKey = (e: React.KeyboardEvent<HTMLInputElement>) => setCaps(e.getModifierState?.("CapsLock") ?? false);
-  const passwordField = register("password");
+  const onEmail = (e: React.FormEvent) => {
+    e.preventDefault();
+    const value = email.trim();
+    const problem = !value ? t.login.required : !EMAIL.test(value) ? t.login.invalidEmail : null;
+    setEmailError(problem);
+    if (!problem) void send(value);
+  };
+
+  const submitCode = async (value: string) => {
+    if (value.length < LENGTH) {
+      setCodeError(t.login.incomplete);
+      return;
+    }
+    setVerifying(true);
+    setCodeError(null);
+    await wait(600);
+    const result = verifyCode(value);
+    if (result.ok) {
+      startSession(result.user, remember);
+      router.replace(safeNext(params.get("next")));
+      router.refresh();
+      return;
+    }
+    setVerifying(false);
+    setCode("");
+    if (result.reason === "expired") setCodeError(t.login.expired);
+    else if (result.reason === "locked") {
+      setLocked(true);
+      setCodeError(t.login.locked);
+    } else setCodeError(t.login.wrongCode(result.attemptsLeft));
+    requestAnimationFrame(() => codeInput.current?.focus());
+  };
+
+  const onCodeChange = (raw: string) => {
+    const digits = raw.replace(/\D/g, "").slice(0, LENGTH);
+    setCode(digits);
+    setCodeError(null);
+    // Al completar los 6 dígitos (escritos o pegados) se verifica solo.
+    if (digits.length === LENGTH && !locked) void submitCode(digits);
+  };
+
+  if (step === "code" && sent) {
+    // El reloj nunca va por detrás del envío (el intervalo arranca un segundo después).
+    const current = Math.max(now, sent.sentAt);
+    const remaining = Math.max(0, sent.expiresAt - current);
+    const cooldown = Math.max(0, Math.ceil((sent.sentAt + RESEND_COOLDOWN_MS - current) / 1000));
+    const mm = Math.floor(remaining / 60_000);
+    const ss = Math.floor((remaining % 60_000) / 1000)
+      .toString()
+      .padStart(2, "0");
+    const expired = remaining === 0;
+    const describedBy = ["code-hint", codeError ? "code-error" : null].filter(Boolean).join(" ");
+
+    return (
+      <>
+        <header className="auth-head">
+          <MailCheck className="auth-sent__icon" size={28} aria-hidden="true" />
+          <h2 className="auth-head__title">{t.login.codeHeading}</h2>
+          <p className="auth-head__sub">{t.login.codeSub(maskEmail(email.trim().toLowerCase()))}</p>
+        </header>
+
+        <form
+          className="auth-form"
+          noValidate
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submitCode(code);
+          }}
+        >
+          <div className="field">
+            <div className="auth-form__row">
+              <label className="field__label" htmlFor="code">
+                {t.login.code}
+              </label>
+              <span className={`auth-timer${expired ? " is-expired" : ""}`} aria-live="off">
+                {expired ? t.login.expired : t.login.expiresIn(`${mm}:${ss}`)}
+              </span>
+            </div>
+            <div className={`otp${codeError ? " otp--error" : ""}`}>
+              <input
+                ref={codeInput}
+                id="code"
+                className="otp__input"
+                value={code}
+                onChange={(e) => onCodeChange(e.target.value)}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]*"
+                maxLength={LENGTH}
+                disabled={verifying || locked || expired}
+                aria-invalid={codeError ? true : undefined}
+                aria-describedby={describedBy}
+              />
+              {Array.from({ length: LENGTH }, (_, i) => (
+                <span key={i} className={`otp__cell${i === Math.min(code.length, LENGTH - 1) ? " is-current" : ""}${code[i] ? " is-filled" : ""}`} aria-hidden="true">
+                  {code[i] ?? ""}
+                </span>
+              ))}
+            </div>
+            {codeError ? (
+              <p className="field__error" id="code-error" role="alert">
+                <CircleAlert size={14} aria-hidden="true" />
+                {codeError}
+              </p>
+            ) : (
+              <p className="field__hint" id="code-hint">
+                {notice ?? t.login.codeHint}
+              </p>
+            )}
+          </div>
+
+          <button type="submit" className="btn btn--primary btn--lg btn--block" disabled={verifying || locked || expired}>
+            {verifying ? (
+              <>
+                <span className="spinner" aria-hidden="true" />
+                {t.login.verifying}
+              </>
+            ) : (
+              <>
+                {t.login.verify}
+                <ArrowRight size={17} aria-hidden="true" />
+              </>
+            )}
+          </button>
+
+          <div className="auth-form__links">
+            <button type="button" className="btn btn--ghost" onClick={() => setStep("email")}>
+              <ArrowLeft size={16} aria-hidden="true" />
+              {t.login.changeEmail}
+            </button>
+            <button type="button" className="btn" onClick={() => void send(email.trim(), true)} disabled={cooldown > 0 || sending}>
+              {sending ? <span className="spinner" aria-hidden="true" /> : null}
+              {cooldown > 0 ? t.login.resendIn(cooldown) : t.login.resend}
+            </button>
+          </div>
+        </form>
+
+        {sent.demoCode && (
+          <section className="auth-demo" aria-labelledby="demo-title">
+            <h3 id="demo-title" className="auth-demo__title">
+              {t.login.demoTitle}
+            </h3>
+            <p className="auth-demo__mail">
+              <span>{t.login.demoInbox(sent.demoCode)}</span>
+            </p>
+            <button type="button" className="btn auth-demo__btn" onClick={() => onCodeChange(sent.demoCode ?? "")} disabled={verifying || locked || expired}>
+              {t.login.demoUse}
+            </button>
+          </section>
+        )}
+      </>
+    );
+  }
 
   return (
     <>
@@ -72,118 +221,73 @@ export function LoginForm() {
         <p className="auth-head__sub">{t.login.sub}</p>
       </header>
 
-      {authError && (
-        <div className="auth-alert" role="alert">
-          <CircleAlert size={18} aria-hidden="true" />
-          {t.login.wrong}
-        </div>
-      )}
-
-      <form className="auth-form" onSubmit={onSubmit} noValidate>
+      <form className="auth-form" onSubmit={onEmail} noValidate>
         <div className="field">
           <label className="field__label" htmlFor="email">
             {t.login.email}
           </label>
           <div className="field__control">
-            <Mail className="field__icon" size={18} aria-hidden="true" />
+            <Mail className="field__icon" size={17} aria-hidden="true" />
             <input
               id="email"
-              className="input input--lg"
+              className="input"
               type="email"
               inputMode="email"
               autoComplete="username"
               placeholder={t.login.emailPh}
-              aria-invalid={errors.email ? true : undefined}
-              aria-describedby={errors.email ? "email-error" : undefined}
-              {...register("email")}
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setEmailError(null);
+              }}
+              aria-invalid={emailError ? true : undefined}
+              aria-describedby={emailError ? "email-error" : undefined}
             />
           </div>
-          {errors.email && (
+          {emailError && (
             <p className="field__error" id="email-error">
               <CircleAlert size={14} aria-hidden="true" />
-              {errors.email.message}
+              {emailError}
             </p>
-          )}
-        </div>
-
-        <div className="field">
-          <div className="auth-form__row">
-            <label className="field__label" htmlFor="password">
-              {t.login.password}
-            </label>
-            <Link className="link auth-form__forgot" href="/recuperar">
-              {t.login.forgot}
-            </Link>
-          </div>
-          <div className="field__control field__control--trail">
-            <Lock className="field__icon" size={18} aria-hidden="true" />
-            <input
-              id="password"
-              className="input input--lg"
-              type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
-              placeholder={t.login.passwordPh}
-              aria-invalid={errors.password ? true : undefined}
-              aria-describedby={errors.password ? "password-error" : caps ? "password-caps" : undefined}
-              onKeyUp={onKey}
-              {...passwordField}
-              onBlur={(e) => {
-                setCaps(false);
-                void passwordField.onBlur(e);
-              }}
-            />
-            <button type="button" className="icon-btn icon-btn--sm field__trail" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? t.login.hide : t.login.show} aria-pressed={showPassword}>
-              {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
-            </button>
-          </div>
-          {errors.password ? (
-            <p className="field__error" id="password-error">
-              <CircleAlert size={14} aria-hidden="true" />
-              {errors.password.message}
-            </p>
-          ) : (
-            caps && (
-              <p className="field__hint auth-caps" id="password-caps">
-                <KeyRound size={14} aria-hidden="true" />
-                {t.login.caps}
-              </p>
-            )
           )}
         </div>
 
         <label className="check">
-          <input type="checkbox" {...register("remember")} />
+          <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
           <span>{t.login.remember}</span>
         </label>
 
-        <button type="submit" className="btn btn--primary btn--lg btn--block" disabled={isSubmitting}>
-          {isSubmitting ? (
+        <button type="submit" className="btn btn--primary btn--lg btn--block" disabled={sending}>
+          {sending ? (
             <>
               <span className="spinner" aria-hidden="true" />
-              {t.login.submitting}
+              {t.login.sending}
             </>
           ) : (
             <>
-              {t.login.submit}
-              <ArrowRight size={18} aria-hidden="true" />
+              {t.login.send}
+              <ArrowRight size={17} aria-hidden="true" />
             </>
           )}
         </button>
+        <p className="auth-why">{t.login.why}</p>
       </form>
 
       <section className="auth-demo" aria-labelledby="demo-title">
-        <span className="auth-demo__icon" aria-hidden="true">
-          <Sparkles size={18} />
-        </span>
-        <div>
-          <h3 id="demo-title" className="auth-demo__title">
-            {t.login.demoTitle}
-          </h3>
-          <p className="auth-demo__text">{t.login.demoText}</p>
-          <button type="button" className="btn btn--sm auth-demo__btn" onClick={fillDemo}>
-            {t.login.useDemo}
-          </button>
-        </div>
+        <h3 id="demo-title" className="auth-demo__title">
+          {t.login.demoTitle}
+        </h3>
+        <p className="auth-demo__text">{t.login.demoText}</p>
+        <button
+          type="button"
+          className="btn auth-demo__btn"
+          onClick={() => {
+            setEmail(ADMIN_EMAIL);
+            setEmailError(null);
+          }}
+        >
+          {t.login.demoEmail}
+        </button>
       </section>
     </>
   );

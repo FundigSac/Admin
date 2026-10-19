@@ -12,6 +12,7 @@ export const LANG_COOKIE = "fa-lang";
 const THEME_KEY = "fa-theme";
 const DENSITY_KEY = "fa-density";
 const PAGE_SIZE_KEY = "fa-page-size";
+const SIDEBAR_KEY = "fa-sidebar";
 export const PAGE_SIZES = [10, 20, 50] as const;
 
 const COPY: Record<Lang, Copy> = { es, en };
@@ -77,6 +78,8 @@ type Prefs = {
   setDensity: (density: Density) => void;
   pageSize: number;
   setPageSize: (size: number) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
 };
 
 const PrefsContext = createContext<Prefs | null>(null);
@@ -86,6 +89,7 @@ export function PrefsProvider({ initialLang, children }: { initialLang: Lang; ch
   const theme = useLocal(THEME_KEY, "system") as Theme;
   const density = useLocal(DENSITY_KEY, "comfortable") as Density;
   const savedSize = Number(useLocal(PAGE_SIZE_KEY, "10"));
+  const sidebarCollapsed = useLocal(SIDEBAR_KEY, "0") === "1";
   const pageSize = (PAGE_SIZES as readonly number[]).includes(savedSize) ? savedSize : 10;
   const systemDark = useSyncExternalStore(
     subscribeScheme,
@@ -111,10 +115,11 @@ export function PrefsProvider({ initialLang, children }: { initialLang: Lang; ch
   const setTheme = useCallback((next: Theme) => writeLocal(THEME_KEY, next), []);
   const setDensity = useCallback((next: Density) => writeLocal(DENSITY_KEY, next), []);
   const setPageSize = useCallback((next: number) => writeLocal(PAGE_SIZE_KEY, String(next)), []);
+  const setSidebarCollapsed = useCallback((next: boolean) => writeLocal(SIDEBAR_KEY, next ? "1" : "0"), []);
 
   const value = useMemo<Prefs>(
-    () => ({ lang, t: COPY[lang], setLang, theme, resolvedTheme, setTheme, density, setDensity, pageSize, setPageSize }),
-    [lang, setLang, theme, resolvedTheme, setTheme, density, setDensity, pageSize, setPageSize],
+    () => ({ lang, t: COPY[lang], setLang, theme, resolvedTheme, setTheme, density, setDensity, pageSize, setPageSize, sidebarCollapsed, setSidebarCollapsed }),
+    [lang, setLang, theme, resolvedTheme, setTheme, density, setDensity, pageSize, setPageSize, sidebarCollapsed, setSidebarCollapsed],
   );
   return <PrefsContext.Provider value={value}>{children}</PrefsContext.Provider>;
 }

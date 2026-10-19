@@ -3,7 +3,7 @@ import { SESSION_COOKIE } from "@/lib/session";
 
 // Chequeo optimista de sesión: sin cookie no se entra al panel y con cookie no se vuelve al login.
 // La autorización real la hará el Backend en cada solicitud cuando esté conectado.
-const PUBLIC = ["/login", "/recuperar"];
+const PUBLIC = ["/login"];
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
