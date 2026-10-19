@@ -1,0 +1,130 @@
+/* Roles y permisos: lista de roles con sus miembros y la matriz de permisos del Backend. */
+
+.roles-list {
+  margin-bottom: var(--gap);
+}
+
+.role-row {
+  gap: 20px;
+}
+
+.role-row .row__main strong {
+  white-space: normal;
+}
+
+.role-row__text {
+  white-space: normal;
+}
+
+.role-row__people {
+  display: flex;
+  width: 190px;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar-stack {
+  display: flex;
+}
+
+.avatar-stack .avatar {
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.avatar-stack .avatar + .avatar {
+  margin-left: -8px;
+}
+
+.role-row__count {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.role-row__perms {
+  width: 120px;
+  flex: none;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: right;
+}
+
+.matrix th,
+.matrix td {
+  height: 44px;
+}
+
+.matrix__role {
+  min-width: 104px;
+  text-align: center !important;
+  white-space: normal !important;
+  line-height: 16px;
+}
+
+.matrix__group th {
+  height: 36px;
+  padding-top: 14px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+}
+
+.matrix__perm {
+  min-width: 220px;
+  color: var(--text) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  text-align: left;
+  border-bottom: 1px solid var(--rule);
+}
+
+.matrix__code {
+  display: block;
+  color: var(--faint);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.matrix__cell {
+  text-align: center;
+}
+
+.matrix__cell svg {
+  display: inline-block;
+  color: var(--positive);
+}
+
+.matrix__off {
+  display: inline-block;
+  width: 10px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--control);
+  vertical-align: middle;
+}
+
+.roles-source {
+  margin-top: 16px;
+}
+
+@media (max-width: 900px) {
+  .role-row {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+
+  .role-row .row__main {
+    flex-basis: 100%;
+  }
+
+  .role-row__people {
+    width: auto;
+  }
+
+  .role-row__perms {
+    width: auto;
+    margin-left: auto;
+  }
+}
