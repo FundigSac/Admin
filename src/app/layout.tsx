@@ -1,0 +1,42 @@
+import type { Metadata, Viewport } from "next";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { cookies } from "next/headers";
+import { Providers } from "@/components/providers";
+import { LANG_COOKIE, THEME_SCRIPT, type Lang } from "@/lib/prefs";
+import "@/styles/tokens.css";
+import "@/styles/base.css";
+import "@/styles/components.css";
+
+const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-inter", display: "swap" });
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-jakarta", display: "swap" });
+
+export const metadata: Metadata = {
+  title: { default: "Gestor de usuarios | FUNDIGSAC", template: "%s | FUNDIGSAC Admin" },
+  description: "Panel de administración de cuentas registradas en el sitio web de FUNDIGSAC.",
+  applicationName: "FUNDIGSAC Admin",
+  // Panel interno: nunca debe aparecer en buscadores.
+  robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f3f6fa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a1420" },
+  ],
+};
+
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const lang: Lang = (await cookies()).get(LANG_COOKIE)?.value === "en" ? "en" : "es";
+  return (
+    <html lang={lang === "es" ? "es-PE" : "en"} className={`${inter.variable} ${jakarta.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
+      <body>
+        <Providers initialLang={lang}>{children}</Providers>
+      </body>
+    </html>
+  );
+}
