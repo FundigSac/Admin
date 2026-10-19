@@ -1,107 +1,119 @@
-/* Tokens del gestor. Azules del logo de FUNDIGSAC (#0972a1, degradado #3476bb → #53c4ce) y el naranja de marca
-   (#f26a1b) solo como acento, nunca como color de texto sobre blanco (no llega a 4.5:1). */
+/* Tokens del gestor. Dirección "framed-sheet" (tasteskill, semilla 1446286849): un marco en L teñido con el
+   azul-gris del agua del logo de FUNDIGSAC y el trabajo sobre una hoja blanca, sin sombras. El color de marca
+   (#0972a1) vive en los datos: la serie principal, la pestaña activa y el foco. El naranja del logo queda en el logo.
+   Radios en tres pasos: hoja 16, tarjetas 8, controles 6. */
 
 :root {
   color-scheme: light;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
-  --font-display: var(--font-jakarta), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font: var(--font-jakarta), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
 
-  --bg: #f3f6fa;
+  --chrome: #eef3f6;
   --surface: #ffffff;
-  --surface-2: #f7f9fc;
-  --surface-3: #eef3f8;
-  --border: #e3e9f0;
-  --border-strong: #cdd7e3;
-  --text: #0f1d2b;
-  --text-2: #3f4f63;
-  --text-3: #5f6e80;
-  --brand: #0972a1;
-  --brand-strong: #075b81;
-  --brand-ink: #004257;
-  --brand-soft: #e7f3f9;
-  --brand-ring: rgb(9 114 161 / 28%);
-  --accent: #f26a1b;
-  --accent-soft: #fff1e8;
-  --on-brand: #ffffff;
+  --raised: #f4f7f9;
+  --active: #dfe7ed;
+  --border: #e3e8ec;
+  --rule: #edf1f4;
+  --control: #cdd5dc;
+  --text: #10202b;
+  --muted: #4f5d68;
+  --faint: #5f6b75;
+  --accent: #0972a1;
+  --accent-soft: #e5f1f7;
+  --focus: #0972a1;
+  --primary: #12222d;
+  --primary-hover: #223644;
+  --primary-ink: #ffffff;
 
-  --success: #157a43;
-  --success-soft: #e6f5ec;
-  --warning: #9a5600;
-  --warning-soft: #fdf2df;
-  --danger: #be2530;
-  --danger-soft: #fdebec;
-
-  --nav-bg: #0b2244;
-  --nav-bg-2: #0f2a52;
-  --nav-text: #c9d6ea;
-  --nav-text-strong: #ffffff;
-  --nav-muted: #8ea3c2;
-  --nav-active: rgb(83 196 206 / 16%);
-  --nav-border: rgb(255 255 255 / 8%);
+  --positive: #247b50;
+  --negative: #c4242a;
+  --warning: #92400e;
+  --pill-positive-bg: #dcfae5;
+  --pill-positive-ink: #04250e;
+  --pill-negative-bg: #ffedea;
+  --pill-negative-ink: #831c1e;
+  --pill-warning-bg: #fff4d6;
+  --pill-warning-ink: #7a3a06;
+  --pill-neutral-bg: #edf1f4;
+  --pill-neutral-ink: #33424d;
+  --notice-bg: #fffbeb;
+  --notice-border: #fde68a;
 
   --chart-1: #0972a1;
-  --chart-fill: rgb(9 114 161 / 14%);
-  --grid: #e8edf3;
+  --chart-fill: rgb(9 114 161 / 12%);
+  --chart-muted: #c7d1d9;
+  --grid: #e9eef2;
 
-  --shadow-xs: 0 1px 2px rgb(15 29 43 / 6%);
-  --shadow-sm: 0 1px 3px rgb(15 29 43 / 8%), 0 1px 2px rgb(15 29 43 / 4%);
-  --shadow-md: 0 8px 24px -6px rgb(15 29 43 / 14%), 0 2px 6px rgb(15 29 43 / 6%);
-  --shadow-lg: 0 24px 48px -12px rgb(15 29 43 / 24%);
+  --shadow-float: 0 12px 32px -8px rgb(16 32 43 / 20%), 0 2px 6px rgb(16 32 43 / 6%);
 
-  --radius-sm: 8px;
-  --radius: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
+  --radius-sheet: 16px;
+  --radius-card: 8px;
+  --radius-control: 6px;
 
-  --sidebar-w: 264px;
-  --sidebar-w-collapsed: 76px;
-  --topbar-h: 64px;
-  --gutter: clamp(16px, 3vw, 32px);
-  --row-pad: 14px;
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --sidebar-w: 232px;
+  --topbar-h: 48px;
+  --inset: 8px;
+  --pad: 24px;
+  --gap: 16px;
+  --card-pad: 20px;
+  --control-h: 34px;
+  --row-h: 52px;
+
+  --fs-title: 24px;
+  --fs-section: 16px;
+  --fs-kpi: 24px;
+  --fs-lead-figure: 30px;
+  --fs-body: 14px;
+  --fs-small: 12px;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-press: 120ms;
+  --t-hover: 150ms;
+  --t-ui: 200ms;
 }
 
 :root[data-density="compact"] {
-  --row-pad: 8px;
+  --row-h: 42px;
+  --card-pad: 16px;
 }
 
+/* Oscuro: un gris neutro de verdad (sin azul marino), elevación por luminosidad, dos grises que se distinguen. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0a1420;
-  --surface: #0f1b29;
-  --surface-2: #122133;
-  --surface-3: #192b42;
-  --border: #213449;
-  --border-strong: #2d4560;
-  --text: #edf3fa;
-  --text-2: #b8c5d5;
-  --text-3: #8d9fb4;
-  --brand: #4fb3e3;
-  --brand-strong: #7fcaee;
-  --brand-ink: #bfe6f7;
-  --brand-soft: rgb(79 179 227 / 13%);
-  --brand-ring: rgb(79 179 227 / 34%);
-  --accent: #ff8a47;
-  --accent-soft: rgb(255 138 71 / 14%);
-  --on-brand: #04131d;
+  --chrome: #0b0c0d;
+  --surface: #141617;
+  --raised: #1c1f21;
+  --active: #262a2d;
+  --border: #24282b;
+  --rule: #1d2023;
+  --control: #3e4448;
+  --text: #f2f4f5;
+  --muted: #b6bcc0;
+  --faint: #969ca1;
+  --accent: #4fb3e3;
+  --accent-soft: rgb(79 179 227 / 14%);
+  --focus: #4fb3e3;
+  --primary: #f2f4f5;
+  --primary-hover: #d9dee1;
+  --primary-ink: #0b0c0d;
 
-  --success: #4fd08a;
-  --success-soft: rgb(79 208 138 / 13%);
-  --warning: #f4bb4f;
-  --warning-soft: rgb(244 187 79 / 13%);
-  --danger: #ff7b83;
-  --danger-soft: rgb(255 123 131 / 13%);
-
-  --nav-bg: #08111c;
-  --nav-bg-2: #0c1828;
-  --nav-border: rgb(255 255 255 / 6%);
+  --positive: #3fc07a;
+  --negative: #ef6b7b;
+  --warning: #e5a93b;
+  --pill-positive-bg: #172a1d;
+  --pill-positive-ink: #4fd08a;
+  --pill-negative-bg: #2c1a1e;
+  --pill-negative-ink: #f07f8c;
+  --pill-warning-bg: #2b2414;
+  --pill-warning-ink: #e9b04a;
+  --pill-neutral-bg: #24282b;
+  --pill-neutral-ink: #e4e8ea;
+  --notice-bg: #2b2414;
+  --notice-border: #5a4614;
 
   --chart-1: #4fb3e3;
-  --chart-fill: rgb(79 179 227 / 18%);
-  --grid: #1b2c40;
+  --chart-fill: rgb(79 179 227 / 16%);
+  --chart-muted: #3d4347;
+  --grid: #24282b;
 
-  --shadow-xs: 0 1px 2px rgb(0 0 0 / 30%);
-  --shadow-sm: 0 1px 3px rgb(0 0 0 / 35%);
-  --shadow-md: 0 10px 28px -8px rgb(0 0 0 / 55%);
-  --shadow-lg: 0 28px 56px -14px rgb(0 0 0 / 65%);
+  --shadow-float: 0 16px 40px -10px rgb(0 0 0 / 70%), 0 0 0 1px rgb(255 255 255 / 6%);
 }

@@ -12,14 +12,11 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  background: var(--bg);
+  background: var(--chrome);
   color: var(--text);
-  font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.5;
+  font: var(--fs-body) / 20px var(--font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: "cv11", "ss01";
 }
 
 h1,
@@ -33,12 +30,18 @@ dd {
   margin: 0;
 }
 
+ul[class],
+ol[class] {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 h1,
 h2,
 h3 {
-  font-family: var(--font-display);
-  letter-spacing: -0.015em;
   color: var(--text);
+  letter-spacing: -0.01em;
 }
 
 img,
@@ -64,13 +67,21 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid var(--brand);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
 ::selection {
-  background: var(--brand-soft);
+  background: var(--accent-soft);
   color: var(--text);
+}
+
+/* Cifras tabulares en todo lo que se compara o cambia. */
+.num,
+table,
+.kpi__value {
+  font-variant-numeric: tabular-nums;
 }
 
 .sr-only {
@@ -90,28 +101,24 @@ button {
   z-index: 100;
   top: 12px;
   left: 12px;
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  background: var(--brand);
-  color: var(--on-brand);
+  padding: 8px 14px;
+  border-radius: var(--radius-control);
+  background: var(--primary);
+  color: var(--primary-ink);
   font-weight: 600;
   transform: translateY(-160%);
-  transition: transform 160ms var(--ease);
+  transition: transform var(--t-ui) var(--ease);
 }
 
 .skip-link:focus-visible {
   transform: none;
 }
 
-/* Textos de párrafo justificados como en el sitio, sin cortar palabras con guion. */
+/* Párrafos justificados como en el sitio, sin cortar palabras con guion. */
 .prose {
   text-align: justify;
   hyphens: manual;
   text-wrap: pretty;
-}
-
-.tabular {
-  font-variant-numeric: tabular-nums;
 }
 
 @media (prefers-reduced-motion: reduce) {

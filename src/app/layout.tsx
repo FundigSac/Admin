@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { cookies } from "next/headers";
 import { Providers } from "@/components/providers";
 import { LANG_COOKIE, THEME_SCRIPT, type Lang } from "@/lib/prefs";
@@ -7,8 +7,8 @@ import "@/styles/tokens.css";
 import "@/styles/base.css";
 import "@/styles/components.css";
 
-const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-inter", display: "swap" });
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-jakarta", display: "swap" });
+// Una sola familia: Plus Jakarta Sans, la tipografía de títulos del sitio de FUNDIGSAC.
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-jakarta", display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Gestor de usuarios | FUNDIGSAC", template: "%s | FUNDIGSAC Admin" },
@@ -22,15 +22,15 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f3f6fa" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a1420" },
+    { media: "(prefers-color-scheme: light)", color: "#eef3f6" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0c0d" },
   ],
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const lang: Lang = (await cookies()).get(LANG_COOKIE)?.value === "en" ? "en" : "es";
   return (
-    <html lang={lang === "es" ? "es-PE" : "en"} className={`${inter.variable} ${jakarta.variable}`} suppressHydrationWarning>
+    <html lang={lang === "es" ? "es-PE" : "en"} className={jakarta.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>

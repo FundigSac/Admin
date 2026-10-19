@@ -25,7 +25,7 @@ export function StatusBadge({ status }: { status: UserStatus }) {
   const t = useT();
   const Icon = STATUS_ICON[status];
   return (
-    <span className={`badge badge--${status}`} title={t.statusHint[status]}>
+    <span className={`pill pill--${status}`} title={t.statusHint[status]}>
       <Icon size={13} strokeWidth={2.4} aria-hidden="true" />
       {t.status[status]}
     </span>
@@ -68,18 +68,18 @@ export function MethodChip({ method }: { method: SignupMethod }) {
   );
 }
 
-export function Skeleton({ w, h = 14, r }: { w?: number | string; h?: number; r?: number }) {
-  return <span className="skeleton" style={{ width: w ?? "100%", height: h, borderRadius: r }} aria-hidden="true" />;
+export function Skeleton({ w, h = 14 }: { w?: number | string; h?: number }) {
+  return <span className="skeleton" style={{ width: w ?? "100%", height: h }} aria-hidden="true" />;
 }
 
-export function PageHeader({ title, lead, actions }: { title: string; lead?: string; actions?: React.ReactNode }) {
+export function TitleRow({ title, sub, actions }: { title: string; sub?: React.ReactNode; actions?: React.ReactNode }) {
   return (
-    <header className="page-head">
+    <header className="title-row">
       <div>
-        <h1 className="page-head__title">{title}</h1>
-        {lead && <p className="page-head__lead">{lead}</p>}
+        <h1 className="title-row__title">{title}</h1>
+        {sub && <p className="title-row__sub">{sub}</p>}
       </div>
-      {actions && <div className="page-head__actions">{actions}</div>}
+      {actions && <div className="title-row__actions">{actions}</div>}
     </header>
   );
 }
