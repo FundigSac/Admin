@@ -1,0 +1,187 @@
+/* Configuración: una vista por área; cada sección es una etiqueta a la izquierda y su panel a la derecha. */
+
+.settings-tabs {
+  margin-bottom: 24px;
+}
+
+.settings-select {
+  display: none;
+  margin-bottom: 20px;
+}
+
+.settings {
+  display: grid;
+  gap: 32px;
+}
+
+.settings-row {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 720px);
+  gap: 24px;
+}
+
+.settings-row + .settings-row {
+  padding-top: 32px;
+  border-top: 1px solid var(--rule);
+}
+
+.settings-row__label {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+.settings-row__panel {
+  display: grid;
+  gap: 4px;
+}
+
+.setting {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+}
+
+.setting + .setting {
+  border-top: 1px solid var(--rule);
+}
+
+.setting > span:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.setting--block {
+  display: grid;
+  justify-content: stretch;
+  gap: 6px;
+}
+
+.setting__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.setting__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.setting__select {
+  width: 90px;
+}
+
+.ok-icon {
+  color: var(--positive);
+}
+
+.saved-stamp {
+  color: var(--positive);
+  font-size: 12px;
+  font-weight: 600;
+  animation: fade-in var(--dur-2, 200ms) ease;
+}
+
+.profile-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 6px 0;
+}
+
+/* Vista previa del correo que llega con cada registro nuevo. */
+.mail-preview {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-control);
+  background: var(--raised);
+}
+
+.mail-preview__from {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.mail-preview__subject {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.mail-preview__body {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--text);
+  line-height: 21px;
+}
+
+.mail-preview__body svg {
+  flex: none;
+  transform: translateY(2px);
+}
+
+.mail-preview__cta {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.sessions {
+  display: grid;
+  margin-bottom: 12px;
+}
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  color: var(--muted);
+}
+
+.session + .session {
+  border-top: 1px solid var(--rule);
+}
+
+.session strong {
+  color: var(--text);
+}
+
+.sessions + .btn {
+  justify-self: start;
+}
+
+@media (max-width: 900px) {
+  .settings-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .settings-row__label {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .settings-tabs {
+    display: none;
+  }
+
+  .settings-select {
+    display: block;
+  }
+
+  .profile-card {
+    flex-direction: column;
+  }
+}

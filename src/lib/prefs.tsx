@@ -128,3 +128,10 @@ export function usePrefs() {
 export function useT() {
   return usePrefs().t;
 }
+
+/** Ajuste simple guardado en este navegador (por ejemplo, los avisos por correo mientras no haya Backend). */
+export function useStoredValue(key: string, initial: string): [string, (value: string) => void] {
+  const value = useLocal(key, initial);
+  const set = useCallback((next: string) => writeLocal(key, next), [key]);
+  return [value, set];
+}
