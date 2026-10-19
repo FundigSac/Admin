@@ -76,7 +76,7 @@ export function RolesView() {
             <p className="panel__meta">{r.matrixDesc}</p>
           </div>
         </div>
-        <div className="table-frame">
+        <div className="table-frame" tabIndex={0} role="region" aria-label={r.matrix}>
           <table className="table matrix">
             <thead>
               <tr>

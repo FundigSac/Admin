@@ -77,7 +77,7 @@ export function ActivityView() {
         <label className="toolbar__search">
           <span className="sr-only">{a.searchPh}</span>
           <IconSearch size={15} className="toolbar__icon" />
-          <input className="input input--sm" type="search" placeholder={a.searchPh} value={q} onChange={(e) => setQ(e.target.value)} />
+          <input className="input input--sm" type="search" name="q" placeholder={a.searchPh} value={q} onChange={(e) => setQ(e.target.value)} />
         </label>
         <div className="toolbar__end">
           <span className="toolbar__count">{data ? a.count(data.totalItems) : ""}</span>

@@ -117,6 +117,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
         <input
           ref={input}
           className="palette__input"
+          name="palette"
           role="combobox"
           aria-expanded="true"
           aria-controls={listId}

@@ -420,7 +420,16 @@
     transform: none;
   }
 
-  .search-btn__text,
+  /* El texto sigue disponible para lectores de pantalla aunque en teléfono solo se vea la lupa. */
+  .search-btn__text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
   .search-btn .kbd,
   .topbar__end {
     display: none;

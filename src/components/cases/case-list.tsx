@@ -89,6 +89,7 @@ export function CaseList<M extends CaseModule>({ module, base, title, lead, find
           <input
             className="input input--sm"
             type="search"
+            name="q"
             placeholder={c.search}
             value={q}
             onChange={(e) => {
@@ -131,7 +132,7 @@ export function CaseList<M extends CaseModule>({ module, base, title, lead, find
         </div>
       ) : (
         <>
-          <div className="table-frame case-table">
+          <div className="table-frame case-table" tabIndex={0} role="region" aria-label={title}>
           <table className="table" key={`${status}-${page}-${query}`}>
             <thead>
               <tr>

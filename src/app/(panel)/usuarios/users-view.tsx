@@ -177,6 +177,7 @@ export function UsersView() {
           <input
             className="input input--sm"
             type="search"
+            name="q"
             placeholder={u.searchPh}
             value={q}
             onChange={(e) => {
@@ -278,7 +279,7 @@ export function UsersView() {
         </div>
       ) : (
         <>
-          <div className="table-frame users-frame">
+          <div className="table-frame users-frame" tabIndex={0} role="region" aria-label={u.title}>
             <UsersTable
               rows={data.items}
               sorting={sorting}
