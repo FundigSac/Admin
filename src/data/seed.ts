@@ -152,7 +152,16 @@ export function buildSeed(now: number) {
 
   users.sort((a, b) => b.registeredAt - a.registeredAt);
   const activity = buildActivity(users, now, r);
-  return { users, activity, ...buildCases(now, users, rng(20261020)) };
+  const cases = buildCases(now, users, rng(20261020));
+  // Una sola fuente de verdad: el conteo de cotizaciones de cada cuenta y su historial salen de las cotizaciones
+  // vinculadas, para que la ficha, la lista y la auditoría digan lo mismo.
+  for (const u of users) {
+    const own = cases.quotes.filter((q) => q.userId === u.id);
+    u.quotes = own.length;
+    for (const q of own) activity.push({ id: `evt_q_${q.id}`, at: q.createdAt, type: "quote", userId: u.id, userName: u.name, actor: null, detail: q.code });
+  }
+  activity.sort((a, b) => b.at - a.at);
+  return { users, activity, ...cases };
 }
 
 function buildActivity(users: User[], now: number, r: () => number): Activity[] {
@@ -172,9 +181,6 @@ function buildActivity(users: User[], now: number, r: () => number): Activity[] 
     push("signup", u, u.registeredAt, null, u.method);
     if (u.emailVerified && u.method === "email") push("verify", u, u.registeredAt + r() * 3 * HOUR);
     if (u.lastActiveAt) push("login", u, u.lastActiveAt);
-    for (let q = 0; q < Math.min(u.quotes, 2); q += 1) {
-      push("quote", u, u.registeredAt + r() * ((u.lastActiveAt ?? now) - u.registeredAt), null, `COT-${2600 + Math.floor(r() * 400)}`);
-    }
     if (u.status === "disabled") push("disable", u, (u.lastActiveAt ?? u.registeredAt) + HOUR, ADMIN_NAME);
     if (r() < 0.05) push("password", u, u.registeredAt + r() * (now - u.registeredAt));
   }

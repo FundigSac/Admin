@@ -126,7 +126,9 @@ export function buildCases(now: number, users: User[], r: () => number) {
     const u = r() < 0.7 ? pick(customers) : null;
     // Empresas que cotizan sin crear cuenta (el formulario de /cotizar no la exige).
     const walkIn = pick(WALK_INS);
-    const createdAt = Math.round(now - Math.pow(r(), 1.5) * 75 * DAY - r() * 8 * HOUR);
+    let createdAt = Math.round(now - Math.pow(r(), 1.5) * 75 * DAY - r() * 8 * HOUR);
+    // Una cuenta no cotiza antes de existir.
+    if (u) createdAt = Math.min(now - 30 * 60_000, Math.max(createdAt, u.registeredAt + 2 * HOUR));
     const age = now - createdAt;
     const familyKey = pick<Exclude<ProductFamily, "mixto">>(["valvulas", "valvulas", "valvulas", "tuberias", "marcos_tapas"]);
     const mixed = r() < 0.15;
