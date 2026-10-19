@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 // Inicia sesión con el flujo real: correo → código de un solo uso leído de la bandeja de demostración.
 async function signIn(page: Page, next = "/panel") {
   await page.goto(`/login?next=${encodeURIComponent(next)}`);
-  await page.getByRole("button", { name: "Usar la cuenta demo" }).click();
+  await page.getByRole("button", { name: "Probar con código" }).click();
   await page.getByRole("button", { name: "Enviar código" }).click();
   const subject = await page.locator(".auth-demo__mail").innerText();
   const code = subject.match(/\d{6}/)?.[0];
@@ -21,11 +21,18 @@ test("sin sesión, el panel redirige al acceso y conserva la ruta", async ({ pag
 
 test("un código incorrecto descuenta intentos y no da acceso", async ({ page }) => {
   await page.goto("/login");
-  await page.getByRole("button", { name: "Usar la cuenta demo" }).click();
+  await page.getByRole("button", { name: "Probar con código" }).click();
   await page.getByRole("button", { name: "Enviar código" }).click();
   await page.getByLabel("Código de verificación").fill("000000");
   await expect(page.locator("#code-error")).toContainText("Te quedan 4 intentos");
   await expect(page).toHaveURL(/\/login/);
+});
+
+test("entra a la demo con un clic", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByRole("button", { name: "Entrar a la demo" }).click();
+  await page.waitForURL("**/panel");
+  await expect(page.getByRole("heading", { level: 1, name: "Resumen" })).toBeVisible();
 });
 
 test("ingresa con el código y ve el resumen con lo pendiente", async ({ page }) => {

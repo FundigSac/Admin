@@ -45,6 +45,23 @@ export function LoginForm() {
   const now = useNow(step === "code");
   const codeInput = useRef<HTMLInputElement>(null);
 
+  const [entering, setEntering] = useState(false);
+
+  // Entrada directa a la demo: pide y valida el código de la cuenta demo en un solo paso (sin backend todavía).
+  const enterDemo = async () => {
+    setEntering(true);
+    const { demoCode } = requestCode(ADMIN_EMAIL);
+    await wait(500);
+    const result = verifyCode(demoCode ?? "");
+    if (!result.ok) {
+      setEntering(false);
+      return;
+    }
+    startSession(result.user, true);
+    router.replace(safeNext(params.get("next")));
+    router.refresh();
+  };
+
   const send = async (target: string, resend = false) => {
     setSending(true);
     setNotice(null);
@@ -278,16 +295,22 @@ export function LoginForm() {
           {t.login.demoTitle}
         </h3>
         <p className="auth-demo__text">{t.login.demoText}</p>
-        <button
-          type="button"
-          className="btn auth-demo__btn"
-          onClick={() => {
-            setEmail(ADMIN_EMAIL);
-            setEmailError(null);
-          }}
-        >
-          {t.login.demoEmail}
-        </button>
+        <div className="auth-demo__actions">
+          <button type="button" className="btn btn--primary auth-demo__btn" onClick={enterDemo} disabled={entering}>
+            {entering ? <span className="spinner" aria-hidden="true" /> : <IconArrowRight size={17} />}
+            {entering ? t.login.verifying : t.login.demoEnter}
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost auth-demo__btn"
+            onClick={() => {
+              setEmail(ADMIN_EMAIL);
+              setEmailError(null);
+            }}
+          >
+            {t.login.demoEmail}
+          </button>
+        </div>
       </section>
     </>
   );

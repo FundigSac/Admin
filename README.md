@@ -176,8 +176,9 @@ npm install
 npm run dev
 ```
 
-Abre http://127.0.0.1:3100, pulsa **Usar la cuenta demo**, luego **Enviar código** y **Completar el código** (el
-código aparece en la bandeja de demostración).
+Abre http://127.0.0.1:3100 y pulsa **Entrar a la demo** (entra directo como administrador). Para probar el flujo
+completo pulsa **Probar con código**, luego **Enviar código** y **Completar el código** (el código aparece en la
+bandeja de demostración).
 
 | Script | Qué hace |
 | --- | --- |

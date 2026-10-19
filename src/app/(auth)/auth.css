@@ -200,6 +200,13 @@
   margin-top: 8px;
 }
 
+.auth-demo__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
 .auth-sent {
   display: grid;
   gap: 12px;
