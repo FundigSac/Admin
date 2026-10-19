@@ -265,3 +265,17 @@
 .table td:last-child {
   padding-right: 0;
 }
+
+.is-bad-soft {
+  color: var(--negative);
+  font-weight: 500;
+}
+
+.is-warn-soft {
+  color: var(--pill-warning-ink);
+  font-weight: 500;
+}
+
+:root[data-theme="dark"] .is-warn-soft {
+  color: var(--warning);
+}

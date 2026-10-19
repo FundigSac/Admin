@@ -8,7 +8,9 @@ import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Avatar, MethodIcon, Skeleton, StatusBadge, TitleRow } from "@/components/ui/bits";
 import { useToast } from "@/components/ui/toast";
 import type { DashboardStats, RangeKey } from "@/lib/api";
-import { useResendVerification, useStats } from "@/lib/api/queries";
+import { useQueueCounts, useResendVerification, useStats } from "@/lib/api/queries";
+import { businessDaysLeft } from "@/lib/business-days";
+import { DeadlineChip } from "@/components/cases/case-ui";
 import { formatDate, formatNumber, formatPercent, formatTime, relativeTime } from "@/lib/format";
 import { usePrefs } from "@/lib/prefs";
 import type { SignupMethod } from "@/data/types";
@@ -23,17 +25,35 @@ export function OverviewView() {
   const stats = useStats(range);
   const s = stats.data;
   const o = t.overview;
+  const queues = useQueueCounts();
+  // Un plazo legal a 3 días hábiles o menos manda sobre todo lo demás: es el hallazgo y la acción de la pantalla.
+  const urgent = queues.data?.due.find((d) => businessDaysLeft(d.dueAt) <= 3) ?? null;
+  const urgentHref = urgent ? `/${urgent.module === "claims" ? "reclamaciones" : "privacidad"}/${urgent.id}` : null;
 
   return (
     <>
       <TitleRow
         title={o.title}
-        sub={s ? (s.pendingOver48h > 0 ? o.finding(s.pendingOver48h) : o.findingNone) : <Skeleton w={360} h={16} />}
+        sub={
+          urgent ? (
+            <span className={businessDaysLeft(urgent.dueAt) < 0 ? "is-bad-soft" : "is-warn-soft"}>{o.dueFinding(urgent.code, t.cases.nav[urgent.module], businessDaysLeft(urgent.dueAt))}</span>
+          ) : s ? (
+            s.pendingOver48h > 0 ? o.finding(s.pendingOver48h) : o.findingNone
+          ) : (
+            <Skeleton w={360} h={16} />
+          )
+        }
         actions={
-          <Link href="/usuarios?estado=pending" className="btn btn--primary">
-            {o.review}
-            {s && s.pending > 0 ? <span className="btn__count num">{s.pending}</span> : null}
-          </Link>
+          urgent && urgentHref ? (
+            <Link href={urgentHref} className="btn btn--primary">
+              {o.openCase}
+            </Link>
+          ) : (
+            <Link href="/usuarios?estado=pending" className="btn btn--primary">
+              {o.review}
+              {s && s.pending > 0 ? <span className="btn__count num">{s.pending}</span> : null}
+            </Link>
+          )
         }
       />
 
@@ -63,6 +83,7 @@ export function OverviewView() {
           </div>
         </div>
         <aside className="overview__rail stagger" aria-label={`${o.pendingTitle} · ${o.latestTitle}`}>
+          <DueList />
           <PendingList s={s} />
           <LatestList s={s} lang={lang} />
         </aside>
@@ -288,6 +309,42 @@ function FakeBars() {
         </div>
       ))}
     </div>
+  );
+}
+
+function DueList() {
+  const { t } = usePrefs();
+  const o = t.overview;
+  const queues = useQueueCounts();
+  const due = queues.data?.due ?? [];
+  if (queues.data && due.length === 0) return null;
+  return (
+    <section aria-labelledby="due-title">
+      <div className="panel panel--list">
+        <div className="panel__head panel__head--list">
+          <h2 id="due-title" className="panel__title">
+            {o.dueTitle}
+          </h2>
+        </div>
+        {!queues.data ? (
+          <RowSkeletons n={2} />
+        ) : (
+          <ul className="rows">
+            {due.slice(0, 4).map((d) => (
+              <li key={d.id} className="row">
+                <span className="row__main">
+                  <Link href={`/${d.module === "claims" ? "reclamaciones" : "privacidad"}/${d.id}`}>{d.name}</Link>
+                  <span className="row__sub">
+                    {t.cases.nav[d.module]} · <span className="num">{d.code}</span>
+                  </span>
+                </span>
+                <DeadlineChip dueAt={d.dueAt} closed={false} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 }
 
