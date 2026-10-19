@@ -1,3 +1,4 @@
+import { buildCases } from "./cases-seed";
 import { ADMIN_EMAIL, ADMIN_NAME, STAFF } from "./demo-account";
 import type { Activity, ActivityType, SignupMethod, SignupSource, User, UserStatus } from "./types";
 
@@ -70,7 +71,7 @@ function companyDomain(company: string) {
   return `${slug(company.replace(/S\.A\.C\.|E\.I\.R\.L\.|S\.A\./g, "")).slice(0, 16)}.pe`;
 }
 
-export function buildSeed(now: number): { users: User[]; activity: Activity[] } {
+export function buildSeed(now: number) {
   const r = rng(20261019);
   const pick = <T,>(list: readonly T[]) => list[Math.floor(r() * list.length)];
   const rucByCompany = new Map(COMPANIES.map((c) => [c, c.startsWith("Consorcio") || c.startsWith("Distribuidora") ? null : ruc(r)]));
@@ -150,7 +151,8 @@ export function buildSeed(now: number): { users: User[]; activity: Activity[] } 
   });
 
   users.sort((a, b) => b.registeredAt - a.registeredAt);
-  return { users, activity: buildActivity(users, now, r) };
+  const activity = buildActivity(users, now, r);
+  return { users, activity, ...buildCases(now, users, rng(20261020)) };
 }
 
 function buildActivity(users: User[], now: number, r: () => number): Activity[] {

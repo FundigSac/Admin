@@ -1,16 +1,17 @@
 import { buildSeed } from "@/data/seed";
 import type { Activity, ActivityType, User, UserStatus } from "@/data/types";
-import type { ActivityParams, DashboardStats, PageResult, RangeKey, UserDraft, UserListParams, UserListResult, UsersApi } from "./contract";
+import { businessDaysLeft } from "@/lib/business-days";
+import type { ActivityParams, CaseMap, CaseModule, CaseListParams, CaseListResult, DashboardStats, PageResult, QueueCounts, RangeKey, UserDraft, UserListParams, UserListResult, UsersApi } from "./contract";
 
 // Adaptador local: simula el Backend en el navegador. Guarda la "base" en localStorage para que los cambios
 // (suspender, editar, crear) persistan entre recargas. Fase de diseño: no hay servidor ni base de datos real.
 
-const KEY = "fundigsac-admin:db:v1";
+const KEY = "fundigsac-admin:db:v2";
 const DAY = 86_400_000;
 /** Pasada una semana se vuelve a sembrar, para que las gráficas de "últimos 30 días" no se queden vacías. */
 const MAX_AGE = 7 * DAY;
 
-type Db = { seededAt: number; users: User[]; activity: Activity[] };
+type Db = { seededAt: number; users: User[]; activity: Activity[] } & { [M in CaseModule]: CaseMap[M][] };
 
 let memory: Db | null = null;
 
@@ -21,7 +22,7 @@ function load(): Db {
     const raw = window.localStorage.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Db;
-      if (Array.isArray(parsed.users) && now - parsed.seededAt < MAX_AGE) return (memory = parsed);
+      if (Array.isArray(parsed.users) && Array.isArray(parsed.claims) && now - parsed.seededAt < MAX_AGE) return (memory = parsed);
     }
   } catch {
     // Sin almacenamiento (modo privado o bloqueado): se trabaja solo en memoria.
@@ -106,6 +107,22 @@ function csvCell(value: unknown) {
   // Evita inyección de fórmulas al abrir el CSV en Excel.
   const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
   return /[",\n;]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+}
+
+/** Texto donde se busca en cada cola: código, nombres, empresa, correo y documentos. */
+const CASE_TEXT: { [M in CaseModule]: (c: CaseMap[M]) => string } = {
+  quotes: (c) => `${c.code} ${c.company} ${c.ruc} ${c.contactName} ${c.email} ${c.destination} ${c.items.map((i) => i.product).join(" ")}`,
+  inquiries: (c) => `${c.code} ${c.fullName} ${c.company} ${c.ruc} ${c.email}`,
+  claims: (c) => `${c.code} ${c.name} ${c.docNumber} ${c.email} ${c.orderRef ?? ""}`,
+  privacy: (c) => `${c.code} ${c.name} ${c.email}`,
+};
+
+/** Estados que ya no esperan acción (cuentan como cerrados para plazos y colas). */
+const CLOSED: { [M in CaseModule]: string[] } = { quotes: ["won", "lost"], inquiries: ["closed"], claims: ["answered"], privacy: ["done"] };
+const WAITING: { [M in CaseModule]: string[] } = { quotes: ["new"], inquiries: ["new"], claims: ["received", "in_progress"], privacy: ["received", "identity", "processing"] };
+
+function dueOf(c: { createdAt: number; dueAt?: number }) {
+  return c.dueAt ?? Number.POSITIVE_INFINITY;
 }
 
 export const mockAdapter: UsersApi = {
@@ -311,5 +328,55 @@ export const mockAdapter: UsersApi = {
     }
     load();
     return delay(undefined, 300);
+  },
+  async listCases(module, p: CaseListParams) {
+    const all = load()[module] as CaseMap[typeof module][];
+    const q = p.q ? normalize(p.q.trim()) : "";
+    const text = CASE_TEXT[module] as (c: CaseMap[typeof module]) => string;
+    const base = q ? all.filter((c) => q.split(/\s+/).every((part) => normalize(text(c)).includes(part))) : all;
+    const statusCounts: Record<string, number> = { all: base.length };
+    base.forEach((c) => (statusCounts[c.status] = (statusCounts[c.status] ?? 0) + 1));
+    const rows = base
+      .filter((c) => !p.status || p.status === "all" || c.status === p.status)
+      .sort((a, b) => {
+        if (p.sort === "oldest") return a.createdAt - b.createdAt;
+        if (p.sort === "due") {
+          const closedA = CLOSED[module].includes(a.status) ? 1 : 0;
+          const closedB = CLOSED[module].includes(b.status) ? 1 : 0;
+          return closedA - closedB || dueOf(a) - dueOf(b) || b.createdAt - a.createdAt;
+        }
+        return b.createdAt - a.createdAt;
+      });
+    const totalPages = Math.max(1, Math.ceil(rows.length / p.size));
+    const page = Math.min(p.page, totalPages - 1);
+    const result: CaseListResult<CaseMap[typeof module]> = { items: rows.slice(page * p.size, page * p.size + p.size), page, size: p.size, totalItems: rows.length, totalPages, statusCounts };
+    return delay(result);
+  },
+
+  async getCase(module, id) {
+    return delay((load()[module] as CaseMap[typeof module][]).find((c) => c.id === id) ?? null, 200);
+  },
+
+  async updateCase(module, id, patch, ev, actor) {
+    const item = (load()[module] as CaseMap[typeof module][]).find((c) => c.id === id);
+    if (!item) throw new Error("not_found");
+    Object.assign(item, patch);
+    item.history.push({ ...ev, at: Date.now(), actor });
+    save();
+    return delay(item, 380);
+  },
+
+  async queueCounts() {
+    const db = load();
+    const now = Date.now();
+    const count = (m: CaseModule) => (db[m] as { status: string }[]).filter((c) => WAITING[m].includes(c.status)).length;
+    const due: QueueCounts["due"] = [
+      ...db.claims.filter((c) => !CLOSED.claims.includes(c.status)).map((c) => ({ module: "claims" as const, id: c.id, code: c.code, name: c.name, dueAt: c.dueAt })),
+      ...db.privacy.filter((c) => !CLOSED.privacy.includes(c.status)).map((c) => ({ module: "privacy" as const, id: c.id, code: c.code, name: c.name, dueAt: c.dueAt })),
+    ]
+      .filter((c) => businessDaysLeft(c.dueAt, now) <= 5)
+      .sort((a, b) => a.dueAt - b.dueAt);
+    const result: QueueCounts = { quotes: count("quotes"), inquiries: count("inquiries"), claims: count("claims"), privacy: count("privacy"), due };
+    return delay(result, 180);
   },
 };

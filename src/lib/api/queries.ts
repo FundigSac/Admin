@@ -2,7 +2,8 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from ".";
-import type { ActivityParams, RangeKey, UserDraft, UserListParams } from "./contract";
+import type { CaseEvent } from "@/data/types";
+import type { ActivityParams, CaseListParams, CaseMap, CaseModule, RangeKey, UserDraft, UserListParams } from "./contract";
 
 // Claves de caché centralizadas: cada filtro que cambia la respuesta va en la clave.
 export const keys = {
@@ -73,4 +74,26 @@ export function usePasswordReset() {
 export function useResetDemo() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: () => api.reset(), onSuccess: () => qc.invalidateQueries() });
+}
+
+// ───────── Colas de atención (cotizaciones, consultas, reclamaciones y privacidad) ─────────
+
+export function useCaseList<M extends CaseModule>(module: M, params: CaseListParams) {
+  return useQuery({ queryKey: ["cases", module, "list", params], queryFn: () => api.listCases(module, params), placeholderData: keepPreviousData });
+}
+
+export function useCase<M extends CaseModule>(module: M, id: string) {
+  return useQuery({ queryKey: ["cases", module, "detail", id], queryFn: () => api.getCase(module, id) });
+}
+
+export function useUpdateCase<M extends CaseModule>(module: M) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, patch, event, actor }: { id: string; patch: Partial<CaseMap[M]>; event: Omit<CaseEvent, "at" | "actor">; actor: string }) => api.updateCase(module, id, patch, event, actor),
+    onSuccess: () => Promise.all([qc.invalidateQueries({ queryKey: ["cases"] }), qc.invalidateQueries({ queryKey: ["queues"] }), qc.invalidateQueries({ queryKey: ["stats"] })]),
+  });
+}
+
+export function useQueueCounts() {
+  return useQuery({ queryKey: ["queues"], queryFn: () => api.queueCounts(), staleTime: 15_000 });
 }

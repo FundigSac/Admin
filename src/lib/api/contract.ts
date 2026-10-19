@@ -1,4 +1,4 @@
-import type { Activity, ActivityType, SignupMethod, User, UserRole, UserStatus } from "@/data/types";
+import type { Activity, ActivityType, CaseEvent, Claim, Inquiry, PrivacyRequest, Quote, SignupMethod, User, UserRole, UserStatus } from "@/data/types";
 
 // Contrato entre el panel y su origen de datos. Hoy lo cumple el adaptador local (mock-adapter.ts); al conectar el
 // Backend se implementa con fetch a /api/v1/staff/** y nada más del panel cambia.
@@ -63,6 +63,20 @@ export type UserDraft = {
   notes?: string;
 };
 
+export type CaseModule = "quotes" | "inquiries" | "claims" | "privacy";
+export type CaseMap = { quotes: Quote; inquiries: Inquiry; claims: Claim; privacy: PrivacyRequest };
+export type CaseSort = "newest" | "oldest" | "due";
+export type CaseListParams = { page: number; size: number; q?: string; status?: string; sort?: CaseSort };
+export type CaseListResult<T> = PageResult<T> & { statusCounts: Record<string, number> };
+/** Lo que espera atención en cada cola (nuevas o abiertas) y los plazos legales más próximos. */
+export type QueueCounts = {
+  quotes: number;
+  inquiries: number;
+  claims: number;
+  privacy: number;
+  due: { module: "claims" | "privacy"; id: string; code: string; name: string; dueAt: number }[];
+};
+
 export type UsersApi = {
   listUsers(params: UserListParams): Promise<UserListResult>;
   getUser(id: string): Promise<User | null>;
@@ -76,4 +90,8 @@ export type UsersApi = {
   sendPasswordReset(id: string, actor: string): Promise<void>;
   exportCsv(params: UserListParams): Promise<string>;
   reset(): Promise<void>;
+  listCases<M extends CaseModule>(module: M, params: CaseListParams): Promise<CaseListResult<CaseMap[M]>>;
+  getCase<M extends CaseModule>(module: M, id: string): Promise<CaseMap[M] | null>;
+  updateCase<M extends CaseModule>(module: M, id: string, patch: Partial<CaseMap[M]>, event: Omit<CaseEvent, "at" | "actor">, actor: string): Promise<CaseMap[M]>;
+  queueCounts(): Promise<QueueCounts>;
 };
