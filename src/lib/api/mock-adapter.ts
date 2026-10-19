@@ -6,7 +6,7 @@ import type { ActivityParams, CaseMap, CaseModule, CaseListParams, CaseListResul
 // Adaptador local: simula el Backend en el navegador. Guarda la "base" en localStorage para que los cambios
 // (suspender, editar, crear) persistan entre recargas. Fase de diseño: no hay servidor ni base de datos real.
 
-const KEY = "fundigsac-admin:db:v2";
+const KEY = "fundigsac-admin:db:v5";
 const DAY = 86_400_000;
 /** Pasada una semana se vuelve a sembrar, para que las gráficas de "últimos 30 días" no se queden vacías. */
 const MAX_AGE = 7 * DAY;

@@ -200,7 +200,7 @@ export function buildCases(now: number, users: User[], r: () => number) {
   });
 
   // ── Libro de Reclamaciones ──
-  const claimAges = [0.4, 2.2, 5.6, 9.5, 13.8, 18.5, 26];
+  const claimAges = [0.4, 2.2, 5.6, 9.5, 20.2, 18.5, 26];
   const claims: Claim[] = CLAIMS.map((c, i) => {
     const createdAt = Math.round(now - claimAges[i] * DAY - r() * 5 * HOUR);
     const dueAt = addBusinessDays(createdAt, 15);
@@ -252,6 +252,7 @@ export function buildCases(now: number, users: User[], r: () => number) {
       email: u.email,
       channel: (["form", "email", "form", "whatsapp"] as const)[i],
       userId: u.id,
+      assignee: i === 0 ? null : LEGAL,
       reason: ["Ya no necesito la cuenta.", "Cerramos el proyecto y no compraremos más.", "Prefiero no tener mis datos registrados.", "Me registré por error con mi correo personal."][i],
       history,
     };
