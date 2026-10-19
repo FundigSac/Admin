@@ -962,3 +962,19 @@ input.checkbox:indeterminate {
   transform: translateX(-50%);
   animation: menu-in var(--t-press) var(--ease);
 }
+
+/* En pantallas táctiles los controles pequeños crecen hasta un área cómoda para el dedo. */
+@media (max-width: 600px) {
+  .card-link {
+    min-height: 36px;
+  }
+
+  .panel__head .segmented--sm button {
+    height: 34px;
+  }
+
+  .icon-btn--sm {
+    width: 36px;
+    height: 36px;
+  }
+}

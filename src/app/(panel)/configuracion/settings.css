@@ -40,6 +40,7 @@
 .setting {
   display: flex;
   min-height: 56px;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -173,6 +174,21 @@
 }
 
 @media (max-width: 560px) {
+  .setting .segmented {
+    width: 100%;
+  }
+
+  .setting .segmented button {
+    flex: 1;
+    height: 36px;
+  }
+
+  .setting .pill {
+    white-space: normal;
+    height: auto;
+    padding: 3px 8px;
+  }
+
   .settings-tabs {
     display: none;
   }

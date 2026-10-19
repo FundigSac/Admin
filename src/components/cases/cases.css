@@ -209,9 +209,11 @@
    se desplaza dentro de su propio marco. */
 .table-frame {
   overflow-x: auto;
+  container-type: inline-size;
 }
 
-@media (max-width: 1180px) {
+/* Las columnas secundarias se ocultan según el ancho real de la tabla, no el de la pantalla. */
+@container (max-width: 980px) {
   .col-optional {
     display: none;
   }
@@ -649,4 +651,10 @@
   .sheet {
     border: 0;
   }
+}
+
+.table-frame:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: var(--radius-control);
 }

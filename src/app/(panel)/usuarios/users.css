@@ -295,7 +295,11 @@
   color: var(--negative);
 }
 
-@media (max-width: 1180px) {
+.users-frame {
+  container-name: users;
+}
+
+@container users (max-width: 1140px) {
   .users-table .col-optional {
     display: none;
   }
