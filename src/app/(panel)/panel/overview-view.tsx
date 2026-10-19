@@ -4,6 +4,7 @@ import { IconRefresh } from "@/components/ui/icons";
 import Link from "next/link";
 import { useState } from "react";
 import { LineChart } from "@/components/charts/line-chart";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { Avatar, MethodIcon, Skeleton, StatusBadge, TitleRow } from "@/components/ui/bits";
 import { useToast } from "@/components/ui/toast";
 import type { DashboardStats, RangeKey } from "@/lib/api";
@@ -53,7 +54,7 @@ export function OverviewView() {
       </div>
 
       <div className="overview">
-        <div className="overview__main">
+        <div className="overview__main stagger">
           <Kpis s={s} range={range} />
           <TrendCard s={s} range={range} />
           <div className="overview__pair">
@@ -61,7 +62,7 @@ export function OverviewView() {
             <MixCard s={s} range={range} />
           </div>
         </div>
-        <aside className="overview__rail" aria-label={`${o.pendingTitle} · ${o.latestTitle}`}>
+        <aside className="overview__rail stagger" aria-label={`${o.pendingTitle} · ${o.latestTitle}`}>
           <PendingList s={s} />
           <LatestList s={s} lang={lang} />
         </aside>
@@ -107,7 +108,9 @@ function Kpis({ s, range }: { s?: DashboardStats; range: RangeKey }) {
               <Skeleton w={56} h={c.lead ? 30 : 24} />
             </span>
           ) : (
-            <span className={`kpi__value num${c.lead ? " kpi__value--lead" : ""}`}>{n(c.value)}</span>
+            <span className={`kpi__value num${c.lead ? " kpi__value--lead" : ""}`}>
+              <AnimatedNumber value={c.value} format={n} />
+            </span>
           )}
           <p className="kpi__caption">{c.caption ?? <Skeleton w={120} h={12} />}</p>
         </div>
@@ -207,7 +210,7 @@ function FunnelCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
                 {step.key !== "registered" && <small>{pct(step.value, f.registered, t.locale)}</small>}
               </span>
               <span className="barlist__track" aria-hidden="true">
-                <span className={`barlist__fill ${step.cls}`} style={{ display: "block", width: `${(step.value / f.registered) * 100}%` }} />
+                <span className={`grow-x barlist__fill ${step.cls}`} style={{ display: "block", width: `${(step.value / f.registered) * 100}%` }} />
               </span>
             </li>
           ))}
@@ -264,7 +267,7 @@ function MixCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
                 <small>{pct(r.value, total, t.locale)}</small>
               </span>
               <span className="barlist__track" aria-hidden="true">
-                <span className={`barlist__fill${i === 0 ? " barlist__fill--lead" : ""}`} style={{ display: "block", width: `${(r.value / max) * 100}%` }} />
+                <span className={`grow-x barlist__fill${i === 0 ? " barlist__fill--lead" : ""}`} style={{ display: "block", width: `${(r.value / max) * 100}%` }} />
               </span>
             </li>
           ))}

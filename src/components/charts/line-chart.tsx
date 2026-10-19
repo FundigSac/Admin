@@ -101,9 +101,9 @@ export function LineChart({ points, height = 220, label, valueLabel }: Props) {
               {points[i].x}
             </text>
           ))}
-          <g clipPath={`url(#${clipId})`}>
-            <path d={area} fill="var(--chart-fill)" />
-            <path d={line} fill="none" stroke="var(--chart-1)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+          <g clipPath={`url(#${clipId})`} key={label}>
+            <path d={area} fill="var(--chart-fill)" className="fade-area" />
+            <path d={line} pathLength={1} className="draw-line" fill="none" stroke="var(--chart-1)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
           </g>
           {hp && hover !== null && (
             <g aria-hidden="true">

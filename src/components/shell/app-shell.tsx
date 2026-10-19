@@ -165,7 +165,10 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
             </div>
           </header>
           <main id="contenido" className="sheet" tabIndex={-1}>
-            {children}
+            {/* La clave por ruta reinicia la llegada escalonada de cada pantalla. */}
+            <div key={pathname} className="route">
+              {children}
+            </div>
           </main>
         </div>
       </div>

@@ -1,0 +1,149 @@
+/* Movimiento: breve (120-420 ms), solo transform y opacidad, una vez por llegada. Con "reducir movimiento"
+   el contenido aparece directo (base.css acorta toda animación a 1 ms). */
+
+:root {
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+  --dur-4: 520ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Llegada a una pantalla: cada bloque sube 8px y aparece, escalonado 40ms (máximo 7 pasos). */
+.route > * {
+  animation: rise var(--dur-3) var(--ease-out) both;
+}
+
+.route > :nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.route > :nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.route > :nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.route > :nth-child(5) {
+  animation-delay: 160ms;
+}
+
+.route > :nth-child(n + 6) {
+  animation-delay: 200ms;
+}
+
+/* Dentro de una cuadrícula, las tarjetas también se escalonan. */
+.stagger > * {
+  animation: rise var(--dur-3) var(--ease-out) both;
+}
+
+.stagger > :nth-child(2) {
+  animation-delay: 50ms;
+}
+
+.stagger > :nth-child(3) {
+  animation-delay: 100ms;
+}
+
+.stagger > :nth-child(4) {
+  animation-delay: 150ms;
+}
+
+.stagger > :nth-child(n + 5) {
+  animation-delay: 200ms;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Filas que llegan (al cambiar de página o filtro): aparecen sin desplazar el diseño. */
+.fade-in {
+  animation: fade-in var(--dur-2) ease both;
+}
+
+/* Barras: crecen desde su origen. */
+.grow-x {
+  transform-origin: left center;
+  animation: grow-x var(--dur-4) var(--ease-out) both;
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Línea del gráfico: se dibuja una vez (pathLength=1). */
+.draw-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: draw-line 700ms var(--ease-in-out) both;
+}
+
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+
+.fade-area {
+  animation: fade-in 500ms ease 250ms both;
+}
+
+/* Cambio de tema con View Transitions: fundido corto de toda la página. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 240ms;
+  animation-timing-function: ease;
+}
+
+/* Indicador de pestaña: se desliza entre pestañas. */
+.tabs__tab::after {
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    opacity var(--dur-2) ease;
+}
+
+/* Respuesta táctil de los controles. */
+.btn:active:not(:disabled),
+.icon-btn:active,
+.nav-item:active,
+.segmented button:active {
+  transform: scale(0.97);
+}
+
+.segmented button,
+.lang-toggle button {
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) ease,
+    transform var(--dur-1) ease;
+}
+
+.nav-item svg {
+  transition:
+    color var(--dur-2) ease,
+    transform var(--dur-2) var(--ease-out);
+}
+
+.nav-item:hover svg {
+  transform: translateX(1px) scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route > *,
+  .stagger > *,
+  .grow-x,
+  .draw-line,
+  .fade-area,
+  .fade-in {
+    animation: none !important;
+  }
+}

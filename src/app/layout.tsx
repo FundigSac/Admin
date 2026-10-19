@@ -6,6 +6,7 @@ import { LANG_COOKIE, THEME_SCRIPT, type Lang } from "@/lib/prefs";
 import "@/styles/tokens.css";
 import "@/styles/base.css";
 import "@/styles/components.css";
+import "@/styles/motion.css";
 
 // Una sola familia: Plus Jakarta Sans, la tipografía de títulos del sitio de FUNDIGSAC.
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-jakarta", display: "swap" });
