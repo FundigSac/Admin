@@ -1,11 +1,13 @@
 "use client";
 
-import { IconActivity, IconClose, IconMenu, IconOverview, IconRoles, IconSearch, IconSettings, IconSignOut, IconUpDown, IconUsers, type AppIcon } from "@/components/ui/icons";
+import { IconActivity, IconComplaints, IconInquiries, IconPrivacy, IconQuotes, IconClose, IconMenu, IconOverview, IconRoles, IconSearch, IconSettings, IconSignOut, IconUpDown, IconUsers, type AppIcon } from "@/components/ui/icons";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Avatar, Logo } from "@/components/ui/bits";
 import { Menu, MenuItem } from "@/components/ui/menu";
+import { useQueueCounts } from "@/lib/api/queries";
+import type { Copy } from "@/lib/i18n/es";
 import { useT } from "@/lib/prefs";
 import { endSession, type SessionUser } from "@/lib/session";
 import { CommandPalette } from "./command-palette";
@@ -13,16 +15,35 @@ import { LangToggle, ThemeToggle } from "./pref-toggles";
 import { SessionProvider } from "./session-context";
 import "./shell.css";
 
-export type NavKey = "overview" | "users" | "activity" | "roles" | "settings";
+export type NavKey = "overview" | "users" | "activity" | "roles" | "settings" | "quotes" | "inquiries" | "claims" | "privacy";
 type NavItem = { href: string; key: NavKey; icon: AppIcon };
+type QueueKey = "quotes" | "inquiries" | "claims" | "privacy";
+type NavGroup = "general" | "service" | "admin";
 
-export const NAV: { group: "general" | "admin"; items: NavItem[] }[] = [
+export function navLabel(t: Copy, key: NavKey) {
+  return key === "quotes" || key === "inquiries" || key === "claims" || key === "privacy" ? t.cases.nav[key] : t.nav[key];
+}
+
+function groupLabel(t: Copy, group: NavGroup) {
+  return group === "service" ? t.cases.nav.group : t.nav[group];
+}
+
+export const NAV: { group: NavGroup; items: NavItem[] }[] = [
   {
     group: "general",
     items: [
       { href: "/panel", key: "overview", icon: IconOverview },
       { href: "/usuarios", key: "users", icon: IconUsers },
       { href: "/actividad", key: "activity", icon: IconActivity },
+    ],
+  },
+  {
+    group: "service",
+    items: [
+      { href: "/cotizaciones", key: "quotes", icon: IconQuotes },
+      { href: "/consultas", key: "inquiries", icon: IconInquiries },
+      { href: "/reclamaciones", key: "claims", icon: IconComplaints },
+      { href: "/privacidad", key: "privacy", icon: IconPrivacy },
     ],
   },
   {
@@ -41,6 +62,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
   const [navOpen, setNavOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [lastPath, setLastPath] = useState(pathname);
+  const queues = useQueueCounts();
 
   // Al navegar se cierra el menú del teléfono (ajuste de estado durante el render, sin efecto).
   if (lastPath !== pathname) {
@@ -98,7 +120,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
           <nav className="sidebar__nav">
             {NAV.map((group) => (
               <div key={group.group} className="sidebar__group">
-                <p className="sidebar__label">{t.nav[group.group]}</p>
+                <p className="sidebar__label">{groupLabel(t, group.group)}</p>
                 <ul className="sidebar__list">
                   {group.items.map((item) => {
                     const Icon = item.icon;
@@ -107,7 +129,12 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
                       <li key={item.href}>
                         <Link href={item.href} className="nav-item" aria-current={active ? "page" : undefined}>
                           <Icon size={16} aria-hidden="true" />
-                          {t.nav[item.key]}
+                          <span className="nav-item__label">{navLabel(t, item.key)}</span>
+                          {queues.data && item.key in queues.data && (queues.data[item.key as QueueKey] as number) > 0 ? (
+                            <span className="nav-count" aria-label={`${queues.data[item.key as QueueKey]}`}>
+                              {queues.data[item.key as QueueKey] as number}
+                            </span>
+                          ) : null}
                         </Link>
                       </li>
                     );
@@ -153,7 +180,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
             <button type="button" className="icon-btn topbar__menu" onClick={() => setNavOpen(true)} aria-label={t.nav.openMenu} aria-expanded={navOpen}>
               <IconMenu size={19} aria-hidden="true" />
             </button>
-            <span className="topbar__title">{current ? t.nav[current.key] : t.common.app}</span>
+            <span className="topbar__title">{current ? navLabel(t, current.key) : t.common.app}</span>
             <button type="button" className="search-btn" onClick={() => setPaletteOpen(true)} aria-label={t.topbar.searchLabel} aria-keyshortcuts="Control+K">
               <IconSearch size={15} aria-hidden="true" />
               <span className="search-btn__text">{t.topbar.search}</span>

@@ -1,9 +1,11 @@
+import { casesEn } from "./cases-en";
 import type { Copy } from "./es";
 
 const plural = (n: number, one: string, many: string) => `${n.toLocaleString("en-US")} ${n === 1 ? one : many}`;
 
 export const en: Copy = {
   locale: "en-US",
+  cases: casesEn,
   common: {
     app: "User manager",
     brand: "FUNDIGSAC",
@@ -155,6 +157,9 @@ export const en: Copy = {
   },
   overview: {
     title: "Overview",
+    dueTitle: "Legal deadlines coming up",
+    dueFinding: (code, queue, days) => `${queue}: ${code} ${days < 0 ? "is past its legal deadline" : days === 0 ? "is due today" : days === 1 ? "is due in 1 business day" : `is due in ${days} business days`}.`,
+    openCase: "Handle now",
     finding: (n) => (n === 1 ? "1 account has gone more than 48 h without verifying its email." : `${n} accounts have gone more than 48 h without verifying their email.`),
     findingNone: "No account has waited more than 48 h to verify its email.",
     review: "Review pending",

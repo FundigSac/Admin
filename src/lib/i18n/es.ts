@@ -1,10 +1,12 @@
 import type { PermissionGroup, PermissionId } from "@/data/permissions";
+import { casesEs } from "./cases-es";
 import type { Activity, SignupMethod, SignupSource, UserRole, UserStatus } from "@/data/types";
 
 const plural = (n: number, one: string, many: string) => `${n.toLocaleString("es-PE")} ${n === 1 ? one : many}`;
 
 export const es = {
   locale: "es-PE",
+  cases: casesEs,
   common: {
     app: "Gestor de usuarios",
     brand: "FUNDIGSAC",
@@ -156,6 +158,9 @@ export const es = {
   },
   overview: {
     title: "Resumen",
+    dueTitle: "Plazos legales que vencen pronto",
+    dueFinding: (code: string, queue: string, days: number) => `${queue}: ${code} ${days < 0 ? "ya venció su plazo legal" : days === 0 ? "vence hoy" : days === 1 ? "vence en 1 día hábil" : `vence en ${days} días hábiles`}.`,
+    openCase: "Atender ahora",
     finding: (n: number) => (n === 1 ? "1 cuenta lleva más de 48 h sin verificar su correo." : `${n} cuentas llevan más de 48 h sin verificar su correo.`),
     findingNone: "Ninguna cuenta lleva más de 48 h sin verificar su correo.",
     review: "Revisar pendientes",

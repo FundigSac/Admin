@@ -1,0 +1,637 @@
+/* Colas de atención y fichas de caso. */
+
+/* ===== Pastillas por tono ===== */
+.pill__dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: currentcolor;
+}
+
+.pill--todo {
+  background: var(--pill-warning-bg);
+  color: var(--pill-warning-ink);
+}
+
+.pill--progress {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+:root:not([data-theme="dark"]) .pill--progress {
+  color: #075b81;
+}
+
+.pill--done {
+  background: var(--pill-positive-bg);
+  color: var(--pill-positive-ink);
+}
+
+.pill--muted {
+  background: var(--pill-neutral-bg);
+  color: var(--pill-neutral-ink);
+}
+
+/* ===== Plazo en días hábiles ===== */
+.deadline {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.deadline--soon {
+  color: var(--pill-warning-ink);
+  font-weight: 600;
+}
+
+:root[data-theme="dark"] .deadline--soon {
+  color: var(--warning);
+}
+
+.deadline--late {
+  color: var(--negative);
+  font-weight: 600;
+}
+
+.deadline--closed {
+  color: var(--faint);
+}
+
+/* En teléfono las pestañas de estado pasan a un selector a todo el ancho. */
+.status-select {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .status-tabs {
+    display: none;
+  }
+
+  .status-select {
+    display: block;
+  }
+}
+
+/* ===== Barra de herramientas de la lista ===== */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin: 22px 0 8px;
+}
+
+.toolbar__search {
+  position: relative;
+  display: flex;
+  width: min(360px, 100%);
+  align-items: center;
+}
+
+.toolbar__icon {
+  position: absolute;
+  left: 11px;
+  color: var(--faint);
+  pointer-events: none;
+}
+
+.toolbar__search .input {
+  padding-left: 34px;
+}
+
+.toolbar__end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbar__count {
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ===== Tabla de casos ===== */
+.case-row {
+  cursor: pointer;
+  transition: background-color var(--dur-1, 120ms) ease;
+}
+
+.case-row:hover td {
+  background: var(--raised);
+}
+
+.case-row td:first-child {
+  border-radius: var(--radius-control) 0 0 var(--radius-control);
+}
+
+.case-row__link {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.case-row__link:hover,
+.case-row__link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.case-table td.case-cell--main {
+  max-width: 340px;
+}
+
+.cell-main {
+  display: grid;
+  min-width: 0;
+}
+
+.cell-main strong {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cell-main span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cell-clip {
+  display: block;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cell-muted {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.case-skel {
+  display: flex;
+  height: 52px;
+  align-items: center;
+  gap: 24px;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* La tabla nunca empuja la página: en tablet se ocultan las columnas secundarias y, si aun así no cabe,
+   se desplaza dentro de su propio marco. */
+.table-frame {
+  overflow-x: auto;
+}
+
+@media (max-width: 1180px) {
+  .col-optional {
+    display: none;
+  }
+}
+
+.case-after {
+  margin-top: 24px;
+}
+
+.case-empty {
+  margin-top: 16px;
+}
+
+.case-cards {
+  display: none;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.pager__label {
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== Ficha de caso ===== */
+.case-head {
+  margin-bottom: 24px;
+}
+
+.case-head__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.case-head__back:hover {
+  color: var(--text);
+}
+
+.case-head__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.case-head__id {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.case-head__title {
+  font-size: var(--fs-title);
+  font-weight: 700;
+  line-height: 30px;
+  font-variant-numeric: tabular-nums;
+}
+
+.case-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.case-head__meta {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* Ficha: columna principal + columna lateral de 340px, un solo hueco de 16px. */
+.case-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--gap);
+  align-items: start;
+}
+
+.case-main,
+.case-side {
+  display: grid;
+  min-width: 0;
+  gap: var(--gap);
+}
+
+.side-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.contact__name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.contact__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Pares etiqueta-valor en dos columnas. */
+.kvs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  margin: 0;
+}
+
+.kvs--stack {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.kvs--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.kv {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.kv--wide {
+  grid-column: 1 / -1;
+}
+
+.kv dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.kv dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+
+.kv__empty {
+  color: var(--faint);
+}
+
+.quote-text {
+  padding: 14px 16px;
+  border-radius: var(--radius-card);
+  background: var(--raised);
+  line-height: 22px;
+  text-align: justify;
+  hyphens: manual;
+}
+
+/* Historial */
+.timeline {
+  display: grid;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 10px;
+  padding-bottom: 14px;
+}
+
+.timeline__item::before {
+  position: absolute;
+  top: 14px;
+  bottom: 0;
+  left: 6px;
+  width: 1px;
+  background: var(--border);
+  content: "";
+}
+
+.timeline__item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline__item:last-child::before {
+  display: none;
+}
+
+.timeline__dot {
+  width: 9px;
+  height: 9px;
+  margin: 5px 0 0 2px;
+  border: 2px solid var(--control);
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.timeline__item:first-child .timeline__dot {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.timeline__label {
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.timeline__note {
+  margin-top: 2px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.timeline__meta {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.note-form {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+}
+
+.note-form .textarea {
+  min-height: 64px;
+}
+
+/* Composer de respuesta */
+.composer {
+  display: grid;
+  gap: 10px;
+}
+
+.composer__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.legal-note {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 19px;
+  text-align: justify;
+  hyphens: manual;
+}
+
+/* Partidas de la cotización */
+.items-table .n {
+  font-variant-numeric: tabular-nums;
+}
+
+.items-table small {
+  margin-left: 4px;
+  color: var(--muted);
+}
+
+/* Pasos de la supresión (los mismos que publica /eliminar-cuenta) */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 3px solid var(--border);
+}
+
+.step--done {
+  border-top-color: var(--text);
+}
+
+.step--current {
+  border-top-color: var(--accent);
+}
+
+.step__when {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.step__title {
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.step__law {
+  color: var(--faint);
+  font-size: 12px;
+}
+
+/* Hoja de reclamación */
+.sheet-block + .sheet-block {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+}
+
+.sheet-block h3 {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .case-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .case-side {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .case-table {
+    display: none;
+  }
+
+  .case-cards {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .case-cards li + li {
+    border-top: 1px solid var(--rule);
+  }
+
+  .case-card {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding: 12px 0;
+  }
+
+  .case-card__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  /* En teléfono el título baja a una segunda línea en vez de cortarse. */
+  .case-card__top strong {
+    display: -webkit-box;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    font-weight: 600;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .case-card__sub {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .toolbar__search {
+    width: 100%;
+  }
+
+  .toolbar__end {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .case-side,
+  .kvs,
+  .kvs--three,
+  .steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .steps {
+    gap: 0;
+  }
+
+  .step {
+    padding: 10px 0 10px 14px;
+    border-top: 0;
+    border-left: 3px solid var(--border);
+  }
+
+  .step--done {
+    border-left-color: var(--text);
+  }
+
+  .step--current {
+    border-left-color: var(--accent);
+  }
+}
+
+@media print {
+  .app > .sidebar,
+  .topbar,
+  .case-side,
+  .case-head__actions,
+  .case-head__back {
+    display: none !important;
+  }
+
+  .sheet {
+    border: 0;
+  }
+}

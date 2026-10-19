@@ -6,7 +6,7 @@ import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "r
 import { Avatar, StatusBadge } from "@/components/ui/bits";
 import { useUserList } from "@/lib/api/queries";
 import { useT } from "@/lib/prefs";
-import { NAV } from "./app-shell";
+import { NAV, navLabel } from "./app-shell";
 
 type Result = { id: string; href: string; label: string; sub?: string; kind: "page" | "user"; user?: { name: string; status: "active" | "pending" | "disabled" } };
 
@@ -35,8 +35,8 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   const results = useMemo<Result[]>(() => {
     const q = deferred.toLowerCase();
     const pages: Result[] = NAV.flatMap((g) => g.items)
-      .filter((i) => !q || t.nav[i.key].toLowerCase().includes(q))
-      .map((i) => ({ id: i.href, href: i.href, label: t.nav[i.key], kind: "page" }));
+      .filter((i) => !q || navLabel(t, i.key).toLowerCase().includes(q))
+      .map((i) => ({ id: i.href, href: i.href, label: navLabel(t, i.key), kind: "page" }));
     const people: Result[] = (open ? (users.data?.items ?? []) : []).map((u) => ({
       id: u.id,
       href: `/usuarios/${u.id}`,

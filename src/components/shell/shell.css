@@ -431,3 +431,32 @@
     border-radius: 0;
   }
 }
+
+/* Conteo de una cola que espera acción ("Reclamaciones 2"). */
+.nav-item__label {
+  flex: 1;
+}
+
+.nav-count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.nav-item[aria-current="page"] .nav-count {
+  background: var(--accent);
+  color: var(--primary-ink);
+  box-shadow: none;
+}
+
+:root[data-theme="dark"] .nav-item[aria-current="page"] .nav-count {
+  color: #04131d;
+}
