@@ -53,9 +53,7 @@ export function InquiryDetail({ id }: { id: string }) {
         code={x.code}
         pill={<CasePill tone={INQUIRY_TONE[x.status]}>{c.status[x.status]}</CasePill>}
         meta={
-          <>
-            {c.reason[x.reason]} · {formatDateTime(x.createdAt, t.locale)}
-          </>
+[c.reason[x.reason], formatDateTime(x.createdAt, t.locale)]
         }
         actions={
           x.status === "answered" ? (

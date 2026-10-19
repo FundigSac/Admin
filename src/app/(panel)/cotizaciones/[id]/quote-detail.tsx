@@ -60,9 +60,7 @@ export function QuoteDetail({ id }: { id: string }) {
         code={x.code}
         pill={<CasePill tone={QUOTE_TONE[x.status]}>{c.status[x.status]}</CasePill>}
         meta={
-          <>
-            {x.company} · {c.source[x.source]} · {formatDateTime(x.createdAt, t.locale)}
-          </>
+[x.company, c.source[x.source], formatDateTime(x.createdAt, t.locale)]
         }
         actions={actions}
       />

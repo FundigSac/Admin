@@ -39,9 +39,7 @@ export function PrivacyDetail({ id }: { id: string }) {
         code={x.code}
         pill={<CasePill tone={PRIVACY_TONE[x.status]}>{c.status[x.status]}</CasePill>}
         meta={
-          <>
-            {c.channel[x.channel]} · {formatDateTime(x.createdAt, t.locale)} · <DeadlineChip dueAt={x.dueAt} closed={x.status === "done"} />
-          </>
+[c.channel[x.channel], formatDateTime(x.createdAt, t.locale), <DeadlineChip key="due" dueAt={x.dueAt} closed={x.status === "done"} />]
         }
         actions={
           next ? (

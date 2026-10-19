@@ -15,7 +15,7 @@ import { Timeline } from "./case-ui";
 import "./cases.css";
 
 /** Encabezado de un caso: miga de pan, código como h1, estado y acciones. */
-export function CaseHeader({ base, list, code, pill, meta, actions }: { base: string; list: string; code: string; pill: React.ReactNode; meta: React.ReactNode; actions?: React.ReactNode }) {
+export function CaseHeader({ base, list, title, code, pill, meta, actions }: { base: string; list: string; title?: string; code: string; pill: React.ReactNode; meta: React.ReactNode[]; actions?: React.ReactNode }) {
   const { t } = usePrefs();
   const toast = useToast();
   return (
@@ -26,7 +26,11 @@ export function CaseHeader({ base, list, code, pill, meta, actions }: { base: st
       </Link>
       <div className="case-head__row">
         <div className="case-head__id">
-          <h1 className="case-head__title">{code}</h1>
+          <h1 className="case-head__title">
+            {title && <>{title} </>}
+            {/* El código nunca se parte entre líneas. */}
+            <span className="nowrap">{code}</span>
+          </h1>
           <button
             type="button"
             className="icon-btn icon-btn--sm"
@@ -40,7 +44,11 @@ export function CaseHeader({ base, list, code, pill, meta, actions }: { base: st
         </div>
         {actions && <div className="case-head__actions">{actions}</div>}
       </div>
-      <p className="case-head__meta">{meta}</p>
+      <ul className="case-head__meta">
+        {meta.map((m, i) => (
+          <li key={i}>{m}</li>
+        ))}
+      </ul>
     </header>
   );
 }

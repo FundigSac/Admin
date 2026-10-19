@@ -86,6 +86,11 @@
     align-items: start;
   }
 
+  /* Con un número impar de bloques, el último ocupa todo el ancho en lugar de dejar un hueco. */
+  .overview__rail > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
 }
 
 @media (max-width: 900px) {

@@ -50,12 +50,11 @@ export function ClaimDetail({ id }: { id: string }) {
       <CaseHeader
         base="/reclamaciones"
         list={c.title}
-        code={`${c.sheet} ${x.code}`}
+        title={c.sheet}
+        code={x.code}
         pill={<CasePill tone={CLAIM_TONE[x.status]}>{c.status[x.status]}</CasePill>}
         meta={
-          <>
-            {c.kind[x.kind]} · {formatDateTime(x.createdAt, t.locale)} · <DeadlineChip dueAt={x.dueAt} closed={closed} />
-          </>
+[c.kind[x.kind], formatDateTime(x.createdAt, t.locale), <DeadlineChip key="due" dueAt={x.dueAt} closed={closed} />]
         }
         actions={
           <>

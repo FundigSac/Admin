@@ -178,9 +178,17 @@
     width: 100%;
   }
 
+  .settings-row__panel {
+    padding: 16px;
+  }
+
   .setting .segmented button {
     flex: 1;
-    height: 36px;
+    height: auto;
+    min-height: 36px;
+    padding: 4px 8px;
+    line-height: 16px;
+    white-space: normal;
   }
 
   .setting .pill {

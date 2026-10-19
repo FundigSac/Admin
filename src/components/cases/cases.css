@@ -292,9 +292,17 @@
 }
 
 .case-head__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 18px;
   margin-top: 6px;
   color: var(--muted);
   font-size: 15px;
+}
+
+.nowrap {
+  white-space: nowrap;
 }
 
 /* Ficha: columna principal + columna lateral de 340px, un solo hueco de 16px. */
