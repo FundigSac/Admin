@@ -209,10 +209,12 @@ export const en: Copy = {
   users: {
     title: "Users",
     lead: "Every account created on the website plus FUNDIGSAC staff.",
+    finding: (n) => (n === 1 ? "1 account is waiting to verify its email." : `${n} accounts are waiting to verify their email.`),
     newUser: "New user",
     export: "Export CSV",
     exporting: "Exporting…",
     tabs: "Filter by status",
+    tabLabel: { active: "Active", pending: "Pending", disabled: "Suspended" },
     searchPh: "Search by name, email, company, RUC or city",
     method: "Method",
     role: "Role",

@@ -210,10 +210,12 @@ export const es = {
   users: {
     title: "Usuarios",
     lead: "Todas las cuentas creadas en el sitio y las del personal de FUNDIGSAC.",
+    finding: (n: number) => (n === 1 ? "1 cuenta espera verificar su correo." : `${n} cuentas esperan verificar su correo.`),
     newUser: "Nuevo usuario",
     export: "Exportar CSV",
     exporting: "Exportando…",
     tabs: "Filtrar por estado",
+    tabLabel: { active: "Activos", pending: "Pendientes", disabled: "Suspendidos" },
     searchPh: "Buscar por nombre, correo, empresa, RUC o ciudad",
     method: "Método",
     role: "Rol",

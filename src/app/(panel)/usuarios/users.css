@@ -1,0 +1,371 @@
+/* Usuarios: tabla con selección, barra de acciones masivas y lista de dos líneas en teléfono. */
+
+.users-toolbar {
+  margin-top: 22px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.filters .select {
+  width: auto;
+  min-width: 150px;
+}
+
+.users-frame {
+  margin-top: 4px;
+}
+
+.users-table .col-check {
+  width: 36px;
+  padding-right: 0;
+}
+
+.users-table .col-actions {
+  width: 44px;
+  text-align: right;
+}
+
+.users-table tr.is-selected td {
+  background: var(--accent-soft);
+}
+
+.users-table tbody tr {
+  transition: background-color var(--dur-1, 120ms) ease;
+}
+
+.users-table tbody tr:hover td {
+  background: var(--raised);
+}
+
+.users-table tbody tr.is-selected:hover td {
+  background: var(--accent-soft);
+}
+
+.users-table td.n,
+.users-table th.n {
+  text-align: right;
+}
+
+.users-table th.n .sort-btn {
+  margin-left: auto;
+}
+
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+}
+
+.sort-btn:hover,
+.sort-btn.is-sorted {
+  color: var(--text);
+}
+
+.user-cell {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-cell__name {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-cell__name:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* La identidad se lleva el mayor ancho; la empresa se recorta antes que el nombre. */
+.users-table .col-user {
+  width: 30%;
+  min-width: 240px;
+  max-width: 340px;
+}
+
+.user-cell__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.users-table .cell-clip {
+  max-width: 220px;
+}
+
+.you-tag {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+/* Barra de acciones masivas: aparece deslizándose sobre la tabla. */
+.bulk-bar {
+  position: sticky;
+  z-index: 5;
+  top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 8px 0;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  animation: rise var(--dur-2, 200ms) var(--ease-out, ease) both;
+}
+
+.bulk-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.list-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-top: 16px;
+}
+
+.list-foot__range {
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.list-foot__size {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.list-foot__size .select {
+  width: 76px;
+}
+
+.list-foot .pager {
+  margin-top: 0;
+}
+
+.user-cards {
+  display: none;
+}
+
+/* ===== Formulario de usuario ===== */
+.user-form {
+  display: grid;
+  gap: 16px;
+}
+
+.user-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.user-form__wide {
+  grid-column: 1 / -1;
+}
+
+.user-form__kind,
+.user-form__roles {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.segmented__option {
+  position: relative;
+}
+
+.segmented__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented__option span {
+  display: inline-flex;
+  height: 30px;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: var(--radius-control);
+  color: var(--muted);
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-2, 200ms) ease,
+    color var(--dur-2, 200ms) ease;
+}
+
+.segmented__option input:checked + span {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.segmented__option input:focus-visible + span {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.role-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.role-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  transition: border-color var(--dur-2, 200ms) ease;
+}
+
+.role-option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.role-option input {
+  margin-top: 2px;
+}
+
+.role-option > span {
+  display: grid;
+  gap: 2px;
+}
+
+.role-option strong {
+  font-weight: 600;
+}
+
+.role-option > span > span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.confirm-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--pill-negative-bg);
+  color: var(--negative);
+}
+
+@media (max-width: 1180px) {
+  .users-table .col-optional {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .users-frame {
+    display: none;
+  }
+
+  .filters {
+    width: 100%;
+  }
+
+  .filters .select {
+    min-width: 0;
+    flex: 1 1 140px;
+  }
+
+  .user-cards {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .user-card {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  .user-card + .user-card {
+    border-top: 1px solid var(--rule);
+  }
+
+  .user-card__main {
+    display: grid;
+    min-width: 0;
+    flex: 1;
+    gap: 2px;
+  }
+
+  .user-card__main strong {
+    font-weight: 600;
+  }
+
+  .user-card__main > span {
+    overflow-wrap: anywhere;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .user-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-top: 4px;
+  }
+
+  .list-foot__size {
+    margin-left: 0;
+  }
+
+  .user-form__grid,
+  .role-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
