@@ -67,6 +67,7 @@ export const casesEs = {
     lead: "Pedidos de precio desde /cotizar, las fichas de producto y el carrito.",
     finding: (v: number) => (v === 0 ? "No hay cotizaciones nuevas sin responsable." : v === 1 ? "1 cotización nueva espera responsable." : `${v} cotizaciones nuevas esperan responsable.`),
     status: { new: "Nueva", reviewing: "En revisión", sent: "Cotizada", won: "Ganada", lost: "Perdida" },
+    hint: { new: "Llegó desde el sitio y nadie la tomó todavía.", reviewing: "Un vendedor está preparando el precio.", sent: "La cotización ya se envió; se espera la respuesta del cliente.", won: "El cliente aceptó la cotización.", lost: "El cliente no compró esta vez." } as Record<string, string>,
     source: { general: "Cotización general", product: "Ficha de producto", procurement: "Requerimiento de compra", cart: "Carrito" },
     project: { saneamiento: "Agua y saneamiento", matrices: "Redes y matrices", alcantarillado: "Alcantarillado y drenaje", otro: "Otro" },
     family: { valvulas: "Válvulas", tuberias: "Tuberías", marcos_tapas: "Marcos y tapas", mixto: "Varias familias" },
@@ -95,6 +96,7 @@ export const casesEs = {
     lead: "Mensajes del formulario de /contacto: documentación y reuniones.",
     finding: (v: number) => (v === 0 ? "Todas las consultas tienen respuesta." : v === 1 ? "1 consulta espera respuesta." : `${v} consultas esperan respuesta.`),
     status: { new: "Sin responder", answered: "Respondida", closed: "Cerrada" },
+    hint: { new: "Nadie respondió todavía.", answered: "Ya se envió la respuesta por correo.", closed: "Caso terminado; no requiere más acción." } as Record<string, string>,
     reason: { documentacion: "Solicitud de documentación", reunion: "Solicitud de reunión" },
     col: { code: "Código", person: "Persona", reason: "Motivo", status: "Estado", received: "Recibida" },
     message: "Mensaje",
@@ -116,6 +118,7 @@ export const casesEs = {
     finding: (v: number, soon: number) =>
       v === 0 ? "No hay hojas pendientes de respuesta." : soon > 0 ? `${v} ${v === 1 ? "hoja pendiente" : "hojas pendientes"}; ${soon} ${soon === 1 ? "vence" : "vencen"} en 3 días hábiles o menos.` : `${v} ${v === 1 ? "hoja pendiente" : "hojas pendientes"} de respuesta, todas dentro del plazo.`,
     status: { received: "Recibida", in_progress: "En atención", answered: "Respondida" },
+    hint: { received: "Recién registrada y aún sin responsable. El plazo de 15 días hábiles ya corre.", in_progress: "Alguien la está atendiendo dentro del plazo legal.", answered: "Se envió la respuesta al consumidor por el medio que eligió." } as Record<string, string>,
     kind: { reclamo: "Reclamo", queja: "Queja" },
     kindHint: { reclamo: "Disconformidad con un producto o servicio", queja: "Malestar por la atención recibida" },
     col: { code: "Hoja N.°", consumer: "Consumidor", kind: "Tipo", due: "Plazo", status: "Estado" },
@@ -157,6 +160,7 @@ export const casesEs = {
     lead: "Solicitudes de eliminación de cuenta y datos (/eliminar-cuenta). Plazo: 10 días hábiles.",
     finding: (v: number) => (v === 0 ? "No hay solicitudes abiertas." : v === 1 ? "1 solicitud de eliminación en curso." : `${v} solicitudes de eliminación en curso.`),
     status: { received: "Recibida", identity: "Verificando identidad", processing: "Eliminando datos", done: "Completada" },
+    hint: { received: "Llegó la solicitud y los datos ya están bloqueados.", identity: "Se confirma que quien pide la eliminación es el titular.", processing: "Se están borrando los datos del correo, WhatsApp y herramientas.", done: "Se envió la constancia; caso cerrado." } as Record<string, string>,
     channel: { form: "Formulario", email: "Correo", whatsapp: "WhatsApp" },
     col: { code: "Código", person: "Titular", channel: "Canal", due: "Plazo", status: "Estado" },
     steps: [

@@ -1,10 +1,11 @@
 "use client";
 
-import { IconRefresh } from "@/components/ui/icons";
+import { IconChevronRight, IconComplaints, IconInquiries, IconPrivacy, IconQuotes, IconRefresh, IconUsers } from "@/components/ui/icons";
 import Link from "next/link";
 import { useState } from "react";
 import { LineChart } from "@/components/charts/line-chart";
 import { AnimatedNumber } from "@/components/ui/animated-number";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Avatar, MethodIcon, Skeleton, StatusBadge, TitleRow } from "@/components/ui/bits";
 import { useToast } from "@/components/ui/toast";
 import type { DashboardStats, RangeKey } from "@/lib/api";
@@ -56,6 +57,8 @@ export function OverviewView() {
           )
         }
       />
+
+      <TodayStrip pending={s?.pending} />
 
       <div className="scope-row">
         <div className="segmented" role="group" aria-label={o.rangeLabel}>
@@ -109,21 +112,24 @@ function Kpis({ s, range }: { s?: DashboardStats; range: RangeKey }) {
   );
 
   const cells = [
-    { label: o.newUsers, value: s?.newInRange, lead: true, caption: deltaText },
-    { label: o.total, value: s?.total, caption: o.totalHint },
+    { label: o.newUsers, help: o.help.newUsers, value: s?.newInRange, lead: true, caption: deltaText },
+    { label: o.total, help: o.help.total, value: s?.total, caption: o.totalHint },
     {
       label: o.pending,
+      help: o.help.pending,
       value: s?.pending,
       caption: s ? <span className={s.pendingOver48h > 0 ? "is-bad" : undefined}>{o.pendingHint(s.pendingOver48h)}</span> : null,
     },
-    { label: o.activeWeek, value: s?.activeWeek, caption: s ? o.activeHint(formatPercent(s.activeWeek / Math.max(1, s.total), t.locale)) : null },
+    { label: o.activeWeek, help: o.help.activeWeek, value: s?.activeWeek, caption: s ? o.activeHint(formatPercent(s.activeWeek / Math.max(1, s.total), t.locale)) : null },
   ];
 
   return (
     <section className="kpis" aria-label={o.title}>
       {cells.map((c) => (
         <div key={c.label} className="kpi">
-          <p className="kpi__label">{c.label}</p>
+          <p className="kpi__label">
+            {c.label} <InfoTip label={o.what(c.label)} text={c.help} />
+          </p>
           {c.value === undefined ? (
             <span className={`kpi__value${c.lead ? " kpi__value--lead" : ""}`}>
               <Skeleton w={56} h={c.lead ? 30 : 24} />
@@ -147,13 +153,16 @@ function TrendCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
   const short: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
   const points = (s?.series ?? []).map((p) => ({ x: formatDate(p.day, t.locale, short), y: p.count, full: formatDate(p.day, t.locale, { weekday: "short", day: "numeric", month: "long" }) }));
   const peak = Math.max(0, ...points.map((p) => p.y));
+  const peakIndex = points.findIndex((p) => p.y === peak);
+  const avg = new Intl.NumberFormat(t.locale, { maximumFractionDigits: 1 }).format(points.length ? points.reduce((a, p) => a + p.y, 0) / points.length : 0);
+  const summary = s && peak > 0 && peakIndex >= 0 ? o.chartSummary(avg, peak, formatDate(s.series[peakIndex].day, t.locale, { day: "numeric", month: "long" })) : null;
 
   return (
     <section className="panel" aria-labelledby="trend-title">
       <div className="panel__head">
         <div>
           <h2 id="trend-title" className="panel__title">
-            {o.chartTitle}
+            {o.chartTitle} <InfoTip label={o.what(o.chartTitle)} text={o.help.chart} />
           </h2>
           <p className="panel__meta">{s ? o.chartDesc(s.newInRange, o.rangeLong[range]) : <Skeleton w={160} h={12} />}</p>
         </div>
@@ -187,6 +196,7 @@ function TrendCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
       ) : (
         <LineChart points={points} label={o.chartAria(s.newInRange, o.rangeLong[range], peak)} valueLabel={o.chartPoint} />
       )}
+      {s && !asTable && summary && <p className="chart-summary">{summary}</p>}
     </section>
   );
 }
@@ -212,7 +222,7 @@ function FunnelCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
       <div className="panel__head">
         <div>
           <h2 id="funnel-title" className="panel__title">
-            {o.funnelTitle}
+            {o.funnelTitle} <InfoTip label={o.what(o.funnelTitle)} text={o.help.funnel} />
           </h2>
           <p className="panel__meta">{o.funnelDesc(o.rangeLong[range])}</p>
         </div>
@@ -237,6 +247,7 @@ function FunnelCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
           ))}
         </ol>
       )}
+      {f && f.registered > 0 && <p className="chart-summary">{o.funnelSummary(new Intl.NumberFormat(t.locale, { maximumFractionDigits: 0 }).format((f.quoted / f.registered) * 10))}</p>}
     </section>
   );
 }
@@ -258,7 +269,7 @@ function MixCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
       <div className="panel__head">
         <div>
           <h2 id="mix-title" className="panel__title">
-            {o.mixTitle}
+            {o.mixTitle} <InfoTip label={o.what(o.mixTitle)} text={o.help.mix} />
           </h2>
           <p className="panel__meta">{o.mixDesc(o.rangeLong[range])}</p>
         </div>
@@ -312,6 +323,41 @@ function FakeBars() {
   );
 }
 
+/** Lo pendiente en palabras simples, cada cosa con su enlace: se entiende sin leer ninguna cifra más. */
+function TodayStrip({ pending }: { pending?: number }) {
+  const { t } = usePrefs();
+  const o = t.overview;
+  const q = useQueueCounts().data;
+  if (!q || pending === undefined) return <div className="today today--loading" aria-hidden="true" />;
+  const items = [
+    { key: "pending", n: pending, text: o.today.pending(pending), href: "/usuarios?estado=pending", Icon: IconUsers },
+    { key: "claims", n: q.claims, text: o.today.claims(q.claims), href: "/reclamaciones", Icon: IconComplaints },
+    { key: "quotes", n: q.quotes, text: o.today.quotes(q.quotes), href: "/cotizaciones?estado=new", Icon: IconQuotes },
+    { key: "inquiries", n: q.inquiries, text: o.today.inquiries(q.inquiries), href: "/consultas?estado=new", Icon: IconInquiries },
+    { key: "privacy", n: q.privacy, text: o.today.privacy(q.privacy), href: "/privacidad", Icon: IconPrivacy },
+  ].filter((i) => i.n > 0);
+  return (
+    <nav className="today" aria-label={o.today.title}>
+      <span className="today__title">{o.today.title}</span>
+      {items.length === 0 ? (
+        <span className="today__none">{o.today.none}</span>
+      ) : (
+        <ul className="today__list">
+          {items.map(({ key, text, href, Icon }) => (
+            <li key={key}>
+              <Link href={href} className="today__item">
+                <Icon size={18} />
+                <span>{text}</span>
+                <IconChevronRight size={12} className="today__go" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </nav>
+  );
+}
+
 function DueList() {
   const { t } = usePrefs();
   const o = t.overview;
@@ -323,7 +369,7 @@ function DueList() {
       <div className="panel panel--list">
         <div className="panel__head panel__head--list">
           <h2 id="due-title" className="panel__title">
-            {o.dueTitle}
+            {o.dueTitle} <InfoTip label={o.what(o.dueTitle)} text={o.help.due} />
           </h2>
         </div>
         {!queues.data ? (
@@ -360,7 +406,7 @@ function PendingList({ s }: { s?: DashboardStats }) {
       <div className="panel panel--list">
         <div className="panel__head panel__head--list">
           <h2 id="pending-title" className="panel__title">
-            {o.pendingTitle}
+            {o.pendingTitle} <InfoTip label={o.what(o.pendingTitle)} text={o.help.pendingList} />
           </h2>
         </div>
         {!s ? (
@@ -415,7 +461,7 @@ function LatestList({ s, lang }: { s?: DashboardStats; lang: string }) {
       <div className="panel panel--list">
         <div className="panel__head panel__head--list">
           <h2 id="latest-title" className="panel__title">
-            {o.latestTitle}
+            {o.latestTitle} <InfoTip label={o.what(o.latestTitle)} text={o.help.latest} />
           </h2>
         </div>
         {!s ? (

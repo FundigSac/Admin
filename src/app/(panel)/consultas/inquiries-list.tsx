@@ -21,6 +21,7 @@ export function InquiriesList() {
       base="/consultas"
       title={c.title}
       lead={c.lead}
+      hints={c.hint}
       finding={queues.data ? c.finding(queues.data.inquiries) : undefined}
       statuses={STATUSES.map((s) => ({ value: s, label: c.status[s] }))}
       columns={[

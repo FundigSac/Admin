@@ -67,6 +67,7 @@ export const casesEn: CasesCopy = {
     lead: "Price requests from /cotizar, product pages and the cart.",
     finding: (v) => (v === 0 ? "No new quotes are waiting for an owner." : v === 1 ? "1 new quote is waiting for an owner." : `${v} new quotes are waiting for an owner.`),
     status: { new: "New", reviewing: "Under review", sent: "Quoted", won: "Won", lost: "Lost" },
+    hint: { new: "Arrived from the site and nobody has taken it yet.", reviewing: "A salesperson is preparing the price.", sent: "The quote was sent; waiting for the customer.", won: "The customer accepted the quote.", lost: "The customer didn't buy this time." },
     source: { general: "General quote", product: "Product page", procurement: "Purchase requirement", cart: "Cart" },
     project: { saneamiento: "Water and sanitation", matrices: "Mains and trunk networks", alcantarillado: "Sewerage and drainage", otro: "Other" },
     family: { valvulas: "Valves", tuberias: "Pipes", marcos_tapas: "Frames and covers", mixto: "Several families" },
@@ -95,6 +96,7 @@ export const casesEn: CasesCopy = {
     lead: "Messages from the /contacto form: documentation and meetings.",
     finding: (v) => (v === 0 ? "Every inquiry has a reply." : v === 1 ? "1 inquiry is waiting for a reply." : `${v} inquiries are waiting for a reply.`),
     status: { new: "Unanswered", answered: "Answered", closed: "Closed" },
+    hint: { new: "Nobody has replied yet.", answered: "A reply was sent by email.", closed: "Case finished; no further action." },
     reason: { documentacion: "Documentation request", reunion: "Meeting request" },
     col: { code: "Code", person: "Person", reason: "Reason", status: "Status", received: "Received" },
     message: "Message",
@@ -116,6 +118,7 @@ export const casesEn: CasesCopy = {
     finding: (v, soon) =>
       v === 0 ? "No sheets are waiting for an answer." : soon > 0 ? `${v} ${v === 1 ? "sheet" : "sheets"} pending; ${soon} due in 3 business days or less.` : `${v} ${v === 1 ? "sheet" : "sheets"} pending, all within the deadline.`,
     status: { received: "Received", in_progress: "In progress", answered: "Answered" },
+    hint: { received: "Just filed and not assigned yet. The 15 business day deadline is already running.", in_progress: "Someone is handling it within the legal deadline.", answered: "The answer was sent to the consumer through the channel they chose." },
     kind: { reclamo: "Claim", queja: "Complaint" },
     kindHint: { reclamo: "Dissatisfaction with a product or service", queja: "Discontent with the service received" },
     col: { code: "Sheet no.", consumer: "Consumer", kind: "Type", due: "Deadline", status: "Status" },
@@ -157,6 +160,7 @@ export const casesEn: CasesCopy = {
     lead: "Account and data deletion requests (/eliminar-cuenta). Deadline: 10 business days.",
     finding: (v) => (v === 0 ? "No open requests." : v === 1 ? "1 deletion request in progress." : `${v} deletion requests in progress.`),
     status: { received: "Received", identity: "Verifying identity", processing: "Deleting data", done: "Completed" },
+    hint: { received: "The request arrived and the data is already blocked.", identity: "Confirming the requester is the data subject.", processing: "Deleting the data from email, WhatsApp and tools.", done: "The certificate was sent; case closed." },
     channel: { form: "Form", email: "Email", whatsapp: "WhatsApp" },
     col: { code: "Code", person: "Data subject", channel: "Channel", due: "Deadline", status: "Status" },
     steps: [

@@ -64,6 +64,21 @@
   color: var(--faint);
 }
 
+/* Significado del estado filtrado, en una frase. */
+.status-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.status-hint svg {
+  flex: none;
+  color: var(--accent);
+}
+
 /* En teléfono las pestañas de estado pasan a un selector a todo el ancho. */
 .status-select {
   display: none;

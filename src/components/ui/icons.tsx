@@ -28,6 +28,8 @@ import {
   GearSix,
   HourglassMedium,
   IdentificationBadge,
+  Info,
+  Question,
   List,
   LockKey,
   MagnifyingGlass,
@@ -83,6 +85,8 @@ export const IconRoles = duo(IdentificationBadge);
 export const IconSettings = duo(GearSix);
 export const IconLegal = duo(Scales);
 export const IconMailSent = duo(EnvelopeSimpleOpen);
+export const IconInfo = duo(Info);
+export const IconHelp = duo(Question);
 
 /* Estados (siempre con texto al lado) */
 export const IconActive = make(CheckCircle, "fill");

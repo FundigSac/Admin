@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useState } from "react";
 import { Skeleton, TitleRow } from "@/components/ui/bits";
-import { IconSearch } from "@/components/ui/icons";
+import { IconInfo, IconSearch } from "@/components/ui/icons";
 import type { CaseMap, CaseModule, CaseSort } from "@/lib/api";
 import { useCaseList } from "@/lib/api/queries";
 import { usePrefs } from "@/lib/prefs";
@@ -27,10 +27,12 @@ type Props<M extends CaseModule> = {
   actions?: React.ReactNode;
   /** Referencia bajo la lista (procedimiento, base legal): lo que el equipo consulta mientras atiende. */
   after?: React.ReactNode;
+  /** Qué significa cada estado, en una frase; se muestra al filtrar por ese estado. */
+  hints?: Record<string, string>;
 };
 
 /** Pantalla de cola: pestañas por estado con conteos, búsqueda, orden, tabla en escritorio y lista en teléfono. */
-export function CaseList<M extends CaseModule>({ module, base, title, lead, finding, statuses, columns, mobile, defaultSort = "newest", actions, after }: Props<M>) {
+export function CaseList<M extends CaseModule>({ module, base, title, lead, finding, statuses, columns, mobile, defaultSort = "newest", actions, after, hints }: Props<M>) {
   const { t } = usePrefs();
   const c = t.cases.common;
   const router = useRouter();
@@ -72,6 +74,13 @@ export function CaseList<M extends CaseModule>({ module, base, title, lead, find
           </button>
         ))}
       </div>
+
+      {status !== "all" && hints?.[status] && (
+        <p className="status-hint fade-in" key={status}>
+          <IconInfo size={16} />
+          {hints[status]}
+        </p>
+      )}
 
       <div className="toolbar">
         <label className="toolbar__search">

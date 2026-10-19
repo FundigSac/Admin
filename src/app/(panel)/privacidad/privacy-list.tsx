@@ -20,6 +20,7 @@ export function PrivacyList() {
       base="/privacidad"
       title={c.title}
       lead={c.lead}
+      hints={c.hint}
       finding={queues.data ? c.finding(queues.data.privacy) : undefined}
       defaultSort="due"
       after={

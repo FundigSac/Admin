@@ -7,7 +7,7 @@ import { useCallback, useDeferredValue, useState } from "react";
 import { Pager } from "@/components/cases/case-ui";
 import { useSessionUser } from "@/components/shell/session-context";
 import { Avatar, Skeleton, StatusBadge, TitleRow } from "@/components/ui/bits";
-import { IconBlocked, IconClose, IconExport, IconSearch, IconTrash, IconUndo, IconUserPlus } from "@/components/ui/icons";
+import { IconBlocked, IconClose, IconExport, IconInfo, IconSearch, IconTrash, IconUndo, IconUserPlus } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/toast";
 import { ConfirmDialog } from "@/components/users/confirm-dialog";
 import { UserFormDialog } from "@/components/users/user-form-dialog";
@@ -162,6 +162,13 @@ export function UsersView() {
           </button>
         ))}
       </div>
+
+      {status !== "all" && (
+        <p className="status-hint fade-in" key={status}>
+          <IconInfo size={16} />
+          {t.statusHint[status]}
+        </p>
+      )}
 
       <div className="toolbar users-toolbar">
         <label className="toolbar__search">

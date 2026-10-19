@@ -1,6 +1,6 @@
 "use client";
 
-import { IconActivity, IconComplaints, IconInquiries, IconPrivacy, IconQuotes, IconClose, IconMenu, IconOverview, IconRoles, IconSearch, IconSettings, IconSignOut, IconUpDown, IconUsers, type AppIcon } from "@/components/ui/icons";
+import { IconHelp, IconActivity, IconComplaints, IconInquiries, IconPrivacy, IconQuotes, IconClose, IconMenu, IconOverview, IconRoles, IconSearch, IconSettings, IconSignOut, IconUpDown, IconUsers, type AppIcon } from "@/components/ui/icons";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,6 +11,7 @@ import type { Copy } from "@/lib/i18n/es";
 import { useT } from "@/lib/prefs";
 import { endSession, type SessionUser } from "@/lib/session";
 import { CommandPalette } from "./command-palette";
+import { GuideDialog } from "./guide-dialog";
 import { LangToggle, ThemeToggle } from "./pref-toggles";
 import { SessionProvider } from "./session-context";
 import "./shell.css";
@@ -61,6 +62,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
   const router = useRouter();
   const [navOpen, setNavOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [lastPath, setLastPath] = useState(pathname);
   const queues = useQueueCounts();
 
@@ -145,6 +147,10 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
           </nav>
 
           <div className="sidebar__mobile-prefs">
+            <button type="button" className="btn" onClick={() => setGuideOpen(true)}>
+              <IconHelp size={16} />
+              {t.guide.open}
+            </button>
             <LangToggle />
             <ThemeToggle className="icon-btn icon-btn--outline" />
           </div>
@@ -154,7 +160,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
             align="start"
             className="sidebar__account"
             trigger={(p) => (
-              <button type="button" className="account-btn" {...p} aria-label={`${t.topbar.account}: ${user.name}`}>
+              <button type="button" className="account-btn" {...p}>
                 <Avatar name={user.name} size="sm" />
                 <span className="account-btn__text">
                   <strong>{user.name}</strong>
@@ -181,12 +187,15 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
               <IconMenu size={19} aria-hidden="true" />
             </button>
             <span className="topbar__title">{current ? navLabel(t, current.key) : t.common.app}</span>
-            <button type="button" className="search-btn" onClick={() => setPaletteOpen(true)} aria-label={t.topbar.searchLabel} aria-keyshortcuts="Control+K">
+            <button type="button" className="search-btn" onClick={() => setPaletteOpen(true)} aria-keyshortcuts="Control+K">
               <IconSearch size={15} aria-hidden="true" />
               <span className="search-btn__text">{t.topbar.search}</span>
               <kbd className="kbd">{t.topbar.shortcut}</kbd>
             </button>
             <div className="topbar__end">
+              <button type="button" className="icon-btn" onClick={() => setGuideOpen(true)} aria-label={t.guide.open} title={t.guide.open}>
+                <IconHelp size={19} />
+              </button>
               <LangToggle />
               <ThemeToggle />
             </div>
@@ -200,6 +209,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
         </div>
       </div>
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <GuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
     </SessionProvider>
   );
 }

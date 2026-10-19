@@ -24,6 +24,7 @@ export function ClaimsList() {
       base="/reclamaciones"
       title={c.title}
       lead={c.lead}
+      hints={c.hint}
       finding={open ? c.finding(open.length, soon) : undefined}
       defaultSort="due"
       after={<p className="legal-note">{c.legal}</p>}

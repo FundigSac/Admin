@@ -124,3 +124,105 @@
     min-width: 0;
   }
 }
+
+/* "Para hoy": lo pendiente en una línea, cada cosa con su enlace. */
+.today {
+  display: flex;
+  min-height: 48px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+  padding: 8px 8px 8px 16px;
+  border-radius: var(--radius-card);
+  background: var(--raised);
+}
+
+.today--loading {
+  min-height: 48px;
+}
+
+.today__title {
+  font-weight: 700;
+}
+
+.today__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.today__item {
+  display: inline-flex;
+  height: 32px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    border-color var(--t-hover) ease,
+    transform var(--t-press) var(--ease);
+}
+
+.today__item svg:first-child {
+  color: var(--accent);
+}
+
+.today__item:hover {
+  border-color: var(--accent);
+}
+
+.today__item:active {
+  transform: scale(0.97);
+}
+
+.today__go {
+  color: var(--faint);
+  transition: transform var(--t-hover) var(--ease);
+}
+
+.today__item:hover .today__go {
+  transform: translateX(2px);
+}
+
+.today__none {
+  color: var(--muted);
+}
+
+/* Frase que resume el gráfico en palabras. */
+.chart-summary {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 19px;
+}
+
+@media (max-width: 560px) {
+  .today {
+    padding: 12px;
+  }
+
+  .today__title {
+    width: 100%;
+  }
+
+  .today__item {
+    white-space: normal;
+  }
+}
+
+/* La ayuda (i) de cada KPI va a la derecha de su etiqueta, sin partirla en dos líneas. */
+.kpis .kpi__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.today__list {
+  flex: 1;
+}

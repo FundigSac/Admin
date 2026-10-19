@@ -25,6 +25,7 @@ export function QuotesList() {
       base="/cotizaciones"
       title={c.title}
       lead={c.lead}
+      hints={c.hint}
       finding={queues.data ? c.finding(queues.data.quotes) : undefined}
       statuses={STATUSES.map((s) => ({ value: s, label: c.status[s] }))}
       columns={[
