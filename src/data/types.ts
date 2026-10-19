@@ -160,5 +160,6 @@ export type PrivacyRequest = {
   channel: PrivacyChannel;
   userId: string | null;
   reason: string;
+  assignee: string | null;
   history: CaseEvent[];
 };
