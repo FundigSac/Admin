@@ -3,7 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { cookies } from "next/headers";
 import Script from "next/script";
 import { Providers } from "@/components/providers";
-import { LANG_COOKIE, THEME_SCRIPT, type Lang } from "@/lib/prefs";
+import { LANG_COOKIE, THEME_SCRIPT, type Lang } from "@/lib/prefs-shared";
 import "@/styles/tokens.css";
 import "@/styles/base.css";
 import "@/styles/components.css";

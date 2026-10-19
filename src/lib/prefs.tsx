@@ -3,21 +3,17 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { en } from "./i18n/en";
 import { es, type Copy } from "./i18n/es";
+import { DENSITY_KEY, LANG_COOKIE, THEME_KEY, type Lang } from "./prefs-shared";
 
-export type Lang = "es" | "en";
+export type { Lang };
+
 export type Theme = "light" | "dark" | "system";
 export type Density = "comfortable" | "compact";
 
-export const LANG_COOKIE = "fa-lang";
-const THEME_KEY = "fa-theme";
-const DENSITY_KEY = "fa-density";
 const PAGE_SIZE_KEY = "fa-page-size";
 export const PAGE_SIZES = [10, 20, 50] as const;
 
 const COPY: Record<Lang, Copy> = { es, en };
-
-/** Se ejecuta antes de pintar (en <head>) para que no parpadee el tema equivocado. */
-export const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("${THEME_KEY}")||"system";var d=t==="dark"||(t==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.dataset.theme=d?"dark":"light";var c=localStorage.getItem("${DENSITY_KEY}");if(c)document.documentElement.dataset.density=c;}catch(e){document.documentElement.dataset.theme="light";}})();`;
 
 // Preferencias en localStorage leídas con useSyncExternalStore: el servidor usa el valor por defecto y el cliente
 // el guardado, sin desajustes de hidratación ni efectos que copien estado.
