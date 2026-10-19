@@ -1,6 +1,6 @@
 "use client";
 
-import { CornerDownLeft, Search } from "lucide-react";
+import { IconEnter, IconSearch } from "@/components/ui/icons";
 import { useRouter } from "next/navigation";
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Avatar, StatusBadge } from "@/components/ui/bits";
@@ -95,7 +95,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
           {r.sub && <span>{r.sub}</span>}
         </span>
         {r.user ? <StatusBadge status={r.user.status} /> : null}
-        {i === active && <CornerDownLeft className="palette__enter" size={14} aria-hidden="true" />}
+        {i === active && <IconEnter className="palette__enter" size={14} aria-hidden="true" />}
       </li>
     );
   };
@@ -113,7 +113,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
       onClick={(e) => e.target === e.currentTarget && close()}
     >
       <div className="palette__search">
-        <Search size={17} aria-hidden="true" />
+        <IconSearch size={17} aria-hidden="true" />
         <input
           ref={input}
           className="palette__input"

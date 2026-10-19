@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { IconMoon, IconSun } from "@/components/ui/icons";
 import { usePrefs } from "@/lib/prefs";
 
 export function ThemeToggle({ className = "icon-btn" }: { className?: string }) {
@@ -8,7 +8,7 @@ export function ThemeToggle({ className = "icon-btn" }: { className?: string }) 
   const dark = resolvedTheme === "dark";
   return (
     <button type="button" className={className} onClick={() => setTheme(dark ? "light" : "dark")} aria-label={dark ? t.topbar.toLight : t.topbar.toDark} title={dark ? t.topbar.toLight : t.topbar.toDark}>
-      {dark ? <Sun size={19} aria-hidden="true" /> : <Moon size={19} aria-hidden="true" />}
+      {dark ? <IconSun size={19} aria-hidden="true" /> : <IconMoon size={19} aria-hidden="true" />}
     </button>
   );
 }

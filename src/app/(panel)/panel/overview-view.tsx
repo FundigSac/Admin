@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
+import { IconRefresh } from "@/components/ui/icons";
 import Link from "next/link";
 import { useState } from "react";
 import { LineChart } from "@/components/charts/line-chart";
@@ -47,7 +47,7 @@ export function OverviewView() {
         <span className="stamp">
           {s ? o.updated(formatTime(s.generatedAt, t.locale)) : null}
           <button type="button" className="icon-btn icon-btn--sm" onClick={() => stats.refetch()} aria-label={o.refresh} title={o.refresh} disabled={stats.isFetching}>
-            <RefreshCw size={14} aria-hidden="true" className={stats.isFetching ? "is-spinning" : undefined} />
+            <IconRefresh size={14} aria-hidden="true" className={stats.isFetching ? "is-spinning" : undefined} />
           </button>
         </span>
       </div>

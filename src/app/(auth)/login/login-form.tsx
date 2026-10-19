@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, CircleAlert, Mail, MailCheck } from "lucide-react";
+import { IconAlert, IconArrowLeft, IconArrowRight, IconMail, IconMailSent } from "@/components/ui/icons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ADMIN_EMAIL } from "@/data/demo-account";
@@ -116,7 +116,7 @@ export function LoginForm() {
     return (
       <>
         <header className="auth-head">
-          <MailCheck className="auth-sent__icon" size={28} aria-hidden="true" />
+          <IconMailSent className="auth-sent__icon" size={28} aria-hidden="true" />
           <h2 className="auth-head__title">{t.login.codeHeading}</h2>
           <p className="auth-head__sub">{t.login.codeSub(maskEmail(email.trim().toLowerCase()))}</p>
         </header>
@@ -161,7 +161,7 @@ export function LoginForm() {
             </div>
             {codeError ? (
               <p className="field__error" id="code-error" role="alert">
-                <CircleAlert size={14} aria-hidden="true" />
+                <IconAlert size={14} aria-hidden="true" />
                 {codeError}
               </p>
             ) : (
@@ -180,14 +180,14 @@ export function LoginForm() {
             ) : (
               <>
                 {t.login.verify}
-                <ArrowRight size={17} aria-hidden="true" />
+                <IconArrowRight size={17} aria-hidden="true" />
               </>
             )}
           </button>
 
           <div className="auth-form__links">
             <button type="button" className="btn btn--ghost" onClick={() => setStep("email")}>
-              <ArrowLeft size={16} aria-hidden="true" />
+              <IconArrowLeft size={16} aria-hidden="true" />
               {t.login.changeEmail}
             </button>
             <button type="button" className="btn" onClick={() => void send(email.trim(), true)} disabled={cooldown > 0 || sending}>
@@ -227,7 +227,7 @@ export function LoginForm() {
             {t.login.email}
           </label>
           <div className="field__control">
-            <Mail className="field__icon" size={17} aria-hidden="true" />
+            <IconMail className="field__icon" size={17} aria-hidden="true" />
             <input
               id="email"
               className="input"
@@ -246,7 +246,7 @@ export function LoginForm() {
           </div>
           {emailError && (
             <p className="field__error" id="email-error">
-              <CircleAlert size={14} aria-hidden="true" />
+              <IconAlert size={14} aria-hidden="true" />
               {emailError}
             </p>
           )}
@@ -266,7 +266,7 @@ export function LoginForm() {
           ) : (
             <>
               {t.login.send}
-              <ArrowRight size={17} aria-hidden="true" />
+              <IconArrowRight size={17} aria-hidden="true" />
             </>
           )}
         </button>

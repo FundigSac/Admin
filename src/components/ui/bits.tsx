@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, Clock3, Mail, ShieldBan } from "lucide-react";
+import { IconActive, IconBlocked, IconMail, IconPending } from "@/components/ui/icons";
 import Image from "next/image";
 import type { SignupMethod, UserStatus } from "@/data/types";
 import { avatarHue, initials } from "@/lib/format";
@@ -18,7 +18,7 @@ export function Avatar({ name, size }: { name: string; size?: "sm" | "lg" }) {
   );
 }
 
-const STATUS_ICON = { active: CircleCheck, pending: Clock3, disabled: ShieldBan } as const;
+const STATUS_ICON = { active: IconActive, pending: IconPending, disabled: IconBlocked } as const;
 
 /** Estado con ícono + texto: el color nunca es la única señal. */
 export function StatusBadge({ status }: { status: UserStatus }) {
@@ -26,7 +26,7 @@ export function StatusBadge({ status }: { status: UserStatus }) {
   const Icon = STATUS_ICON[status];
   return (
     <span className={`pill pill--${status}`} title={t.statusHint[status]}>
-      <Icon size={13} strokeWidth={2.4} aria-hidden="true" />
+      <Icon size={13} aria-hidden="true" />
       {t.status[status]}
     </span>
   );
@@ -55,7 +55,7 @@ function FacebookMark({ size = 16 }: { size?: number }) {
 export function MethodIcon({ method, size = 16 }: { method: SignupMethod; size?: number }) {
   if (method === "google") return <GoogleMark size={size} />;
   if (method === "facebook") return <FacebookMark size={size} />;
-  return <Mail size={size} strokeWidth={2} aria-hidden="true" style={{ color: "var(--text-3)" }} />;
+  return <IconMail size={size} aria-hidden="true" style={{ color: "var(--text-3)" }} />;
 }
 
 export function MethodChip({ method }: { method: SignupMethod }) {

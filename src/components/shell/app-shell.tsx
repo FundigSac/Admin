@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, ChevronsUpDown, LayoutGrid, LogOut, Menu as MenuIcon, Search, Settings, ShieldCheck, UsersRound, X, type LucideIcon } from "lucide-react";
+import { IconActivity, IconClose, IconMenu, IconOverview, IconRoles, IconSearch, IconSettings, IconSignOut, IconUpDown, IconUsers, type AppIcon } from "@/components/ui/icons";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -14,22 +14,22 @@ import { SessionProvider } from "./session-context";
 import "./shell.css";
 
 export type NavKey = "overview" | "users" | "activity" | "roles" | "settings";
-type NavItem = { href: string; key: NavKey; icon: LucideIcon };
+type NavItem = { href: string; key: NavKey; icon: AppIcon };
 
 export const NAV: { group: "general" | "admin"; items: NavItem[] }[] = [
   {
     group: "general",
     items: [
-      { href: "/panel", key: "overview", icon: LayoutGrid },
-      { href: "/usuarios", key: "users", icon: UsersRound },
-      { href: "/actividad", key: "activity", icon: Activity },
+      { href: "/panel", key: "overview", icon: IconOverview },
+      { href: "/usuarios", key: "users", icon: IconUsers },
+      { href: "/actividad", key: "activity", icon: IconActivity },
     ],
   },
   {
     group: "admin",
     items: [
-      { href: "/roles", key: "roles", icon: ShieldCheck },
-      { href: "/configuracion", key: "settings", icon: Settings },
+      { href: "/roles", key: "roles", icon: IconRoles },
+      { href: "/configuracion", key: "settings", icon: IconSettings },
     ],
   },
 ];
@@ -90,7 +90,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
               <Logo priority />
             </Link>
             <button type="button" className="icon-btn sidebar__close" onClick={() => setNavOpen(false)} aria-label={t.nav.closeMenu}>
-              <X size={18} aria-hidden="true" />
+              <IconClose size={18} aria-hidden="true" />
             </button>
           </div>
           <p className="sidebar__scope">{t.common.app}</p>
@@ -106,7 +106,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
                     return (
                       <li key={item.href}>
                         <Link href={item.href} className="nav-item" aria-current={active ? "page" : undefined}>
-                          <Icon size={16} strokeWidth={1.75} aria-hidden="true" />
+                          <Icon size={16} aria-hidden="true" />
                           {t.nav[item.key]}
                         </Link>
                       </li>
@@ -133,15 +133,15 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
                   <strong>{user.name}</strong>
                   <span>{user.email}</span>
                 </span>
-                <ChevronsUpDown size={15} aria-hidden="true" />
+                <IconUpDown size={15} aria-hidden="true" />
               </button>
             )}
           >
-            <MenuItem icon={<Settings size={16} />} onSelect={() => router.push("/configuracion")}>
+            <MenuItem icon={<IconSettings size={16} />} onSelect={() => router.push("/configuracion")}>
               {t.nav.profile}
             </MenuItem>
             <div className="menu__sep" role="separator" />
-            <MenuItem icon={<LogOut size={16} />} onSelect={logout}>
+            <MenuItem icon={<IconSignOut size={16} />} onSelect={logout}>
               {t.nav.logout}
             </MenuItem>
           </Menu>
@@ -151,11 +151,11 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
         <div className="frame">
           <header className="topbar">
             <button type="button" className="icon-btn topbar__menu" onClick={() => setNavOpen(true)} aria-label={t.nav.openMenu} aria-expanded={navOpen}>
-              <MenuIcon size={19} aria-hidden="true" />
+              <IconMenu size={19} aria-hidden="true" />
             </button>
             <span className="topbar__title">{current ? t.nav[current.key] : t.common.app}</span>
             <button type="button" className="search-btn" onClick={() => setPaletteOpen(true)} aria-label={t.topbar.searchLabel} aria-keyshortcuts="Control+K">
-              <Search size={15} aria-hidden="true" />
+              <IconSearch size={15} aria-hidden="true" />
               <span className="search-btn__text">{t.topbar.search}</span>
               <kbd className="kbd">{t.topbar.shortcut}</kbd>
             </button>

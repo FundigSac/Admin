@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleAlert, CircleCheck, X } from "lucide-react";
+import { IconAlert, IconClose, IconSuccess } from "@/components/ui/icons";
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { useT } from "@/lib/prefs";
 
@@ -35,11 +35,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {items.map((item) => (
           <div key={item.id} className={`toast toast--${item.tone}`}>
             <span className="toast__icon" aria-hidden="true">
-              {item.tone === "success" ? <CircleCheck size={20} /> : <CircleAlert size={20} />}
+              {item.tone === "success" ? <IconSuccess size={20} /> : <IconAlert size={20} />}
             </span>
             <p className="toast__text">{item.text}</p>
             <button type="button" className="icon-btn icon-btn--sm" onClick={() => dismiss(item.id)} aria-label={t.common.close}>
-              <X size={16} aria-hidden="true" />
+              <IconClose size={16} aria-hidden="true" />
             </button>
           </div>
         ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { IconClose } from "@/components/ui/icons";
 import { useEffect, useId, useRef } from "react";
 import { useT } from "@/lib/prefs";
 
@@ -60,7 +60,7 @@ export function Dialog({ open, onClose, title, description, icon, size = "md", f
               )}
             </div>
             <button type="button" className="icon-btn icon-btn--sm dialog__close" onClick={onClose} aria-label={t.common.close}>
-              <X size={18} aria-hidden="true" />
+              <IconClose size={18} aria-hidden="true" />
             </button>
           </div>
           {children && <div className="dialog__body">{children}</div>}
