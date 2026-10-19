@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { cookies } from "next/headers";
+import Script from "next/script";
 import { Providers } from "@/components/providers";
 import { LANG_COOKIE, THEME_SCRIPT, type Lang } from "@/lib/prefs";
 import "@/styles/tokens.css";
@@ -32,10 +33,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const lang: Lang = (await cookies()).get(LANG_COOKIE)?.value === "en" ? "en" : "es";
   return (
     <html lang={lang === "es" ? "es-PE" : "en"} className={jakarta.variable} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
-      </head>
       <body>
+        {/* Aplica el tema guardado antes de pintar, para que no parpadee. */}
+        <Script id="theme" strategy="beforeInteractive">
+          {THEME_SCRIPT}
+        </Script>
         <Providers initialLang={lang}>{children}</Providers>
       </body>
     </html>
