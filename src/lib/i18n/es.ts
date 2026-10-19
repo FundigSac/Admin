@@ -343,6 +343,7 @@ export const es = {
     notesPh: "Ej.: Cliente de una licitación municipal, prefiere contacto por WhatsApp.",
     notesSave: "Guardar nota",
     noActivity: "Sin actividad registrada.",
+    noQuotes: "Esta cuenta aún no pidió cotizaciones.",
     noPerms: "Los clientes no tienen permisos del panel.",
     manageRoles: "Cambiar roles",
     subscribed: "Suscrito",

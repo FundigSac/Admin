@@ -1,0 +1,89 @@
+/* Ficha de usuario. */
+
+.profile {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile__text {
+  min-width: 0;
+}
+
+.profile .case-head__meta {
+  margin-top: 4px;
+}
+
+.kpis.kpis--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.role-list {
+  display: grid;
+  gap: 10px;
+}
+
+.role-list__item {
+  display: grid;
+  gap: 2px;
+}
+
+.role-list__item strong {
+  font-weight: 600;
+}
+
+.role-list__item span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.perm-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.perm-chips li {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--raised);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+:root[data-theme="dark"] .perm-chips li {
+  background: var(--active);
+}
+
+.id-text {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .profile .avatar--lg {
+    width: 44px;
+    height: 44px;
+    font-size: 15px;
+  }
+
+  .kpis.kpis--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .kpis.kpis--3 .kpi {
+    padding: 12px;
+  }
+
+  .kpis.kpis--3 .kpi + .kpi {
+    border-left: 1px solid var(--border);
+  }
+
+  .kpis.kpis--3 .kpi:nth-child(n + 3) {
+    border-top: 0;
+  }
+}

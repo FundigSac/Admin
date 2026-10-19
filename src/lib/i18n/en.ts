@@ -342,6 +342,7 @@ export const en: Copy = {
     notesPh: "e.g. Customer from a municipal tender, prefers WhatsApp.",
     notesSave: "Save note",
     noActivity: "No activity recorded.",
+    noQuotes: "This account hasn't requested quotes yet.",
     noPerms: "Customers have no panel permissions.",
     manageRoles: "Change roles",
     subscribed: "Subscribed",
