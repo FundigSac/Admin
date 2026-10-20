@@ -80,16 +80,16 @@
   }
 }
 
-/* Línea del gráfico: se dibuja una vez (pathLength=1). */
-.draw-line {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 0;
-  animation: draw-line 700ms var(--ease-in-out) both;
+/* Columnas del gráfico: crecen desde la base, en cascada corta (el retraso lo pone el componente). */
+.grow-y {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: grow-y var(--dur-4) var(--ease-out) both;
 }
 
-@keyframes draw-line {
+@keyframes grow-y {
   from {
-    stroke-dashoffset: 1;
+    transform: scaleY(0);
   }
 }
 

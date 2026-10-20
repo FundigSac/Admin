@@ -3,7 +3,7 @@
 import { IconChevronRight, IconComplaints, IconInquiries, IconPrivacy, IconQuotes, IconRefresh, IconUsers } from "@/components/ui/icons";
 import Link from "next/link";
 import { useState } from "react";
-import { LineChart } from "@/components/charts/line-chart";
+import { ColumnChart } from "@/components/charts/column-chart";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Avatar, MethodIcon, Skeleton, StatusBadge, TitleRow } from "@/components/ui/bits";
@@ -194,7 +194,7 @@ function TrendCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
           </table>
         </div>
       ) : (
-        <LineChart points={points} label={o.chartAria(s.newInRange, o.rangeLong[range], peak)} valueLabel={o.chartPoint} />
+        <ColumnChart points={points} label={o.chartAria(s.newInRange, o.rangeLong[range], peak)} valueLabel={o.chartPoint} meanLabel={o.chartMean(avg)} />
       )}
       {s && !asTable && summary && <p className="chart-summary">{summary}</p>}
     </section>
