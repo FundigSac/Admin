@@ -97,3 +97,8 @@ export function useUpdateCase<M extends CaseModule>(module: M) {
 export function useQueueCounts() {
   return useQuery({ queryKey: ["queues"], queryFn: () => api.queueCounts(), staleTime: 15_000 });
 }
+
+/** Personal que puede atender casos (en la demostración, el de prueba; con Backend, las cuentas del personal). */
+export function useStaff() {
+  return useQuery({ queryKey: ["staff"], queryFn: () => api.listStaff(), staleTime: 60_000 });
+}

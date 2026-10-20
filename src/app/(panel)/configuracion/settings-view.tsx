@@ -9,6 +9,8 @@ import { IconActive, IconDesktop, IconMobile } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/toast";
 import { ConfirmDialog } from "@/components/users/confirm-dialog";
 import { STAFF } from "@/data/demo-account";
+import { api } from "@/lib/api";
+import { BACKEND_MODE } from "@/lib/backend-mode";
 import { useActivity, useCaseList, useResetDemo, useUserList } from "@/lib/api/queries";
 import { formatNumber, relativeTime } from "@/lib/format";
 import { PAGE_SIZES, usePrefs, useStoredValue, type Density, type Theme } from "@/lib/prefs";
@@ -46,7 +48,8 @@ export function SettingsView() {
   const reset = useResetDemo();
   const sample = useUserList({ page: 0, size: 1, kind: "customer", sort: { id: "registeredAt", desc: true } });
   const latest = sample.data?.items[0];
-  const staff = STAFF.find((x) => x.email === me.email);
+  // Con Backend, los roles vienen de la sesión firmada; en la demostración, del personal de prueba.
+  const myRoles = me.roles ?? STAFF.find((x) => x.email === me.email)?.roles;
   const mine = useActivity({ page: 0, size: 5, q: me.name });
   const counts = {
     users: useUserList({ page: 0, size: 1 }).data?.statusCounts.all,
@@ -100,7 +103,7 @@ export function SettingsView() {
                 </div>
                 <div className="kv">
                   <dt>{s.role}</dt>
-                  <dd>{staff ? staff.roles.map((r) => t.roles[r]).join(", ") : "—"}</dd>
+                  <dd>{myRoles?.length ? myRoles.map((r) => t.roles[r as keyof typeof t.roles] ?? r).join(", ") : "—"}</dd>
                 </div>
               </dl>
             </div>
@@ -245,13 +248,20 @@ export function SettingsView() {
 
         {tab === "data" && (
           <>
-          <Row title={s.source} desc={s.sourceNextNote}>
+          <Row title={s.source} desc={BACKEND_MODE ? s.sourceLiveNote : s.sourceNextNote}>
             <dl className="kvs">
-              <div className="kv">
-                <dt>{t.common.preview}</dt>
-                <dd>{s.sourceNow}</dd>
-              </div>
-              <div className="kv">
+              {BACKEND_MODE ? (
+                <div className="kv">
+                  <dt>{t.common.live}</dt>
+                  <dd className="num">{s.sourceLive}</dd>
+                </div>
+              ) : (
+                <div className="kv">
+                  <dt>{t.common.preview}</dt>
+                  <dd>{s.sourceNow}</dd>
+                </div>
+              )}
+              <div className="kv" hidden={BACKEND_MODE}>
                 <dt>{s.soon}</dt>
                 <dd className="num">{s.sourceNext}</dd>
               </div>
@@ -269,15 +279,18 @@ export function SettingsView() {
               </tbody>
             </table>
           </Row>
-          <Row title={s.dataTitle} desc={s.resetConfirm}>
-            <p className="setting__value">{sample.data ? s.usersCount(sample.data.statusCounts.all) : "—"}</p>
-            <div>
-              <button type="button" className="btn btn--danger-outline" onClick={() => setConfirmReset(true)} disabled={reset.isPending}>
-                {reset.isPending && <span className="spinner" aria-hidden="true" />}
-                {reset.isPending ? s.resetting : s.reset}
-              </button>
-            </div>
-          </Row>
+          {/* Restablecer solo existe en la demostración: con Backend los datos son reales. */}
+          {api.capabilities.resetDemo && (
+            <Row title={s.dataTitle} desc={s.resetConfirm}>
+              <p className="setting__value">{sample.data ? s.usersCount(sample.data.statusCounts.all) : "—"}</p>
+              <div>
+                <button type="button" className="btn btn--danger-outline" onClick={() => setConfirmReset(true)} disabled={reset.isPending}>
+                  {reset.isPending && <span className="spinner" aria-hidden="true" />}
+                  {reset.isPending ? s.resetting : s.reset}
+                </button>
+              </div>
+            </Row>
+          )}
           </>
         )}
       </div>

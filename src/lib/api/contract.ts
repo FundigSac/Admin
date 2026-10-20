@@ -77,7 +77,27 @@ export type QueueCounts = {
   due: { module: "claims" | "privacy"; id: string; code: string; name: string; dueAt: number }[];
 };
 
+/** Miembro del personal que puede atender casos (responsables de cotizaciones, consultas y reclamaciones). */
+export type StaffMember = { id: string; name: string; email: string; roles: UserRole[] };
+
+/**
+ * Qué permite cada origen de datos. La demostración lo simula todo; el Backend no da de alta clientes (se registran en
+ * el sitio y aceptan el aviso de privacidad), no cambia correos desde el panel y guarda notas internas solo en las
+ * reclamaciones.
+ */
+export type ApiCapabilities = {
+  createCustomers: boolean;
+  editEmail: boolean;
+  resetDemo: boolean;
+  /** El estado se elige en el formulario (demo) o solo con las acciones Activar y Desactivar (Backend). */
+  statusInForm: boolean;
+  caseNotes: readonly CaseModule[];
+  caseAssign: readonly CaseModule[];
+};
+
 export type UsersApi = {
+  capabilities: ApiCapabilities;
+  listStaff(): Promise<StaffMember[]>;
   listUsers(params: UserListParams): Promise<UserListResult>;
   getUser(id: string): Promise<User | null>;
   stats(range: RangeKey): Promise<DashboardStats>;

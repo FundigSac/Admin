@@ -151,7 +151,7 @@ export function UserDetail({ id }: { id: string }) {
               <Field label={d.city}>{x.city}</Field>
               <Field label={d.company}>{x.company}</Field>
               <Field label={d.ruc}>{x.ruc && <span className="code">{x.ruc}</span>}</Field>
-              <Field label={d.device}>{t.device[x.device]}</Field>
+              <Field label={d.device}>{x.device && t.device[x.device]}</Field>
             </dl>
           </section>
 

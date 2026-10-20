@@ -33,7 +33,8 @@ export type User = {
   cartItems: number;
   sessions: number;
   city: string;
-  device: "desktop" | "mobile";
+  /** Ciudad y dispositivo de la demostración; el Backend no los recopila (llegan vacíos y la ficha muestra "—"). */
+  device: "desktop" | "mobile" | null;
   notes: string;
   /** Versión optimista: el Backend la exige en If-Match para modificar la cuenta. */
   version: number;
@@ -89,7 +90,8 @@ export type Quote = {
 };
 
 export type InquiryStatus = "new" | "answered" | "closed";
-export type InquiryReason = "documentacion" | "reunion";
+/** Motivo de la consulta. "general": escrita desde /contacto sin un motivo preseleccionado. */
+export type InquiryReason = "documentacion" | "reunion" | "general";
 
 export type Inquiry = {
   id: string;

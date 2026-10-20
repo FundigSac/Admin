@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Logo } from "@/components/ui/bits";
 import { LangToggle, ThemeToggle } from "@/components/shell/pref-toggles";
+import { BACKEND_MODE } from "@/lib/backend-mode";
 import { useT } from "@/lib/prefs";
 import "./auth.css";
 
@@ -35,7 +36,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
         </div>
         <div className="auth-panel__inner">{children}</div>
         <p className="auth-panel__legal">
-          {t.common.preview}: {t.common.previewHint} · © {year} FUNDIGSAC S.A.C.
+          {BACKEND_MODE ? `${t.common.live}: ${t.common.liveHint}` : `${t.common.preview}: ${t.common.previewHint}`} · © {year} FUNDIGSAC S.A.C.
         </p>
       </main>
     </div>

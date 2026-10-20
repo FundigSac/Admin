@@ -97,7 +97,7 @@ export const casesEs = {
     finding: (v: number) => (v === 0 ? "Todas las consultas tienen respuesta." : v === 1 ? "1 consulta espera respuesta." : `${v} consultas esperan respuesta.`),
     status: { new: "Sin responder", answered: "Respondida", closed: "Cerrada" },
     hint: { new: "Nadie respondió todavía.", answered: "Ya se envió la respuesta por correo.", closed: "Caso terminado; no requiere más acción." } as Record<string, string>,
-    reason: { documentacion: "Solicitud de documentación", reunion: "Solicitud de reunión" },
+    reason: { documentacion: "Solicitud de documentación", reunion: "Solicitud de reunión", general: "Consulta general" },
     col: { code: "Código", person: "Persona", reason: "Motivo", status: "Estado", received: "Recibida" },
     message: "Mensaje",
     reply: "Respuesta",

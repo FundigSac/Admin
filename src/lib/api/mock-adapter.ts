@@ -1,3 +1,4 @@
+import { STAFF } from "@/data/demo-account";
 import { buildSeed } from "@/data/seed";
 import type { Activity, ActivityType, User, UserStatus } from "@/data/types";
 import { businessDaysLeft } from "@/lib/business-days";
@@ -126,6 +127,12 @@ function dueOf(c: { createdAt: number; dueAt?: number }) {
 }
 
 export const mockAdapter: UsersApi = {
+  capabilities: { createCustomers: true, editEmail: true, resetDemo: true, statusInForm: true, caseNotes: ["quotes", "inquiries", "claims", "privacy"], caseAssign: ["quotes", "inquiries", "claims", "privacy"] },
+
+  async listStaff() {
+    return delay(STAFF.map((s) => ({ id: s.email, name: s.name, email: s.email, roles: s.roles })), 120);
+  },
+
   async listUsers(p) {
     const now = Date.now();
     const users = load().users;

@@ -9,6 +9,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
 import { STAFF_ROLES } from "@/data/permissions";
 import type { User, UserRole } from "@/data/types";
+import { api } from "@/lib/api";
 import { useCreateUser, useUpdateUser } from "@/lib/api/queries";
 import { isValidRuc } from "@/lib/format";
 import { useT } from "@/lib/prefs";
@@ -44,7 +45,8 @@ export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose
   );
   type Values = z.infer<typeof schema>;
 
-  const empty: Values = { name: "", email: "", company: "", ruc: "", phone: "", kind: "customer", roles: [], status: "pending", notes: "" };
+  const caps = api.capabilities;
+  const empty: Values = { name: "", email: "", company: "", ruc: "", phone: "", kind: caps.createCustomers ? "customer" : "staff", roles: [], status: "pending", notes: "" };
   const {
     register,
     handleSubmit,
@@ -143,7 +145,8 @@ export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose
       }
     >
       <form id="user-form" className="user-form" onSubmit={onSubmit} noValidate>
-        {!editing && (
+        {/* Con Backend solo se invita personal: los clientes se registran en el sitio y aceptan allí el aviso de privacidad. */}
+        {!editing && caps.createCustomers && (
           <fieldset className="user-form__kind">
             <legend className="field__label">{f.kind}</legend>
             <div className="segmented">
@@ -169,7 +172,7 @@ export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose
             <label className="field__label" htmlFor="uf-email">
               {f.email}
             </label>
-            <input id="uf-email" className="input" type="email" autoComplete="off" placeholder={f.emailPh} {...register("email")} {...aria("email")} />
+            <input id="uf-email" className="input" type="email" autoComplete="off" placeholder={f.emailPh} readOnly={editing && !caps.editEmail} {...register("email")} {...aria("email")} />
             {err("email")}
           </div>
           <div className="field">
@@ -192,18 +195,20 @@ export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose
             <input id="uf-phone" className="input num" type="tel" placeholder={f.phonePh} {...register("phone")} {...aria("phone")} />
             {err("phone")}
           </div>
-          <div className="field">
-            <label className="field__label" htmlFor="uf-status">
-              {f.status}
-            </label>
-            <select id="uf-status" className="select" {...register("status")}>
-              {(["pending", "active", "disabled"] as const).map((s) => (
-                <option key={s} value={s}>
-                  {t.status[s]}
-                </option>
-              ))}
-            </select>
-          </div>
+          {caps.statusInForm && (
+            <div className="field">
+              <label className="field__label" htmlFor="uf-status">
+                {f.status}
+              </label>
+              <select id="uf-status" className="select" {...register("status")}>
+                {(["pending", "active", "disabled"] as const).map((s) => (
+                  <option key={s} value={s}>
+                    {t.status[s]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {kind === "staff" && (

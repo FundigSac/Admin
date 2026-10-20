@@ -97,7 +97,7 @@ export const casesEn: CasesCopy = {
     finding: (v) => (v === 0 ? "Every inquiry has a reply." : v === 1 ? "1 inquiry is waiting for a reply." : `${v} inquiries are waiting for a reply.`),
     status: { new: "Unanswered", answered: "Answered", closed: "Closed" },
     hint: { new: "Nobody has replied yet.", answered: "A reply was sent by email.", closed: "Case finished; no further action." },
-    reason: { documentacion: "Documentation request", reunion: "Meeting request" },
+    reason: { documentacion: "Documentation request", reunion: "Meeting request", general: "General inquiry" },
     col: { code: "Code", person: "Person", reason: "Reason", status: "Status", received: "Received" },
     message: "Message",
     reply: "Reply",
