@@ -104,12 +104,28 @@
   animation-timing-function: ease;
 }
 
-/* Indicador de pestaña: se desliza entre pestañas. */
-.tabs__tab::after {
-  transition:
-    transform var(--dur-2) var(--ease-out),
-    opacity var(--dur-2) ease;
+/* Pestaña elegida: su subrayado crece desde el centro (confirma el cambio sin mover la tabla). */
+.tabs__tab[aria-selected="true"]::after,
+.tabs__tab[aria-current="page"]::after {
+  animation: tab-in var(--dur-3) var(--ease-out);
 }
+
+@keyframes tab-in {
+  from {
+    transform: scaleX(0.2);
+    opacity: 0;
+  }
+}
+
+/* "Para hoy": las filas llegan en cascada corta con la pantalla. */
+.today__list > li {
+  animation: rise var(--dur-3) var(--ease-out) both;
+}
+
+.today__list > li:nth-child(2) { animation-delay: 40ms; }
+.today__list > li:nth-child(3) { animation-delay: 80ms; }
+.today__list > li:nth-child(4) { animation-delay: 120ms; }
+.today__list > li:nth-child(n + 5) { animation-delay: 160ms; }
 
 /* Respuesta táctil de los controles. */
 .btn:active:not(:disabled),
@@ -141,7 +157,9 @@
   .route > *,
   .stagger > *,
   .grow-x,
-  .draw-line,
+  .grow-y,
+  .today__list > li,
+  .tabs__tab::after,
   .fade-area,
   .fade-in {
     animation: none !important;
