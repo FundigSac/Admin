@@ -108,7 +108,7 @@ infraestructura extra. El panel no pierde la ventaja de SEO de Next: está marca
 | TanStack Table | 9.2.6 |
 | React Hook Form · Zod · @hookform/resolvers | 7.89.0 · 4.6.5 · 5.9.1 |
 | Phosphor Icons | 2.1.10 |
-| Tipografía | Plus Jakarta Sans (la del sitio), alojada por `next/font` |
+| Tipografía | IBM Plex Sans (3 pesos) + IBM Plex Mono (solo para códigos, documentos y horas), alojadas por `next/font` |
 | Pruebas | Playwright 1.64 + axe-core |
 
 Las versiones están fijadas (`--save-exact`) y se eligieron con al menos dos semanas de publicadas.
@@ -153,18 +153,25 @@ Decisiones clave:
 
 ## Diseño
 
-- Dirección **framed-sheet** (skill *design-taste-frontend*, semilla 1446286849): marco en L teñido con el
-  azul-gris del agua del logo, el trabajo sobre una hoja blanca sin sombras, el azul FUNDIGSAC (`#0972a1`) solo en los
-  datos y una sola tipografía.
+- Dirección **registro industrial** (2026-10-20, elegida por el usuario para quitar el aire de plantilla): se lee como
+  un libro de control de ingeniería. Marco gris neutro y hoja blanca; las secciones no son tarjetas sino bloques
+  abiertos bajo una regla de tinta (como el cajetín de un plano); cifras grandes con etiquetas en versalitas; estados
+  como marca cuadrada + texto (sin pastillas de color); avatares neutros; menú con regla azul a la izquierda; conteos
+  diarios en columnas con la media marcada. El azul FUNDIGSAC (`#0972a1`) solo marca datos y lo activo.
+- Tipografía **IBM Plex Sans** para leer y **Plex Mono** solo para lo que se copia carácter a carácter: códigos de caso
+  (`COT-2026-0521`), RUC/DNI, claves de permisos (`catalog:read`), IDs y horas del registro de actividad.
 - Skills instaladas a nivel de proyecto (`Diego Software/.agents/skills`): `frontend-design`,
   `web-design-guidelines`, `design-taste-frontend` e `impeccable`.
 - **Modo oscuro** neutro (sin azul marino) y **modo claro**; ES/EN en todo el panel.
-- **Animaciones breves** (120–520 ms, solo transform y opacidad): llegada escalonada de cada pantalla, cifras que
-  cuentan, línea del gráfico que se dibuja, barras que crecen, fundido al cambiar de tema. Con "reducir
-  movimiento" todo aparece directo.
+- **Animaciones breves** (120–520 ms, solo transform y opacidad): llegada escalonada de cada pantalla y de la lista
+  *Para hoy*, cifras que cuentan, columnas del gráfico que crecen en cascada (≤ 360 ms en total), barras que crecen,
+  subrayado de la pestaña que se abre desde el centro, regla del menú que crece al navegar y fundido al cambiar de
+  tema. Con "reducir movimiento" todo aparece directo.
+- **Sin saltos de diseño:** *Para hoy* muestra siempre sus cinco colas (las que están en 0, atenuadas) y los textos bajo
+  las cifras y la frase del gráfico reservan su alto, así nada se mueve cuando llegan los datos.
 - **Responsive** de 320 px a 1920 px: el menú se pliega en hoja lateral, las tablas pasan a listas de dos líneas en
   teléfono y las columnas secundarias se ocultan según el ancho real de la tabla (container queries).
-- **Accesibilidad:** Lighthouse 100, foco visible, estados con ícono + texto (nunca solo color), contraste AA en
+- **Accesibilidad:** Lighthouse 100, foco visible, estados con marca + texto (nunca solo color), contraste AA en
   ambos temas, áreas táctiles de 36 px o más en teléfono.
 
 ## Cómo correrlo
