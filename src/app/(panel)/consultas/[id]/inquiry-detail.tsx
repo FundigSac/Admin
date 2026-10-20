@@ -80,7 +80,7 @@ export function InquiryDetail({ id }: { id: string }) {
             <dl className="kvs kvs--three" style={{ marginTop: 16 }}>
               <Field label={c.company}>{x.company}</Field>
               <Field label={c.ruc}>
-                <span className="num">{x.ruc}</span>
+                <span className="code">{x.ruc}</span>
               </Field>
               <Field label={c.position}>{x.position}</Field>
             </dl>

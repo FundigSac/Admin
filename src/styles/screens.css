@@ -17,41 +17,49 @@
   font-size: 13px;
 }
 
-/* ===== KPIs: un contenedor dividido por líneas, etiqueta sobre cifra, sin íconos ===== */
+/* ===== KPIs: fila de cifras bajo la regla de tinta, columnas separadas por líneas finas, sin caja ===== */
 .kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--surface);
+  border-top: 1px solid var(--rule-strong);
 }
 
 .kpi {
   min-width: 0;
-  padding: 16px var(--card-pad);
+  padding: 14px 20px 2px;
+}
+
+.kpi:first-child {
+  padding-left: 0;
 }
 
 .kpi + .kpi {
   border-left: 1px solid var(--border);
 }
 
+/* Dos líneas reservadas: si una etiqueta se parte, las cifras de la fila siguen a la misma altura. */
 .kpi__label {
+  min-height: 32px;
   color: var(--muted);
+  font-size: var(--fs-label);
   font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 16px;
+  text-transform: uppercase;
 }
 
 .kpi__value {
   display: block;
-  margin-top: 6px;
+  margin-top: 12px;
   font-size: var(--fs-kpi);
-  font-weight: 600;
-  line-height: 30px;
-  letter-spacing: -0.01em;
+  font-weight: 500;
+  line-height: 34px;
+  letter-spacing: -0.025em;
 }
 
 .kpi__value--lead {
   font-size: var(--fs-lead-figure);
-  line-height: 36px;
+  line-height: 40px;
 }
 
 .kpi__caption {
@@ -239,6 +247,15 @@
   text-align: left;
   white-space: nowrap;
   border-bottom: 1px solid var(--border);
+}
+
+/* Encabezado de columnas en versalitas bajo la regla de tinta: la tabla abre como una hoja de registro.
+   Los encabezados de fila (th scope="row") conservan su texto normal. */
+.table thead th {
+  font-size: var(--fs-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-top: 1px solid var(--rule-strong);
 }
 
 .table td {

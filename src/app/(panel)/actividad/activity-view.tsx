@@ -127,7 +127,7 @@ export function ActivityView() {
                         {e.type === "delete" ? sentence(e) : <Link href={`/usuarios/${e.userId}`}>{sentence(e)}</Link>}
                         <span className="feed__tag">{a.types[e.type]}</span>
                       </p>
-                      <time className="feed__time num" dateTime={new Date(e.at).toISOString()}>
+                      <time className="feed__time code" dateTime={new Date(e.at).toISOString()}>
                         {formatTime(e.at, t.locale)}
                       </time>
                     </li>

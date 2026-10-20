@@ -29,7 +29,7 @@ export function CaseHeader({ base, list, title, code, pill, meta, actions }: { b
           <h1 className="case-head__title">
             {title && <>{title} </>}
             {/* El código nunca se parte entre líneas. */}
-            <span className="nowrap">{code}</span>
+            <span className="nowrap code">{code}</span>
           </h1>
           <button
             type="button"

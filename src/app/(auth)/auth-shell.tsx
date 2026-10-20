@@ -22,14 +22,6 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
           <p className="auth-visual__kicker">{t.common.app}</p>
           <h1 className="auth-visual__title">{t.login.title.join(" ")}</h1>
           <p className="auth-visual__lead">{t.login.lead}</p>
-          <ul className="auth-points">
-            {t.login.features.map((f) => (
-              <li key={f.title}>
-                <strong>{f.title}</strong>
-                <span>{f.text}</span>
-              </li>
-            ))}
-          </ul>
         </div>
       </aside>
 

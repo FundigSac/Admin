@@ -3,30 +3,26 @@
 
 .overview {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 384px;
-  gap: var(--gap);
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--section-gap) 48px;
   align-items: start;
 }
 
 .overview__main {
   display: grid;
   min-width: 0;
-  gap: var(--gap);
+  gap: var(--section-gap);
 }
 
 .overview__pair {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--gap);
+  gap: var(--section-gap) 40px;
 }
 
 .overview__rail {
   display: grid;
-  gap: var(--gap);
-}
-
-.panel--list {
-  padding: 16px 16px 16px;
+  gap: var(--section-gap);
 }
 
 .panel__head--list {
@@ -84,6 +80,7 @@
   .overview__rail {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
+    column-gap: 40px;
   }
 
   /* Con un número impar de bloques, el último ocupa todo el ancho en lugar de dejar un hueco. */
@@ -106,8 +103,13 @@
     border-left: 1px solid var(--border);
   }
 
+  .kpi:nth-child(2n + 1) {
+    padding-left: 0;
+  }
+
   .kpi:nth-child(n + 3) {
     border-top: 1px solid var(--border);
+    padding-top: 14px;
   }
 
   .overview__pair,
@@ -118,7 +120,7 @@
 
 @media (max-width: 420px) {
   .kpi {
-    padding: 14px;
+    padding: 14px 12px 4px;
   }
 
   .kpi__value--lead {
@@ -223,7 +225,7 @@
 /* La ayuda (i) de cada KPI va a la derecha de su etiqueta, sin partirla en dos líneas. */
 .kpis .kpi__label {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 6px;
 }

@@ -113,7 +113,7 @@ export function QuoteDetail({ id }: { id: string }) {
               <Field label={c.deliveryBy}>{x.deliveryBy ? formatDate(x.deliveryBy, t.locale) : null}</Field>
               <Field label={c.company}>{x.company}</Field>
               <Field label={c.ruc}>
-                <span className="num">{x.ruc}</span>
+                <span className="code">{x.ruc}</span>
               </Field>
               <Field label={c.channel}>{c.source[x.source]}</Field>
               <Field label={c.message} wide>

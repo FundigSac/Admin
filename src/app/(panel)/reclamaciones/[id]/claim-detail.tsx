@@ -94,8 +94,8 @@ export function ClaimDetail({ id }: { id: string }) {
               <dl className="kvs">
                 <Field label={c.name}>{x.name}</Field>
                 <Field label={c.doc}>
-                  <span className="num">
-                    {x.docType} {x.docNumber}
+                  <span>
+                    {x.docType} <span className="code">{x.docNumber}</span>
                   </span>
                 </Field>
                 <Field label={c.address} wide>

@@ -1,22 +1,25 @@
-/* Tokens del gestor. Dirección "framed-sheet" (tasteskill, semilla 1446286849): un marco en L teñido con el
-   azul-gris del agua del logo de FUNDIGSAC y el trabajo sobre una hoja blanca, sin sombras. El color de marca
-   (#0972a1) vive en los datos: la serie principal, la pestaña activa y el foco. El naranja del logo queda en el logo.
-   Radios en tres pasos: hoja 16, tarjetas 8, controles 6. */
+/* Tokens del gestor. Dirección "registro industrial": se lee como un libro de control de ingeniería.
+   Marco gris neutro y hoja blanca; las secciones no son tarjetas sino bloques abiertos bajo una regla de tinta
+   (--rule-strong), como el cajetín de un plano. El azul de marca (#0972a1) solo marca datos: la serie, la pestaña y
+   el elemento activos y el foco; el naranja del logo queda en el logo. Radios secos: hoja 10, piezas 6, controles 4.
+   Tipografía: IBM Plex Sans; Plex Mono solo para códigos, documentos y horas. */
 
 :root {
   color-scheme: light;
-  --font: var(--font-jakarta), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font: var(--font-plex), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "Cascadia Mono", Consolas, monospace;
 
-  --chrome: #eef3f6;
+  --chrome: #f1f2f3;
   --surface: #ffffff;
-  --raised: #f4f7f9;
-  --active: #dfe7ed;
-  --border: #e3e8ec;
-  --rule: #edf1f4;
-  --control: #cdd5dc;
-  --text: #10202b;
-  --muted: #4f5d68;
-  --faint: #5f6b75;
+  --raised: #f5f6f7;
+  --active: #e9ebed;
+  --border: #e1e4e7;
+  --rule: #eceef0;
+  --rule-strong: #1b262e;
+  --control: #c6ccd1;
+  --text: #0e1820;
+  --muted: #47535c;
+  --faint: #5d6871;
   --accent: #0972a1;
   --accent-soft: #e5f1f7;
   --focus: #0972a1;
@@ -45,23 +48,25 @@
 
   --shadow-float: 0 12px 32px -8px rgb(16 32 43 / 20%), 0 2px 6px rgb(16 32 43 / 6%);
 
-  --radius-sheet: 16px;
-  --radius-card: 8px;
-  --radius-control: 6px;
+  --radius-sheet: 10px;
+  --radius-card: 6px;
+  --radius-control: 4px;
 
   --sidebar-w: 232px;
   --topbar-h: 48px;
   --inset: 8px;
-  --pad: 24px;
+  --pad: 28px;
   --gap: 16px;
+  --section-gap: 36px;
   --card-pad: 20px;
   --control-h: 34px;
   --row-h: 52px;
 
-  --fs-title: 24px;
-  --fs-section: 16px;
-  --fs-kpi: 24px;
-  --fs-lead-figure: 30px;
+  --fs-title: 26px;
+  --fs-section: 15px;
+  --fs-kpi: 28px;
+  --fs-lead-figure: 34px;
+  --fs-label: 11.5px;
   --fs-body: 14px;
   --fs-small: 12px;
 
@@ -85,6 +90,7 @@
   --active: #262a2d;
   --border: #24282b;
   --rule: #1d2023;
+  --rule-strong: #c9ced2;
   --control: #3e4448;
   --text: #f2f4f5;
   --muted: #b6bcc0;

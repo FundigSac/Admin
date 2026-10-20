@@ -104,7 +104,6 @@
   gap: 8px;
   padding: 16px 18px;
   border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
   border-radius: var(--radius-control);
   background: var(--raised);
 }
@@ -116,7 +115,7 @@
 
 .mail-preview__subject {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .mail-preview__body {

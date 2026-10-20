@@ -25,7 +25,7 @@ export function InquiriesList() {
       finding={queues.data ? c.finding(queues.data.inquiries) : undefined}
       statuses={STATUSES.map((s) => ({ value: s, label: c.status[s] }))}
       columns={[
-        { key: "code", header: c.col.code, render: (x: Inquiry) => <span className="num">{x.code}</span> },
+        { key: "code", header: c.col.code, render: (x: Inquiry) => <span className="code">{x.code}</span> },
         {
           key: "person",
           header: c.col.person,

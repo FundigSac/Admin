@@ -1,9 +1,9 @@
 "use client";
 
-import { IconActive, IconBlocked, IconMail, IconPending } from "@/components/ui/icons";
+import { IconMail } from "@/components/ui/icons";
 import Image from "next/image";
 import type { SignupMethod, UserStatus } from "@/data/types";
-import { avatarHue, initials } from "@/lib/format";
+import { initials } from "@/lib/format";
 import { useT } from "@/lib/prefs";
 
 export function Logo({ className, priority }: { className?: string; priority?: boolean }) {
@@ -12,21 +12,18 @@ export function Logo({ className, priority }: { className?: string; priority?: b
 
 export function Avatar({ name, size }: { name: string; size?: "sm" | "lg" }) {
   return (
-    <span className={`avatar${size ? ` avatar--${size}` : ""}`} style={{ "--h": avatarHue(name) } as React.CSSProperties} aria-hidden="true">
+    <span className={`avatar${size ? ` avatar--${size}` : ""}`} aria-hidden="true">
       {initials(name)}
     </span>
   );
 }
 
-const STATUS_ICON = { active: IconActive, pending: IconPending, disabled: IconBlocked } as const;
-
-/** Estado con ícono + texto: el color nunca es la única señal. */
+/** Estado con marca + texto: el color nunca es la única señal. */
 export function StatusBadge({ status }: { status: UserStatus }) {
   const t = useT();
-  const Icon = STATUS_ICON[status];
   return (
     <span className={`pill pill--${status}`} title={t.statusHint[status]}>
-      <Icon size={13} aria-hidden="true" />
+      <span className="pill__dot" aria-hidden="true" />
       {t.status[status]}
     </span>
   );

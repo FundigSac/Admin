@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { cookies } from "next/headers";
 import Script from "next/script";
 import { Providers } from "@/components/providers";
@@ -9,8 +9,12 @@ import "@/styles/base.css";
 import "@/styles/components.css";
 import "@/styles/motion.css";
 
-// Una sola familia: Plus Jakarta Sans, la tipografía de títulos del sitio de FUNDIGSAC.
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-jakarta", display: "swap" });
+// Dirección "registro industrial": IBM Plex Sans para leer y trabajar (nació en ingeniería y lee bien a 13-14 px)
+// y Plex Mono, una sola variante, solo para lo que se copia o se compara carácter a carácter: códigos de caso, RUC/DNI y horas.
+// Plex Sans es variable: sin fijar pesos se sirve un único archivo para 400-600 (con pesos fijos eran tres descargas
+// compitiendo con el LCP). La mono no se precarga: aparece en tablas y fichas, nunca en el primer texto que se pinta.
+const plex = IBM_Plex_Sans({ subsets: ["latin"], variable: "--font-plex", display: "swap" });
+const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["500"], variable: "--font-plex-mono", display: "swap", preload: false });
 
 export const metadata: Metadata = {
   title: { default: "Gestor de usuarios | FUNDIGSAC", template: "%s | FUNDIGSAC Admin" },
@@ -32,7 +36,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const lang: Lang = (await cookies()).get(LANG_COOKIE)?.value === "en" ? "en" : "es";
   return (
-    <html lang={lang === "es" ? "es-PE" : "en"} className={jakarta.variable} suppressHydrationWarning>
+    <html lang={lang === "es" ? "es-PE" : "en"} className={`${plex.variable} ${plexMono.variable}`} suppressHydrationWarning>
       <body>
         {/* Aplica el tema guardado antes de pintar, para que no parpadee. */}
         <Script id="theme" strategy="beforeInteractive">

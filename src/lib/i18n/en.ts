@@ -118,11 +118,6 @@ export const en: Copy = {
   login: {
     title: ["Every account,", "under control."],
     lead: "See who signs up on fundigsac.com, validate their details and manage team access and roles in one place.",
-    features: [
-      { title: "Sign-ups as they happen", text: "Each new account shows up as soon as it's created on the site." },
-      { title: "Backend roles", text: "The same permissions the FUNDIGSAC server enforces." },
-      { title: "Full audit trail", text: "Every change is logged with date and author." },
-    ],
     heading: "Sign in",
     sub: "No passwords: we email a one-time code to your staff address.",
     email: "Work email",

@@ -30,7 +30,7 @@ export function ClaimsList() {
       after={<p className="legal-note">{c.legal}</p>}
       statuses={STATUSES.map((s) => ({ value: s, label: c.status[s] }))}
       columns={[
-        { key: "code", header: c.col.code, render: (x: Claim) => <span className="num">{x.code}</span> },
+        { key: "code", header: c.col.code, render: (x: Claim) => <span className="code">{x.code}</span> },
         {
           key: "consumer",
           header: c.col.consumer,
@@ -39,7 +39,7 @@ export function ClaimsList() {
             <span className="cell-main">
               <strong>{x.name}</strong>
               <span>
-                {x.docType} {x.docNumber} · {relativeTime(x.createdAt, t.locale)}
+                {x.docType} <span className="code">{x.docNumber}</span> · {relativeTime(x.createdAt, t.locale)}
               </span>
             </span>
           ),

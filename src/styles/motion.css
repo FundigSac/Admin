@@ -134,7 +134,7 @@
 }
 
 .nav-item:hover svg {
-  transform: translateX(1px) scale(1.06);
+  transform: translateX(1px);
 }
 
 @media (prefers-reduced-motion: reduce) {

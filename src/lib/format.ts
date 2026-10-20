@@ -41,13 +41,6 @@ export function initials(name: string) {
   return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
-/** Tono estable por persona para el avatar (misma persona, mismo color en todo el panel). */
-export function avatarHue(seed: string) {
-  let h = 0;
-  for (let i = 0; i < seed.length; i += 1) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  return [204, 192, 216, 172, 228, 24, 152, 262][h % 8];
-}
-
 export function dayKey(t: number) {
   const d = new Date(t);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();

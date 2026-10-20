@@ -381,7 +381,7 @@ function DueList() {
                 <span className="row__main">
                   <Link href={`/${d.module === "claims" ? "reclamaciones" : "privacidad"}/${d.id}`}>{d.name}</Link>
                   <span className="row__sub">
-                    {t.cases.nav[d.module]} · <span className="num">{d.code}</span>
+                    {t.cases.nav[d.module]} · <span className="code">{d.code}</span>
                   </span>
                 </span>
                 <DeadlineChip dueAt={d.dueAt} closed={false} />

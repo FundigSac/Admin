@@ -163,8 +163,9 @@
 .lang-toggle {
   display: inline-flex;
   padding: 2px;
-  border-radius: 8px;
-  background: var(--active);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--raised);
 }
 
 .lang-toggle button {
@@ -176,11 +177,12 @@
   background: transparent;
   color: var(--muted);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lang-toggle button[aria-pressed="true"] {
   background: var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
   color: var(--text);
 }
 
@@ -391,13 +393,13 @@ input.checkbox:indeterminate {
   opacity: 0.55;
 }
 
-/* ===== Paneles ===== */
+/* ===== Secciones: bloques abiertos bajo una regla de tinta, sin caja ni fondo (como el cajetín de un plano).
+   El contenido se alinea con el texto de la pantalla; el aire entre secciones lo da --section-gap. ===== */
 .panel {
   min-width: 0;
-  padding: var(--card-pad);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--surface);
+  padding: 14px 0 0;
+  border-top: 1px solid var(--rule-strong);
+  background: transparent;
 }
 
 .panel__head {
@@ -410,6 +412,9 @@ input.checkbox:indeterminate {
 }
 
 .panel__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--fs-section);
   font-weight: 600;
   line-height: 22px;
@@ -429,35 +434,75 @@ input.checkbox:indeterminate {
   font-weight: 600;
 }
 
-/* ===== Pastillas de estado: tinte pálido con tinta oscura del mismo tono, una por fila ===== */
+/* Etiqueta de dato: versalitas pequeñas sobre una cifra o una columna. */
+.label-caps {
+  color: var(--muted);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+/* ===== Estado: una marca cuadrada del color del tono y el texto en tinta (el color nunca va solo).
+   Sin pastilla de fondo: en una tabla de 10 filas, 10 pastillas de color eran lo más ruidoso de la pantalla. ===== */
 .pill {
+  --dot: var(--faint);
   display: inline-flex;
-  height: 22px;
   flex: none;
   align-items: center;
-  gap: 5px;
-  padding: 0 8px;
-  border-radius: 999px;
-  background: var(--pill-neutral-bg);
-  color: var(--pill-neutral-ink);
-  font-size: var(--fs-small);
-  font-weight: 600;
+  gap: 7px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
   white-space: nowrap;
 }
 
-.pill--active {
-  background: var(--pill-positive-bg);
-  color: var(--pill-positive-ink);
+.pill__dot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 1px;
+  background: var(--dot);
 }
 
-.pill--pending {
-  background: var(--pill-warning-bg);
-  color: var(--pill-warning-ink);
+.pill--active,
+.pill--done {
+  --dot: var(--positive);
+}
+
+.pill--pending,
+.pill--todo {
+  --dot: var(--warning);
+}
+
+:root:not([data-theme="dark"]) .pill--pending,
+:root:not([data-theme="dark"]) .pill--todo {
+  --dot: #c27c0e;
 }
 
 .pill--disabled {
-  background: var(--pill-negative-bg);
-  color: var(--pill-negative-ink);
+  --dot: var(--negative);
+}
+
+.pill--progress {
+  --dot: var(--accent);
+}
+
+.pill--muted {
+  --dot: var(--control);
+  color: var(--muted);
+}
+
+/* Etiqueta sin estado ("Pronto", "Este equipo"): un recuadro fino, sin color. */
+.pill:not(:has(.pill__dot)) {
+  height: 20px;
+  padding: 0 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--muted);
+  font-size: var(--fs-small);
 }
 
 .chip {
@@ -468,36 +513,32 @@ input.checkbox:indeterminate {
   white-space: nowrap;
 }
 
-/* ===== Avatar: inicial estable y tinte pálido propio de cada persona ===== */
+/* ===== Avatar: iniciales en tinta sobre gris, cuadrado de esquinas suaves (sin tinte por persona) ===== */
 .avatar {
-  --h: 200;
   display: inline-grid;
   width: 32px;
   height: 32px;
   flex: none;
   place-items: center;
-  border-radius: 50%;
-  background: hsl(var(--h) 55% 92%);
-  color: hsl(var(--h) 55% 26%);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-:root[data-theme="dark"] .avatar {
-  background: hsl(var(--h) 28% 22%);
-  color: hsl(var(--h) 60% 84%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--raised);
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .avatar--lg {
   width: 56px;
   height: 56px;
-  font-size: 19px;
+  font-size: 18px;
 }
 
 .avatar--sm {
   width: 28px;
   height: 28px;
-  font-size: 11px;
+  font-size: 10.5px;
 }
 
 /* ===== Carga: barras grises planas del tamaño real del valor, sin brillo ===== */
@@ -574,8 +615,9 @@ input.checkbox:indeterminate {
   width: max-content;
   max-width: 100%;
   padding: 2px;
-  border-radius: 8px;
-  background: var(--active);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--raised);
 }
 
 .segmented button {
@@ -591,6 +633,7 @@ input.checkbox:indeterminate {
 
 .segmented button[aria-pressed="true"] {
   background: var(--surface);
+  box-shadow: 0 1px 2px rgb(14 24 32 / 8%), 0 0 0 1px var(--border);
   color: var(--text);
   font-weight: 600;
 }
@@ -632,7 +675,7 @@ input.checkbox:indeterminate {
 
 .dialog__title {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 24px;
 }
 
@@ -820,8 +863,8 @@ input.checkbox:indeterminate {
   justify-items: center;
   gap: 6px;
   padding: 28px 16px;
-  border: 1px dashed var(--control);
-  border-radius: var(--radius-card);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   color: var(--muted);
   text-align: center;
 }
@@ -860,13 +903,14 @@ input.checkbox:indeterminate {
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px 16px;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
 }
 
 .title-row__title {
   font-size: var(--fs-title);
-  font-weight: 700;
-  line-height: 30px;
+  font-weight: 600;
+  line-height: 32px;
+  letter-spacing: -0.02em;
 }
 
 .title-row__sub {
@@ -903,7 +947,7 @@ input.checkbox:indeterminate {
 .not-found__code {
   color: var(--accent);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .not-found h1 {

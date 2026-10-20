@@ -119,11 +119,6 @@ export const es = {
   login: {
     title: ["Cada cuenta,", "bajo control."],
     lead: "Revisa quién se registra en fundigsac.com, valida sus datos y gestiona los accesos y roles del equipo desde un solo lugar.",
-    features: [
-      { title: "Registros al día", text: "Cada cuenta nueva aparece apenas se crea en el sitio." },
-      { title: "Roles del Backend", text: "Los mismos permisos que aplica el servidor de FUNDIGSAC." },
-      { title: "Auditoría completa", text: "Cada cambio queda registrado con fecha y responsable." },
-    ],
     heading: "Inicia sesión",
     sub: "Sin contraseñas: te enviamos un código de un solo uso a tu correo del personal.",
     email: "Correo corporativo",

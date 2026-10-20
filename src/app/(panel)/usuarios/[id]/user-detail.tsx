@@ -150,7 +150,7 @@ export function UserDetail({ id }: { id: string }) {
               <Field label={d.phone}>{x.phone && <span className="num">{x.phone}</span>}</Field>
               <Field label={d.city}>{x.city}</Field>
               <Field label={d.company}>{x.company}</Field>
-              <Field label={d.ruc}>{x.ruc && <span className="num">{x.ruc}</span>}</Field>
+              <Field label={d.ruc}>{x.ruc && <span className="code">{x.ruc}</span>}</Field>
               <Field label={d.device}>{t.device[x.device]}</Field>
             </dl>
           </section>
@@ -191,7 +191,7 @@ export function UserDetail({ id }: { id: string }) {
                   {quotes.data.items.map((q) => (
                     <li key={q.id} className="row">
                       <span className="row__main">
-                        <Link href={`/cotizaciones/${q.id}`} className="num">
+                        <Link href={`/cotizaciones/${q.id}`} className="code">
                           {q.code}
                         </Link>
                         <span className="row__sub">
@@ -293,7 +293,7 @@ export function UserDetail({ id }: { id: string }) {
           <section className="panel side-panel">
             <dl className="kvs kvs--stack">
               <Field label={d.id}>
-                <span className="num id-text">{x.id}</span>
+                <span className="code id-text">{x.id}</span>
               </Field>
             </dl>
           </section>

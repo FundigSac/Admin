@@ -46,7 +46,7 @@ export function PrivacyList() {
       }
       statuses={STATUSES.map((s) => ({ value: s, label: c.status[s] }))}
       columns={[
-        { key: "code", header: c.col.code, render: (x: PrivacyRequest) => <span className="num">{x.code}</span> },
+        { key: "code", header: c.col.code, render: (x: PrivacyRequest) => <span className="code">{x.code}</span> },
         {
           key: "person",
           header: c.col.person,

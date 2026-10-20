@@ -29,7 +29,7 @@ export function QuotesList() {
       finding={queues.data ? c.finding(queues.data.quotes) : undefined}
       statuses={STATUSES.map((s) => ({ value: s, label: c.status[s] }))}
       columns={[
-        { key: "code", header: c.col.code, render: (x: Quote) => <span className="num">{x.code}</span> },
+        { key: "code", header: c.col.code, render: (x: Quote) => <span className="code">{x.code}</span> },
         {
           key: "company",
           header: c.col.company,
