@@ -1,4 +1,5 @@
 import { STAFF } from "@/data/demo-account";
+import { BACKEND_MODE } from "@/lib/backend-mode";
 
 // Acceso sin contraseña con un código de un solo uso enviado al correo (fase de diseño).
 //
@@ -16,7 +17,8 @@ export const CODE_TTL_MS = 10 * 60_000;
 export const RESEND_COOLDOWN_MS = 60_000;
 export const MAX_ATTEMPTS = 5;
 
-export type SessionUser = { name: string; email: string };
+/** Con Backend llegan también el id y los roles del personal (de la cookie firmada); en la demostración, solo nombre y correo. */
+export type SessionUser = { name: string; email: string; id?: string; roles?: string[] };
 
 type Challenge = { email: string; code: string | null; expiresAt: number; attemptsLeft: number; sentAt: number };
 
@@ -61,7 +63,12 @@ export function startSession(user: SessionUser, remember: boolean) {
   document.cookie = `${SESSION_COOKIE}=${value}; Path=/; SameSite=Strict${maxAge}${secure}`;
 }
 
-export function endSession() {
+/** Cierra la sesión. Con Backend, el BFF revoca el refresh token en la API y borra las cookies httpOnly. */
+export async function endSession() {
+  if (BACKEND_MODE) {
+    await fetch("/api/session/logout", { method: "POST" }).catch(() => null);
+    return;
+  }
   document.cookie = `${SESSION_COOKIE}=; Path=/; Max-Age=0; SameSite=Strict`;
 }
 

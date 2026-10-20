@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ADMIN_EMAIL } from "@/data/demo-account";
 import { useT } from "@/lib/prefs";
-import { maskEmail, requestCode, RESEND_COOLDOWN_MS, startSession, verifyCode } from "@/lib/session";
+import { BACKEND_MODE } from "@/lib/backend-mode";
+import { MAX_ATTEMPTS, maskEmail, requestCode, RESEND_COOLDOWN_MS, startSession, verifyCode } from "@/lib/session";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const LENGTH = 6;
@@ -44,6 +45,7 @@ export function LoginForm() {
   const [sent, setSent] = useState<{ expiresAt: number; sentAt: number; demoCode: string | null } | null>(null);
   const now = useNow(step === "code");
   const codeInput = useRef<HTMLInputElement>(null);
+  const attemptsLeft = useRef(MAX_ATTEMPTS);
 
   const [entering, setEntering] = useState(false);
 
@@ -65,9 +67,22 @@ export function LoginForm() {
   const send = async (target: string, resend = false) => {
     setSending(true);
     setNotice(null);
-    // POST /api/v1/auth/login/code en el Backend: siempre responde igual, exista o no la cuenta.
-    await wait(700);
-    setSent(requestCode(target));
+    if (BACKEND_MODE) {
+      // POST /api/v1/auth/staff/code (vía BFF): siempre responde igual, exista o no la cuenta.
+      const res = await fetch("/api/session/code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: target }) }).catch(() => null);
+      setSending(false);
+      if (!res?.ok) {
+        setEmailError(res?.status === 429 ? t.login.limited : t.login.offline);
+        return;
+      }
+      const issued = (await res.json()) as { expiresInSeconds: number };
+      const at = Date.now();
+      attemptsLeft.current = MAX_ATTEMPTS;
+      setSent({ expiresAt: at + issued.expiresInSeconds * 1000, sentAt: at, demoCode: null });
+    } else {
+      await wait(700);
+      setSent(requestCode(target));
+    }
     setSending(false);
     setCode("");
     setCodeError(null);
@@ -92,6 +107,10 @@ export function LoginForm() {
     }
     setVerifying(true);
     setCodeError(null);
+    if (BACKEND_MODE) {
+      await verifyWithBackend(value);
+      return;
+    }
     await wait(600);
     const result = verifyCode(value);
     if (result.ok) {
@@ -107,6 +126,35 @@ export function LoginForm() {
       setLocked(true);
       setCodeError(t.login.locked);
     } else setCodeError(t.login.wrongCode(result.attemptsLeft));
+    requestAnimationFrame(() => codeInput.current?.focus());
+  };
+
+  /**
+   * La API responde INVALID_CODE a cualquier fallo (no revela si el código venció o se agotó): el panel lleva su propio
+   * conteo de los 5 intentos y el temporizador de 10 minutos, igual que la API.
+   */
+  const verifyWithBackend = async (value: string) => {
+    const res = await fetch("/api/session/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.trim(), code: value, remember }),
+    }).catch(() => null);
+    if (res?.ok) {
+      router.replace(safeNext(params.get("next")));
+      router.refresh();
+      return;
+    }
+    setVerifying(false);
+    setCode("");
+    if (!res || res.status >= 500) setCodeError(t.login.offline);
+    else if (res.status === 429) setCodeError(t.login.limited);
+    else {
+      attemptsLeft.current = Math.max(0, attemptsLeft.current - 1);
+      if (attemptsLeft.current === 0) {
+        setLocked(true);
+        setCodeError(t.login.locked);
+      } else setCodeError(t.login.wrongCode(attemptsLeft.current));
+    }
     requestAnimationFrame(() => codeInput.current?.focus());
   };
 
@@ -290,6 +338,7 @@ export function LoginForm() {
         <p className="auth-why">{t.login.why}</p>
       </form>
 
+      {!BACKEND_MODE && (
       <section className="auth-demo" aria-labelledby="demo-title">
         <h3 id="demo-title" className="auth-demo__title">
           {t.login.demoTitle}
@@ -312,6 +361,7 @@ export function LoginForm() {
           </button>
         </div>
       </section>
+      )}
     </>
   );
 }

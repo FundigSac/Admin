@@ -96,8 +96,8 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
     };
   }, [navOpen]);
 
-  const logout = () => {
-    endSession();
+  const logout = async () => {
+    await endSession();
     router.replace("/login");
     router.refresh();
   };

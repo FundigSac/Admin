@@ -140,6 +140,8 @@ export const es = {
     changeEmail: "Usar otro correo",
     wrongCode: (left: number) => (left === 1 ? "Código incorrecto. Te queda 1 intento." : `Código incorrecto. Te quedan ${left} intentos.`),
     locked: "Demasiados intentos. Pide un código nuevo para continuar.",
+    limited: "Hiciste varios intentos seguidos. Espera unos minutos y vuelve a intentarlo.",
+    offline: "No pudimos conectar con el servidor de acceso. Inténtalo en unos minutos.",
     incomplete: "Escribe los 6 dígitos.",
     required: "Este campo es obligatorio.",
     invalidEmail: "Ingresa un correo válido.",

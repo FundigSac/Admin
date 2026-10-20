@@ -139,6 +139,8 @@ export const en: Copy = {
     changeEmail: "Use another email",
     wrongCode: (left) => (left === 1 ? "Wrong code. 1 attempt left." : `Wrong code. ${left} attempts left.`),
     locked: "Too many attempts. Request a new code to continue.",
+    limited: "Too many attempts in a row. Wait a few minutes and try again.",
+    offline: "We couldn’t reach the sign-in server. Please try again in a few minutes.",
     incomplete: "Enter all 6 digits.",
     required: "This field is required.",
     invalidEmail: "Enter a valid email.",
