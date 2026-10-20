@@ -38,6 +38,10 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  // Sin metadata en streaming: como el panel es dinámico (lee la cookie de sesión), Next mandaba el <title> al final
+  // del cuerpo y a veces aún no existía cuando lo leía un lector de pantalla (axe: document-title). Los títulos son
+  // estáticos, así que esperar por ellos no cuesta nada.
+  htmlLimitedBots: /.*/,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
