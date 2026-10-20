@@ -69,9 +69,9 @@ export function Skeleton({ w, h = 14 }: { w?: number | string; h?: number }) {
   return <span className="skeleton" style={{ width: w ?? "100%", height: h }} aria-hidden="true" />;
 }
 
-export function TitleRow({ title, sub, actions }: { title: string; sub?: React.ReactNode; actions?: React.ReactNode }) {
+export function TitleRow({ title, sub, actions, className }: { title: string; sub?: React.ReactNode; actions?: React.ReactNode; className?: string }) {
   return (
-    <header className="title-row">
+    <header className={`title-row${className ? ` ${className}` : ""}`}>
       <div>
         <h1 className="title-row__title">{title}</h1>
         {sub && <p className="title-row__sub">{sub}</p>}

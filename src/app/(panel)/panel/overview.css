@@ -132,72 +132,75 @@
   }
 }
 
-/* "Para hoy": lo pendiente en una línea, cada cosa con su enlace. */
+/* "Para hoy": lo pendiente como una lista de control (cifra, qué es, a dónde ir), bajo la regla de tinta.
+   En escritorio va en dos columnas; cada fila es un enlace completo. */
 .today {
-  display: flex;
-  min-height: 48px;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 16px;
-  margin-bottom: 16px;
-  padding: 8px 8px 8px 16px;
-  border-radius: var(--radius-card);
-  background: var(--raised);
-}
-
-.today--loading {
-  min-height: 48px;
+  margin-bottom: var(--section-gap);
+  border-top: 1px solid var(--rule-strong);
 }
 
 .today__title {
-  font-weight: 700;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  padding: 14px 0 6px;
 }
 
 .today__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 40px;
 }
 
 .today__item {
-  display: inline-flex;
-  height: 32px;
+  display: grid;
+  min-height: 48px;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
   font-weight: 500;
-  white-space: nowrap;
-  transition:
-    border-color var(--t-hover) ease,
-    transform var(--t-press) var(--ease);
+  transition: background-color var(--t-hover) ease;
 }
 
-.today__item svg:first-child {
-  color: var(--accent);
+.today__n {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 28px;
 }
 
 .today__item:hover {
-  border-color: var(--accent);
-}
-
-.today__item:active {
-  transform: scale(0.97);
+  background: var(--raised);
 }
 
 .today__go {
   color: var(--faint);
-  transition: transform var(--t-hover) var(--ease);
+  transition:
+    transform var(--t-hover) var(--ease),
+    color var(--t-hover) ease;
 }
 
 .today__item:hover .today__go {
-  transform: translateX(2px);
+  color: var(--accent);
+  transform: translateX(3px);
 }
 
 .today__none {
   color: var(--muted);
+  font-size: 13px;
+}
+
+/* Una cola al día: atenuada, sigue llevando a su lista. */
+.today__item--zero {
+  color: var(--faint);
+  font-weight: 400;
+}
+
+.today__item--zero .today__n {
+  color: var(--faint);
 }
 
 /* Frase que resume el gráfico en palabras. */
@@ -205,20 +208,27 @@
   margin-top: 12px;
   color: var(--muted);
   font-size: 13px;
+  min-height: 19px;
   line-height: 19px;
 }
 
+@media (max-width: 760px) {
+  .today__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* El hallazgo del día llega con los datos y en teléfono ocupa dos líneas: se reservan para que el resumen no salte. */
+  .overview-head .title-row__sub {
+    min-height: 40px;
+  }
+}
+
+/* En teléfono "Actualizado a las…" no cabe junto al rango: va en su propia línea desde el principio (antes saltaba a
+   otra línea al llegar los datos y empujaba todo el resumen). */
 @media (max-width: 560px) {
-  .today {
-    padding: 12px;
-  }
-
-  .today__title {
-    width: 100%;
-  }
-
-  .today__item {
-    white-space: normal;
+  .scope-row .stamp {
+    min-height: 28px;
+    flex-basis: 100%;
   }
 }
 
@@ -230,6 +240,4 @@
   gap: 6px;
 }
 
-.today__list {
-  flex: 1;
-}
+

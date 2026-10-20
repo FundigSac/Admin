@@ -1,6 +1,6 @@
 "use client";
 
-import { IconChevronRight, IconComplaints, IconInquiries, IconPrivacy, IconQuotes, IconRefresh, IconUsers } from "@/components/ui/icons";
+import { IconChevronRight, IconRefresh } from "@/components/ui/icons";
 import Link from "next/link";
 import { useState } from "react";
 import { ColumnChart } from "@/components/charts/column-chart";
@@ -34,6 +34,7 @@ export function OverviewView() {
   return (
     <>
       <TitleRow
+        className="overview-head"
         title={o.title}
         sub={
           urgent ? (
@@ -196,7 +197,7 @@ function TrendCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
       ) : (
         <ColumnChart points={points} label={o.chartAria(s.newInRange, o.rangeLong[range], peak)} valueLabel={o.chartPoint} meanLabel={o.chartMean(avg)} />
       )}
-      {s && !asTable && summary && <p className="chart-summary">{summary}</p>}
+      {!asTable && <p className="chart-summary">{summary ?? (s ? null : <Skeleton w="70%" h={12} />)}</p>}
     </section>
   );
 }
@@ -323,37 +324,50 @@ function FakeBars() {
   );
 }
 
-/** Lo pendiente en palabras simples, cada cosa con su enlace: se entiende sin leer ninguna cifra más. */
+/** Lo pendiente en palabras simples, cada cosa con su enlace: se entiende sin leer ninguna cifra más.
+ *  Siempre muestra las cinco colas (las que están en 0 se ven atenuadas): así la lista mide lo mismo cargando y
+ *  cargada, y el resto del resumen no salta cuando llegan los datos. */
 function TodayStrip({ pending }: { pending?: number }) {
   const { t } = usePrefs();
   const o = t.overview;
   const q = useQueueCounts().data;
-  if (!q || pending === undefined) return <div className="today today--loading" aria-hidden="true" />;
+  const ready = !!q && pending !== undefined;
   const items = [
-    { key: "pending", n: pending, text: o.today.pending(pending), href: "/usuarios?estado=pending", Icon: IconUsers },
-    { key: "claims", n: q.claims, text: o.today.claims(q.claims), href: "/reclamaciones", Icon: IconComplaints },
-    { key: "quotes", n: q.quotes, text: o.today.quotes(q.quotes), href: "/cotizaciones?estado=new", Icon: IconQuotes },
-    { key: "inquiries", n: q.inquiries, text: o.today.inquiries(q.inquiries), href: "/consultas?estado=new", Icon: IconInquiries },
-    { key: "privacy", n: q.privacy, text: o.today.privacy(q.privacy), href: "/privacidad", Icon: IconPrivacy },
-  ].filter((i) => i.n > 0);
+    { key: "pending", n: pending ?? 0, text: o.today.pending, href: "/usuarios?estado=pending" },
+    { key: "claims", n: q?.claims ?? 0, text: o.today.claims, href: "/reclamaciones" },
+    { key: "quotes", n: q?.quotes ?? 0, text: o.today.quotes, href: "/cotizaciones?estado=new" },
+    { key: "inquiries", n: q?.inquiries ?? 0, text: o.today.inquiries, href: "/consultas?estado=new" },
+    { key: "privacy", n: q?.privacy ?? 0, text: o.today.privacy, href: "/privacidad" },
+  ];
+  const allClear = ready && items.every((i) => i.n === 0);
   return (
-    <nav className="today" aria-label={o.today.title}>
-      <span className="today__title">{o.today.title}</span>
-      {items.length === 0 ? (
-        <span className="today__none">{o.today.none}</span>
-      ) : (
-        <ul className="today__list">
-          {items.map(({ key, text, href, Icon }) => (
-            <li key={key}>
-              <Link href={href} className="today__item">
-                <Icon size={18} />
-                <span>{text}</span>
-                <IconChevronRight size={12} className="today__go" />
+    <nav className="today" aria-label={o.today.title} aria-busy={!ready}>
+      <p className="today__title">
+        <span className="label-caps">{o.today.title}</span>
+        {allClear && <span className="today__none">{o.today.none}</span>}
+      </p>
+      <ul className="today__list">
+        {items.map(({ key, n, text, href }) => (
+          <li key={key}>
+            {ready ? (
+              // La cifra va en su columna: el texto la repite solo para lectores de pantalla.
+              <Link href={href} className={`today__item${n === 0 ? " today__item--zero" : ""}`}>
+                <span className="today__n num" aria-hidden="true">{n}</span>
+                <span>
+                  <span className="sr-only">{n} </span>
+                  {text(n).slice(String(n).length + 1)}
+                </span>
+                <IconChevronRight size={14} className="today__go" />
               </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+            ) : (
+              <span className="today__item" aria-hidden="true">
+                <Skeleton w={16} h={20} />
+                <Skeleton w="55%" h={14} />
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
     </nav>
   );
 }

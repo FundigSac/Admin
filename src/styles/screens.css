@@ -62,8 +62,10 @@
   line-height: 40px;
 }
 
+/* Dos líneas reservadas: el texto que llega con los datos no empuja lo que hay debajo. */
 .kpi__caption {
-  margin-top: 4px;
+  min-height: 36px;
+  margin-top: 6px;
   color: var(--muted);
   font-size: 13px;
   line-height: 18px;
