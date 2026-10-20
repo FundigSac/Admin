@@ -56,7 +56,8 @@ El personal **no usa contraseña**. El ingreso es en dos pasos:
 1. Escribe su correo corporativo y pide un código.
 2. Recibe un **código de 6 dígitos** por correo y lo escribe (o lo pega) en el panel.
 
-Reglas (simuladas hoy en `src/lib/session.ts`; el Backend debe aplicarlas igual):
+Reglas (las aplica el Backend en `POST /api/v1/auth/staff/code` y `/code/verify`; la demostración las simula en
+`src/lib/session.ts`):
 
 - El código es aleatorio, **vence a los 10 minutos** y **sirve una sola vez**.
 - **5 intentos** por código; al agotarlos hay que pedir otro.
@@ -64,8 +65,9 @@ Reglas (simuladas hoy en `src/lib/session.ts`; el Backend debe aplicarlas igual)
 - La respuesta a "enviar código" es **la misma exista o no la cuenta**, para no revelar quién es del personal.
 - `?next=` solo acepta rutas internas (sin redirecciones abiertas).
 
-Mientras no hay backend, una **bandeja de demostración** en la pantalla de acceso muestra el código que llegaría al
-correo. Cuenta demo: `admin@fundigsac.local` (la misma que siembra el Backend en local).
+Con Backend, el código llega de verdad al correo (en local, a Mailpit: http://localhost:8025) y la sesión queda en
+cookies `HttpOnly` firmadas. En la demostración, una **bandeja de demostración** en la pantalla de acceso muestra el
+código que llegaría. Cuenta: `admin@fundigsac.local` (la misma que siembra el Backend en local).
 
 ## Elección del framework (investigación)
 
@@ -227,13 +229,18 @@ Se despliega desde una copia limpia del repositorio (`git archive HEAD`) para no
 
 ## Conectar el Backend
 
-1. Crear `src/lib/api/http-adapter.ts` que cumpla `UsersApi` llamando a `/api/v1/staff/**` (listas con
-   `page`/`size`, ETag + `If-Match` para cambios, como ya exige el Backend).
-2. Agregar rutas BFF en `src/app/api/` que reenvíen al Backend y guarden el JWT en una cookie **HttpOnly**.
-3. Reemplazar en `src/lib/session.ts` la simulación del código por `POST /api/v1/auth/login/code` y su verificación.
-4. Cambiar la exportación de `src/lib/api/index.ts` al nuevo adaptador.
+Ya está conectado. Con `NEXT_PUBLIC_DATA_SOURCE=backend`, `BACKEND_URL` y `ADMIN_AUTH_SECRET` (ver `.env.example`):
 
-Las pantallas no cambian.
+- `src/app/api/session/[action]` pide y verifica el código y abre la sesión: el perfil va en `fa-session` (ruta /,
+  firmada, la revisan el proxy y el layout) y los tokens de la API en `fa-api` (solo ruta /api), ambas `HttpOnly`.
+- `src/app/api/backend/[...path]` reenvía `/api/backend/staff/**` a `/api/v1/staff/**` con el token (renovado solo) y
+  el `If-Match` de cada cambio.
+- `src/lib/api/http-adapter.ts` cumple `UsersApi` contra esas rutas; `src/lib/api/index.ts` elige el adaptador según
+  la variable. `capabilities` dice qué permite cada origen (por ejemplo, con Backend solo se invita personal y las
+  notas internas existen solo en las reclamaciones) y las pantallas se adaptan solas.
+
+Sin esas variables (como en el despliegue de Vercel, que aún no tiene una API pública) el panel sigue siendo la
+demostración con datos del navegador.
 
 ## Fuentes
 
