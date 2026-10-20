@@ -37,6 +37,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Permite varios `next dev` en paralelo sobre la misma carpeta (sesiones de trabajo o QA): NEXT_DIST_DIR=.next-xyz
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   reactStrictMode: true,
   // Sin metadata en streaming: como el panel es dinámico (lee la cookie de sesión), Next mandaba el <title> al final
   // del cuerpo y a veces aún no existía cuando lo leía un lector de pantalla (axe: document-title). Los títulos son
