@@ -101,7 +101,7 @@ export function RolesView() {
             <h2 id="compare-title" className="panel__title">
               {r.compareTitle}
             </h2>
-            <p className="panel__meta">{r.compareLead}</p>
+            <p className="panel__meta panel__meta--prose">{r.compareLead}</p>
           </div>
         </div>
         <div className="compare__frame" tabIndex={0} role="region" aria-label={r.compareTable}>

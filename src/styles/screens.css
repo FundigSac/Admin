@@ -26,6 +26,12 @@
   text-align: start;
 }
 
+/* Una descripción de dos o más líneas bajo el título sí es texto corrido: se justifica como el resto de párrafos. */
+.panel__meta.panel__meta--prose {
+  text-align: justify;
+  hyphens: auto;
+}
+
 /* ===== KPIs: fila de cifras bajo la regla de tinta, columnas separadas por líneas finas, sin caja ===== */
 .kpis {
   display: grid;
