@@ -1,0 +1,12 @@
+# Lo que `vercel deploy` no sube: Vercel instala y compila en su servidor. Las carpetas .next-* son las compilaciones
+# de `next dev` en paralelo (NEXT_DIST_DIR) y pesan cientos de MB.
+node_modules
+.next*
+out
+*.tsbuildinfo
+test-results
+playwright-report
+.taste-skill
+.claude
+.env*
+!.env.example
