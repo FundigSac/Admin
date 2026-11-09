@@ -8,5 +8,6 @@ playwright-report/
 .env*
 !.env.example
 .claude/
+.vercel
 .taste-skill/*
 !.taste-skill/direction.json
