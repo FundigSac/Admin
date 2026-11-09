@@ -3,20 +3,31 @@
 import { createColumnHelper, rowSelectionFeature, rowSortingFeature, tableFeatures, useTable, type RowSelectionState, type SortingState } from "@tanstack/react-table";
 import Link from "next/link";
 import { useMemo } from "react";
-import { Avatar, MethodChip, StatusBadge } from "@/components/ui/bits";
-import { IconEdit, IconMore, IconSend, IconSortDown, IconSortUp, IconTrash, IconUndo, IconUsers, IconBlocked } from "@/components/ui/icons";
-import { Menu, MenuItem } from "@/components/ui/menu";
+import { Avatar } from "@/components/ui/bits";
+import { IconArrowRight, IconSortDown, IconSortUp } from "@/components/ui/icons";
 import type { User } from "@/data/types";
 import { formatDate, relativeTime } from "@/lib/format";
 import { usePrefs } from "@/lib/prefs";
+import { AccountStatus, useJobLabel } from "./account-bits";
+import { useUsersCopy } from "./users-copy";
 
-// Tabla de usuarios: TanStack Table resuelve selección y orden; el orden y la paginación los aplica el origen de
-// datos (manualSorting), así la misma tabla sirve cuando el Backend devuelva miles de cuentas por páginas.
-const features = tableFeatures({ rowSelectionFeature, rowSortingFeature, columnMeta: {} as { className?: string } });
+// Tabla de Cuentas (brief de diseño §6.5). Desde 721 px es una tabla semántica de filas de 56 px con el botón
+// "Abrir" al final; hasta 720 px cada fila se dibuja como tarjeta con cuatro datos (persona, estado, puesto y fecha)
+// sin duplicar el marcado. TanStack Table resuelve selección y orden; el orden y las páginas los aplica el origen de
+// datos (manualSorting), así la misma tabla sirve con miles de cuentas del Backend.
+
+type Meta = {
+  className?: string;
+  /** Rótulo que la tarjeta antepone al valor en teléfono. */
+  label?: string;
+  /** Papel de la celda en la tarjeta: identidad, selección, botón o dato. Sin "card", el dato no sale en la tarjeta. */
+  role?: "primary" | "select" | "action";
+  card?: boolean;
+};
+
+const features = tableFeatures({ rowSelectionFeature, rowSortingFeature, columnMeta: {} as Meta });
 const helper = createColumnHelper<typeof features, User>();
 const EMPTY: User[] = [];
-
-export type RowAction = "view" | "edit" | "disable" | "enable" | "resend" | "reset" | "delete";
 
 type Props = {
   rows: User[] | undefined;
@@ -24,13 +35,17 @@ type Props = {
   onSortingChange: (s: SortingState) => void;
   selection: RowSelectionState;
   onSelectionChange: (s: RowSelectionState) => void;
-  onAction: (action: RowAction, user: User) => void;
   meEmail: string;
 };
 
-export function UsersTable({ rows, sorting, onSortingChange, selection, onSelectionChange, onAction, meEmail }: Props) {
+export function UsersTable({ rows, sorting, onSortingChange, selection, onSelectionChange, meEmail }: Props) {
   const { t } = usePrefs();
-  const u = t.users;
+  const c = useUsersCopy();
+  const l = c.list;
+  const job = useJobLabel();
+  const data = rows ?? EMPTY;
+  // Columnas vacías en todas las filas no se muestran (brief §6.5): por ejemplo, la última entrada si nadie entró.
+  const hasLastActive = data.some((x) => x.lastActiveAt);
 
   const columns = useMemo(
     () =>
@@ -38,12 +53,12 @@ export function UsersTable({ rows, sorting, onSortingChange, selection, onSelect
         helper.display({
           id: "select",
           enableSorting: false,
-          meta: { className: "col-check" },
+          meta: { className: "col-check", role: "select" },
           header: ({ table }) => (
             <input
               type="checkbox"
               className="checkbox"
-              aria-label={u.selectAll}
+              aria-label={l.selectAll}
               checked={table.getIsAllPageRowsSelected()}
               ref={(el) => {
                 if (el) el.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
@@ -52,76 +67,91 @@ export function UsersTable({ rows, sorting, onSortingChange, selection, onSelect
             />
           ),
           cell: ({ row }) => (
-            <input type="checkbox" className="checkbox" aria-label={u.selectRow(row.original.name)} checked={row.getIsSelected()} onChange={(e) => row.toggleSelected(e.target.checked)} />
+            <input type="checkbox" className="checkbox" aria-label={l.selectRow(row.original.name)} checked={row.getIsSelected()} onChange={(e) => row.toggleSelected(e.target.checked)} />
           ),
         }),
         helper.accessor("name", {
-          header: u.col.user,
-          meta: { className: "col-user" },
+          header: l.col.person,
+          meta: { className: "col-person", role: "primary" },
           cell: ({ row }) => {
             const x = row.original;
             return (
-              <span className="user-cell">
+              <span className="person">
                 <Avatar name={x.name} />
-                <span className="cell-main">
-                  <Link href={`/usuarios/${x.id}`} className="user-cell__name">
-                    <span className="user-cell__text">{x.name}</span>
-                    {x.email === meEmail && <span className="you-tag">{u.you}</span>}
+                <span className="person__text">
+                  <Link href={`/usuarios/${x.id}`} className="person__name">
+                    {x.name}
                   </Link>
-                  <span>{x.email}</span>
+                  {x.email === meEmail && <span className="you-tag">{c.you}</span>}
+                  <span className="person__email">{x.email}</span>
                 </span>
               </span>
             );
           },
         }),
-        helper.accessor("company", {
-          header: u.col.company,
-          enableSorting: false,
-          meta: { className: "col-optional" },
-          cell: ({ row }) => <span className="cell-muted cell-clip">{row.original.company ?? u.noCompany}</span>,
-        }),
-        helper.accessor("method", { header: u.col.method, enableSorting: false, meta: { className: "col-optional" }, cell: ({ row }) => <MethodChip method={row.original.method} /> }),
         helper.accessor("roles", {
-          header: u.col.roles,
+          header: l.col.job,
           enableSorting: false,
-          cell: ({ row }) => (
-            <span className="cell-muted">
-              {t.roles[row.original.roles[0]]}
-              {row.original.roles.length > 1 ? ` +${row.original.roles.length - 1}` : ""}
-            </span>
-          ),
+          meta: { className: "col-job", label: l.col.job, card: true },
+          // El cliente lleva su empresa debajo: una columna menos y la fila se lee igual.
+          cell: ({ row }) =>
+            row.original.kind === "staff" ? (
+              <span className="job job--staff">{job(row.original)}</span>
+            ) : (
+              <span className="job">
+                {job(row.original)}
+                <span className="job__company">{row.original.company ?? c.naturalPerson}</span>
+              </span>
+            ),
         }),
-        helper.accessor("status", { header: u.col.status, cell: ({ row }) => <StatusBadge status={row.original.status} /> }),
+        helper.accessor("status", {
+          header: l.col.status,
+          meta: { label: l.col.status, card: true },
+          cell: ({ row }) => <AccountStatus status={row.original.status} />,
+        }),
         helper.accessor("registeredAt", {
-          header: u.col.registered,
-          meta: { className: "n" },
+          header: l.col.registered,
+          meta: { className: "n", label: l.col.registered, card: true },
           cell: ({ row }) => (
-            <time className="num cell-muted" dateTime={new Date(row.original.registeredAt).toISOString()}>
+            <time className="num cell-soft" dateTime={new Date(row.original.registeredAt).toISOString()}>
               {formatDate(row.original.registeredAt, t.locale)}
             </time>
           ),
         }),
-        helper.accessor("lastActiveAt", {
-          header: u.col.lastActive,
-          meta: { className: "n col-optional" },
-          cell: ({ row }) => <span className="cell-muted">{row.original.lastActiveAt ? relativeTime(row.original.lastActiveAt, t.locale) : u.never}</span>,
+        ...(hasLastActive
+          ? [
+              helper.accessor("lastActiveAt", {
+                header: l.col.lastActive,
+                meta: { className: "n col-optional" },
+                cell: ({ row }) => <span className="cell-soft">{row.original.lastActiveAt ? relativeTime(row.original.lastActiveAt, t.locale) : c.never}</span>,
+              }),
+            ]
+          : []),
+        helper.accessor("quotes", {
+          header: l.col.quotes,
+          meta: { className: "n col-quotes" },
+          cell: ({ row }) => <span className="num">{row.original.quotes}</span>,
         }),
-        helper.accessor("quotes", { header: u.col.quotes, meta: { className: "n" }, cell: ({ row }) => <span className="num">{row.original.quotes}</span> }),
         helper.display({
-          id: "actions",
+          id: "open",
           enableSorting: false,
-          meta: { className: "col-actions" },
-          header: () => <span className="sr-only">{t.common.actions}</span>,
-          cell: ({ row }) => <RowMenu user={row.original} onAction={onAction} isMe={row.original.email === meEmail} />,
+          meta: { className: "col-open", role: "action" },
+          header: () => <span className="sr-only">{l.col.action}</span>,
+          cell: ({ row }) => (
+            <Link href={`/usuarios/${row.original.id}`} className="btn open-btn" aria-label={l.openFor(row.original.name)}>
+              {l.open}
+              <IconArrowRight size={16} aria-hidden="true" />
+            </Link>
+          ),
         }),
       ]),
-    [t, u, meEmail, onAction],
+    [t, c, l, job, meEmail, hasLastActive],
   );
 
   const table = useTable({
     features,
     columns,
-    data: rows ?? EMPTY,
+    data,
     getRowId: (row) => row.id,
     manualSorting: true,
     state: { sorting, rowSelection: selection },
@@ -131,20 +161,21 @@ export function UsersTable({ rows, sorting, onSortingChange, selection, onSelect
     sortDescFirst: true,
   });
 
+  // display cambia en teléfono: los roles explícitos conservan la semántica de tabla para lectores de pantalla.
   return (
-    <table className="table users-table">
-      <thead>
+    <table className="table table--cards accounts-table" role="table">
+      <thead role="rowgroup">
         {table.getHeaderGroups().map((group) => (
-          <tr key={group.id}>
+          <tr key={group.id} role="row">
             {group.headers.map((header) => {
               const sorted = header.column.getIsSorted();
-              const cls = header.column.columnDef.meta?.className;
+              const meta = header.column.columnDef.meta;
               return (
-                <th key={header.id} scope="col" className={cls} aria-sort={sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : undefined}>
+                <th key={header.id} scope="col" role="columnheader" className={meta?.className} aria-sort={sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : undefined}>
                   {header.column.getCanSort() ? (
                     <button type="button" className={`sort-btn${sorted ? " is-sorted" : ""}`} onClick={header.column.getToggleSortingHandler()}>
                       <table.FlexRender header={header} />
-                      {sorted === "asc" ? <IconSortUp size={12} /> : sorted === "desc" ? <IconSortDown size={12} /> : null}
+                      {sorted === "asc" ? <IconSortUp size={12} aria-hidden="true" /> : sorted === "desc" ? <IconSortDown size={12} aria-hidden="true" /> : null}
                     </button>
                   ) : (
                     <table.FlexRender header={header} />
@@ -155,66 +186,29 @@ export function UsersTable({ rows, sorting, onSortingChange, selection, onSelect
           </tr>
         ))}
       </thead>
-      <tbody className="fade-in" key={rows?.map((r) => r.id).join() ?? "empty"}>
+      <tbody role="rowgroup" className="fade-in" key={data.map((r) => r.id).join()}>
         {table.getRowModel().rows.map((row) => (
-          <tr key={row.id} aria-selected={row.getIsSelected()} className={row.getIsSelected() ? "is-selected" : undefined}>
-            {row.getAllCells().map((cell) => (
-              <td key={cell.id} className={cell.column.columnDef.meta?.className}>
-                <table.FlexRender cell={cell} />
-              </td>
-            ))}
+          <tr key={row.id} role="row" aria-selected={row.getIsSelected()} className={row.getIsSelected() ? "is-selected" : undefined}>
+            {row.getAllCells().map((cell) => {
+              const meta = cell.column.columnDef.meta;
+              const cls = [meta?.className, meta?.role || meta?.card ? null : "off-card"].filter(Boolean).join(" ");
+              return (
+                <td
+                  key={cell.id}
+                  role="cell"
+                  className={cls || undefined}
+                  data-primary={meta?.role === "primary" ? "" : undefined}
+                  data-select={meta?.role === "select" ? "" : undefined}
+                  data-action={meta?.role === "action" ? "" : undefined}
+                  data-label={meta?.label}
+                >
+                  <table.FlexRender cell={cell} />
+                </td>
+              );
+            })}
           </tr>
         ))}
       </tbody>
     </table>
   );
 }
-
-export function RowMenu({ user, onAction, isMe }: { user: User; onAction: (a: RowAction, u: User) => void; isMe: boolean }) {
-  const { t } = usePrefs();
-  const u = t.users;
-  return (
-    <Menu
-      trigger={(p) => (
-        <button type="button" className="icon-btn icon-btn--sm" aria-label={u.rowMenu(user.name)} {...p}>
-          <IconMore size={18} />
-        </button>
-      )}
-    >
-      <MenuItem icon={<IconUsers size={16} />} onSelect={() => onAction("view", user)}>
-        {u.view}
-      </MenuItem>
-      <MenuItem icon={<IconEdit size={16} />} onSelect={() => onAction("edit", user)}>
-        {u.edit}
-      </MenuItem>
-      {user.status === "pending" && (
-        <MenuItem icon={<IconSend size={16} />} onSelect={() => onAction("resend", user)}>
-          {u.resend}
-        </MenuItem>
-      )}
-      {user.kind === "customer" && user.method === "email" && user.status !== "pending" && (
-        <MenuItem icon={<IconSend size={16} />} onSelect={() => onAction("reset", user)}>
-          {u.reset}
-        </MenuItem>
-      )}
-      {!isMe && (
-        <>
-          <div className="menu__sep" role="separator" />
-          {user.status === "disabled" ? (
-            <MenuItem icon={<IconUndo size={16} />} onSelect={() => onAction("enable", user)}>
-              {u.enable}
-            </MenuItem>
-          ) : (
-            <MenuItem icon={<IconBlocked size={16} />} onSelect={() => onAction("disable", user)}>
-              {u.disable}
-            </MenuItem>
-          )}
-          <MenuItem danger icon={<IconTrash size={16} />} onSelect={() => onAction("delete", user)}>
-            {u.remove}
-          </MenuItem>
-        </>
-      )}
-    </Menu>
-  );
-}
-

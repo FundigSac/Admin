@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { SettingsView } from "./settings-view";
+import { SettingsTitle, SettingsView } from "./settings-view";
 
-export const metadata: Metadata = { title: "Configuración" };
+export const metadata: Metadata = { title: "Ajustes" };
 
 export default function SettingsPage() {
+  // La hoja lee ?tab= para llevar a su bloque; el título sale en el HTML inicial mientras tanto.
   return (
-    <Suspense>
+    <Suspense fallback={<SettingsTitle />}>
       <SettingsView />
     </Suspense>
   );

@@ -1,0 +1,137 @@
+/* Formulario "Agregar persona" / "Editar datos" y confirmaciones de Cuentas. Viven con sus componentes porque
+   Ajustes también abre la confirmación sin cargar los estilos de la lista. */
+
+.user-form {
+  display: grid;
+  gap: 18px;
+}
+
+.user-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.user-form__wide {
+  grid-column: 1 / -1;
+}
+
+.user-form__kind,
+.user-form__roles {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* ¿A quién agregas?: dos opciones grandes, una por fila de texto. */
+.user-form__kind .segmented {
+  display: flex;
+  width: 100%;
+}
+
+.segmented__option {
+  position: relative;
+  flex: 1 1 0;
+}
+
+.segmented__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented__option span {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border-radius: var(--radius-control);
+  color: var(--muted);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.segmented__option input:checked + span {
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgb(14 24 32 / 8%), 0 0 0 1px var(--border);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.segmented__option input:focus-visible + span {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.role-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.role-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+}
+
+.role-option:hover {
+  border-color: var(--control);
+}
+
+.role-option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.role-option input {
+  margin-top: 2px;
+}
+
+.role-option > span {
+  display: grid;
+  gap: 2px;
+}
+
+.role-option strong {
+  font-weight: 600;
+}
+
+.role-option > span > span {
+  color: var(--muted);
+  font-size: var(--fs-small);
+  line-height: 18px;
+}
+
+.form-note {
+  text-align: justify;
+}
+
+.confirm-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--pill-negative-bg);
+  color: var(--negative);
+}
+
+@media (max-width: 600px) {
+  .user-form__grid,
+  .role-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .segmented__option span {
+    min-height: var(--target);
+  }
+}

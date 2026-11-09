@@ -1,132 +1,305 @@
-/* Roles y permisos: lista de roles con sus miembros y la matriz de permisos del Backend. */
+/* Qué puede hacer cada persona: consulta por persona, puestos con quién los tiene y tabla para comparar.
+   Se lee como una hoja de registro: bloques bajo la regla de tinta, sin tarjetas iguales. El único movimiento es el
+   del resultado de la consulta al elegir otra persona (opacidad y 4 px). */
 
-.roles-list {
-  margin-bottom: var(--gap);
+.roles-title {
+  margin-bottom: 28px;
 }
 
-.role-row {
-  gap: 20px;
+.title-row .roles-title__lead {
+  max-width: 76ch;
+  text-align: justify;
 }
 
-.role-row .row__main strong {
-  white-space: normal;
+/* ===== Consulta por persona ===== */
+.lookup {
+  margin-bottom: var(--section-gap);
 }
 
-.role-row__text {
-  white-space: normal;
+.lookup__head {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-.role-row__people {
+.lookup__pick {
+  display: grid;
+  width: min(100%, 420px);
+  gap: 8px;
+}
+
+.lookup__result {
+  display: grid;
+  gap: 12px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--raised);
+}
+
+:root[data-theme="dark"] .lookup__result {
+  background: var(--surface);
+}
+
+.lookup__who {
   display: flex;
-  width: 190px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.lookup__who strong {
+  font-size: 16px;
+}
+
+.lookup__open {
+  margin-left: auto;
+}
+
+.lookup__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 8px 24px;
+}
+
+.lookup__list li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  line-height: 21px;
+}
+
+.lookup__list svg {
   flex: none;
+  transform: translateY(3px);
+}
+
+.lookup__list--yes svg {
+  color: var(--positive);
+}
+
+.lookup__list--no li {
+  color: var(--muted);
+}
+
+.lookup__list--no svg {
+  color: var(--faint);
+}
+
+.lookup__cannot {
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-weight: 600;
+  text-align: start;
+}
+
+.lookup__all,
+.lookup__empty {
+  color: var(--muted);
+}
+
+/* ===== Puestos: nombre y cuántas personas, qué hace y quiénes son ===== */
+.jobs {
+  margin-bottom: var(--section-gap);
+}
+
+.jobs__title {
+  margin-bottom: 4px;
+}
+
+.jobs__list {
+  display: grid;
+}
+
+.job-row {
+  display: grid;
+  grid-template-columns: minmax(170px, 220px) minmax(0, 1fr) minmax(220px, 300px);
+  align-items: start;
+  gap: 8px 32px;
+  padding: 18px 0;
+}
+
+.job-row + .job-row {
+  border-top: 1px solid var(--rule);
+}
+
+.job-row--customers {
+  border-top-color: var(--border);
+}
+
+.job-row__name {
+  display: grid;
+  gap: 2px;
+}
+
+.job-row__name h3 {
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.job-row__count {
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+
+.job-row__text {
+  max-width: 68ch;
+  text-align: justify;
+}
+
+.faces {
+  display: grid;
+  gap: 6px;
+}
+
+.face {
+  display: flex;
+  min-width: 0;
+  min-height: 32px;
   align-items: center;
   gap: 10px;
+  text-underline-offset: 3px;
 }
 
-.avatar-stack {
-  display: flex;
-}
-
-.avatar-stack .avatar {
-  box-shadow: 0 0 0 2px var(--surface);
-}
-
-.avatar-stack .avatar + .avatar {
-  margin-left: -8px;
-}
-
-.role-row__count {
-  color: var(--muted);
-  font-size: 13px;
+.face span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.role-row__perms {
-  width: 120px;
-  flex: none;
-  color: var(--muted);
-  font-size: 13px;
-  text-align: right;
+.face:hover span:last-child {
+  text-decoration: underline;
 }
 
-.matrix th,
-.matrix td {
+.faces__more {
+  padding-left: 38px;
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+
+/* ===== Comparar puestos: la primera columna queda fija al desplazar en pantallas angostas ===== */
+/* position: relative contiene los "Sí"/"No" para lectores de pantalla dentro del marco que se desplaza. */
+.compare__frame {
+  position: relative;
+  overflow-x: auto;
+}
+
+.compare__table {
+  min-width: 760px;
+}
+
+.compare__table th,
+.compare__table td {
   height: 44px;
 }
 
-.matrix__role {
-  min-width: 104px;
+.compare__thing {
+  position: sticky;
+  z-index: 1;
+  left: 0;
+  min-width: 240px;
+  background: var(--surface);
+  color: var(--text) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  text-align: left;
+  white-space: normal !important;
+}
+
+thead .compare__thing {
+  color: var(--muted) !important;
+  font-size: var(--fs-label) !important;
+  font-weight: 600 !important;
+}
+
+tbody .compare__thing {
+  border-bottom: 1px solid var(--rule);
+}
+
+.compare__role {
+  min-width: 96px;
   text-align: center !important;
   white-space: normal !important;
   line-height: 16px;
 }
 
-.matrix__group th {
-  height: 36px;
-  padding-top: 14px;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 600;
+.compare__group th {
+  height: 40px;
+  padding-top: 16px;
   border-bottom: 1px solid var(--border);
-}
-
-.matrix__perm {
-  min-width: 220px;
-  color: var(--text) !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
+  color: var(--text);
+  font-size: var(--fs-label);
+  font-weight: 600;
   text-align: left;
-  border-bottom: 1px solid var(--rule);
 }
 
-/* Clave del permiso tal como la usa el Backend (catalog:read): monoespaciada, se copia tal cual. */
-.matrix__code {
-  display: block;
-  color: var(--faint);
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  font-weight: 500;
-}
-
-.matrix__cell {
+.compare__cell {
   text-align: center;
 }
 
-.matrix__cell svg {
+.compare__cell svg {
   display: inline-block;
+  color: var(--control);
+}
+
+.compare__cell.is-on svg {
   color: var(--positive);
 }
 
-.matrix__off {
-  display: inline-block;
-  width: 10px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--control);
-  vertical-align: middle;
+.compare__table tbody tr:not(.compare__group):hover td,
+.compare__table tbody tr:not(.compare__group):hover th {
+  background: var(--raised);
 }
 
-.roles-source {
-  margin-top: 16px;
+.roles-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 88ch;
+  margin-top: 20px;
+  color: var(--muted);
 }
 
-@media (max-width: 900px) {
-  .role-row {
-    flex-wrap: wrap;
-    gap: 8px 16px;
+.roles-note svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.roles-note span {
+  text-align: justify;
+}
+
+@media (max-width: 1100px) {
+  .job-row {
+    grid-template-columns: minmax(150px, 200px) minmax(0, 1fr);
   }
 
-  .role-row .row__main {
-    flex-basis: 100%;
+  .job-row__people {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 720px) {
+  .job-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
   }
 
-  .role-row__people {
-    width: auto;
+  .job-row__people {
+    grid-column: 1;
   }
 
-  .role-row__perms {
-    width: auto;
-    margin-left: auto;
+  .lookup__result {
+    padding: 16px;
+  }
+
+  .lookup__open {
+    margin-left: 0;
+  }
+
+  .compare__thing {
+    min-width: 180px;
   }
 }

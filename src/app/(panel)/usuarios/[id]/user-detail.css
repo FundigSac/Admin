@@ -1,89 +1,356 @@
-/* Ficha de usuario. */
+/* Ficha de una cuenta: nombre y siguiente paso arriba, una franja con el estado en una frase y debajo los datos en
+   dos columnas (lo que se lee a la izquierda, lo que se edita o consulta a un lado). */
 
-.profile {
+.acct-back {
+  display: inline-flex;
+  min-height: var(--target);
+  align-items: center;
+  gap: 6px;
+  margin: -10px 0 8px;
+  color: var(--muted);
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
+.acct-back:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.acct-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-bottom: 16px;
+}
+
+.acct-head--loading {
+  justify-content: flex-start;
+  margin: 16px 0;
+}
+
+.acct-head__id {
   display: flex;
   min-width: 0;
+  flex: 1 1 360px;
   align-items: center;
   gap: 16px;
 }
 
-.profile__text {
+.acct-head__text {
   min-width: 0;
 }
 
-.profile .case-head__meta {
-  margin-top: 4px;
-}
-
-.kpis.kpis--3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.role-list {
-  display: grid;
-  gap: 10px;
-}
-
-.role-list__item {
-  display: grid;
-  gap: 2px;
-}
-
-.role-list__item strong {
-  font-weight: 600;
-}
-
-.role-list__item span {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 19px;
-}
-
-.perm-chips {
+.acct-head__name {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-}
-
-.perm-chips li {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--raised);
-  color: var(--text);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 20px;
-}
-
-:root[data-theme="dark"] .perm-chips li {
-  background: var(--active);
-}
-
-.id-text {
-  font-size: 13px;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: var(--fs-title);
+  line-height: 30px;
+  letter-spacing: -0.015em;
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 560px) {
-  .profile .avatar--lg {
+.acct-head__meta {
+  margin-top: 4px;
+  color: var(--muted);
+  text-align: start;
+}
+
+.acct-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Franja de estado: el estado con su marca y lo que significa para esta persona, en una frase. */
+.acct-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin-bottom: var(--section-gap);
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--raised);
+}
+
+.acct-state--pending {
+  border-color: var(--notice-border);
+  background: var(--notice-bg);
+}
+
+.acct-state--disabled {
+  border-color: color-mix(in srgb, var(--negative) 35%, var(--border));
+  background: var(--pill-negative-bg);
+}
+
+.acct-state .pill {
+  font-weight: 600;
+}
+
+.acct-state__text {
+  min-width: 0;
+  flex: 1 1 320px;
+  text-align: justify;
+}
+
+.acct-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: var(--section-gap) 48px;
+  align-items: start;
+}
+
+.acct-main,
+.acct-side {
+  display: grid;
+  min-width: 0;
+  gap: var(--section-gap);
+}
+
+.acct-block > .panel__title {
+  margin-bottom: 14px;
+}
+
+/* Cifras de uso: tres columnas bajo la regla de tinta, sin conteo animado. */
+.acct-usage {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--rule-strong);
+}
+
+.acct-usage__item {
+  min-width: 0;
+  padding: 12px 16px 0;
+}
+
+.acct-usage__item:first-child {
+  padding-left: 0;
+}
+
+.acct-usage__item + .acct-usage__item {
+  border-left: 1px solid var(--border);
+}
+
+.acct-usage dt {
+  color: var(--muted);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.acct-usage dd {
+  margin-top: 6px;
+  font-size: var(--fs-kpi);
+  font-weight: 500;
+  line-height: 34px;
+  letter-spacing: -0.02em;
+}
+
+/* Datos con rótulo: rejilla que se reparte sola según el ancho. */
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 18px 24px;
+}
+
+.datum {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.datum dt {
+  color: var(--muted);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.datum dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.datum__empty {
+  color: var(--faint);
+}
+
+.acct-none {
+  color: var(--muted);
+}
+
+.acct-hint {
+  margin: -6px 0 10px;
+  color: var(--muted);
+  font-size: var(--fs-small);
+  text-align: start;
+}
+
+/* Lo que pasó: una línea de tiempo con regla vertical fina y la hora a la derecha. */
+.timeline {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline__item {
+  position: relative;
+  display: flex;
+  min-height: 48px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding: 12px 0 12px 20px;
+}
+
+.timeline__item::before {
+  position: absolute;
+  top: 19px;
+  left: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+  background: var(--control);
+  content: "";
+}
+
+.timeline__item::after {
+  position: absolute;
+  top: 30px;
+  bottom: -14px;
+  left: 5px;
+  width: 1px;
+  background: var(--border);
+  content: "";
+}
+
+.timeline__item:last-child::after {
+  display: none;
+}
+
+.timeline__item:first-child::before {
+  background: var(--accent);
+}
+
+.timeline__text {
+  min-width: 0;
+}
+
+.timeline__when {
+  flex: none;
+  color: var(--muted);
+  font-size: var(--fs-small);
+  white-space: nowrap;
+}
+
+/* Qué puede hacer: el puesto con su frase y la lista de lo que permite, con marca y texto. */
+.acct-roles {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.acct-roles p {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: var(--fs-small);
+  line-height: 19px;
+}
+
+.can-list {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.can-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.can-list svg {
+  flex: none;
+  color: var(--positive);
+  transform: translateY(2px);
+}
+
+.acct-notes__save {
+  justify-self: start;
+  margin-top: 10px;
+}
+
+.acct-block .textarea {
+  width: 100%;
+}
+
+.acct-id {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.acct-id__value {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.acct-missing {
+  min-height: 280px;
+  align-content: center;
+}
+
+.acct-missing__title {
+  font-size: var(--fs-section);
+}
+
+@media (max-width: 1100px) {
+  .acct-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .acct-head .avatar--lg {
     width: 44px;
     height: 44px;
     font-size: 15px;
   }
 
-  .kpis.kpis--3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .acct-head__actions {
+    width: 100%;
   }
 
-  .kpis.kpis--3 .kpi {
-    padding: 12px;
+  .acct-head__actions .btn--primary {
+    order: -1;
+    width: 100%;
   }
 
-  .kpis.kpis--3 .kpi + .kpi {
-    border-left: 1px solid var(--border);
+  .acct-head__actions .btn:not(.btn--primary) {
+    flex: 1 1 auto;
   }
 
-  .kpis.kpis--3 .kpi:nth-child(n + 3) {
-    border-top: 0;
+  .acct-usage__item {
+    padding: 12px 10px 0;
+  }
+
+  .acct-usage dd {
+    font-size: 24px;
+  }
+
+  .timeline__item {
+    flex-direction: column;
   }
 }

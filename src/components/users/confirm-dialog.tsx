@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Dialog } from "@/components/ui/dialog";
 import { IconWarning } from "@/components/ui/icons";
-import { useT } from "@/lib/prefs";
+import { useUsersCopy } from "./users-copy";
+import "./users-dialogs.css";
 
 type Props = {
   open: boolean;
@@ -18,7 +19,7 @@ type Props = {
 };
 
 export function ConfirmDialog({ open, title, text, confirmLabel, requireWord, busy, onConfirm, onClose }: Props) {
-  const t = useT();
+  const c = useUsersCopy();
   const [word, setWord] = useState("");
   const ready = !requireWord || word.trim().toUpperCase() === requireWord;
   const close = () => {
@@ -40,7 +41,7 @@ export function ConfirmDialog({ open, title, text, confirmLabel, requireWord, bu
       footer={
         <>
           <button type="button" className="btn" onClick={close}>
-            {t.common.cancel}
+            {c.cancel}
           </button>
           <button
             type="button"
@@ -60,7 +61,7 @@ export function ConfirmDialog({ open, title, text, confirmLabel, requireWord, bu
       {requireWord && (
         <div className="field">
           <label className="field__label" htmlFor="confirm-word">
-            {t.confirm.typeToConfirm(requireWord)}
+            {c.confirm.typeToConfirm(requireWord)}
           </label>
           <input id="confirm-word" className="input" value={word} onChange={(e) => setWord(e.target.value)} autoComplete="off" spellCheck={false} />
         </div>
