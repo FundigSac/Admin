@@ -44,6 +44,12 @@ const nextConfig: NextConfig = {
   // del cuerpo y a veces aún no existía cuando lo leía un lector de pantalla (axe: document-title). Los títulos son
   // estáticos, así que esperar por ellos no cuesta nada.
   htmlLimitedBots: /.*/,
+  experimental: {
+    // CSS dentro del HTML (unos 9 KB comprimidos): el acceso se pinta en cuanto llega el documento, sin esperar dos
+    // hojas de estilo que bloqueaban el render. En teléfono (Lighthouse, 4G simulado) el LCP del acceso pasaba de
+    // 2,5 s porque el primer pintado quedaba detrás de esas descargas y de todo el JS que llegaba antes.
+    inlineCss: true,
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
