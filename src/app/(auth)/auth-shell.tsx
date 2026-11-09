@@ -1,44 +1,39 @@
 "use client";
 
-import Image from "next/image";
 import { Logo } from "@/components/ui/bits";
 import { LangToggle, ThemeToggle } from "@/components/shell/pref-toggles";
 import { BACKEND_MODE } from "@/lib/backend-mode";
-import { useT } from "@/lib/prefs";
+import { useLoginCopy } from "./login/login-copy";
 import "./auth.css";
 
-/** Pantalla dividida: la planta de tratamiento (obra donde trabajan las válvulas FUNDIGSAC) y el formulario. */
+/**
+ * Marco del acceso: el mismo fondo gris del panel con una hoja blanca en el centro, bajo la regla de tinta. Arriba,
+ * el logotipo y las preferencias que se necesitan antes de entrar (idioma y tema); abajo, de dónde salen los datos.
+ */
 export function AuthShell({ children }: { children: React.ReactNode }) {
-  const t = useT();
+  const c = useLoginCopy();
   const year = new Date().getFullYear();
   return (
     <div className="auth">
-      <a href="#auth-form" className="skip-link">
-        {t.nav.skip}
+      <a href="#acceso" className="skip-link">
+        {c.skip}
       </a>
-      <aside className="auth-visual">
-        <Image className="auth-visual__photo" src="/media/login-planta.webp" alt="" fill priority sizes="(max-width: 960px) 100vw, 56vw" />
-        <div className="auth-visual__scrim" aria-hidden="true" />
-        <div className="auth-visual__content">
-          <p className="auth-visual__kicker">{t.common.app}</p>
-          <h1 className="auth-visual__title">{t.login.title.join(" ")}</h1>
-          <p className="auth-visual__lead">{t.login.lead}</p>
+      <header className="auth__bar">
+        <Logo className="auth__logo" priority />
+        <div className="auth__prefs">
+          <LangToggle />
+          <ThemeToggle className="icon-btn icon-btn--outline" />
         </div>
-      </aside>
+      </header>
 
-      <main className="auth-panel" id="auth-form">
-        <div className="auth-panel__bar">
-          <Logo className="auth-panel__logo" priority />
-          <div className="auth-panel__prefs">
-            <LangToggle />
-            <ThemeToggle className="icon-btn icon-btn--outline" />
-          </div>
-        </div>
-        <div className="auth-panel__inner">{children}</div>
-        <p className="auth-panel__legal">
-          {BACKEND_MODE ? `${t.common.live}: ${t.common.liveHint}` : `${t.common.preview}: ${t.common.previewHint}`} · © {year} FUNDIGSAC S.A.C.
-        </p>
+      <main className="auth__main" id="acceso" tabIndex={-1}>
+        {children}
       </main>
+
+      <footer className="auth__foot">
+        <p>{BACKEND_MODE ? c.footer.live : c.footer.preview}</p>
+        <p>© {year} FUNDIGSAC S.A.C.</p>
+      </footer>
     </div>
   );
 }

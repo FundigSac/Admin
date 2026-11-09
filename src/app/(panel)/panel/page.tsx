@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { OverviewView } from "./overview-view";
 
-export const metadata: Metadata = { title: "Resumen" };
+export const metadata: Metadata = { title: "Inicio" };
 
 export default function OverviewPage() {
   return <OverviewView />;

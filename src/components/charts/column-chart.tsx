@@ -5,8 +5,8 @@ import { niceTicks, xPicks } from "./scale";
 
 // Columnas para conteos por día: un conteo entero se lee como una barra, no como una pendiente entre días. Barras
 // planas de --chart-1 con 2px de redondeo arriba, la media como línea discontinua, 4-5 guías horizontales, el día
-// señalado se marca con la columna en tinta y un tooltip simple. Al llegar, las columnas crecen desde la base en
-// cascada corta (motion.css: .grow-y).
+// señalado se marca con la columna en tinta y un tooltip simple. Las columnas se pintan quietas (brief §6.7: sin
+// gráficos que crecen).
 
 type Props = {
   points: { x: string; y: number; full: string }[];
@@ -46,8 +46,6 @@ export function ColumnChart({ points, height = 220, label, valueLabel, meanLabel
   const y = (v: number) => padT + plotH - (v / top) * plotH;
   const mean = n ? points.reduce((a, p) => a + p.y, 0) / n : 0;
   const picks = width ? xPicks(n, plotW, Math.max(...points.map((p) => p.x.length)) * 6.5) : [];
-  // La cascada completa nunca pasa de ~360 ms aunque haya 90 columnas.
-  const step = n > 1 ? Math.min(14, 360 / n) : 0;
 
   const onMove = (e: React.PointerEvent<SVGRectElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -78,8 +76,6 @@ export function ColumnChart({ points, height = 220, label, valueLabel, meanLabel
               p.y > 0 ? (
                 <rect
                   key={p.full}
-                  className="grow-y"
-                  style={{ animationDelay: `${Math.round(i * step)}ms` }}
                   x={cx(i) - barW / 2}
                   y={y(p.y)}
                   width={barW}
@@ -91,7 +87,7 @@ export function ColumnChart({ points, height = 220, label, valueLabel, meanLabel
             )}
           </g>
           {meanLabel && mean > 0 && (
-            <g className="fade-area" aria-hidden="true">
+            <g aria-hidden="true">
               <line x1={padL} x2={width - padR} y1={y(mean)} y2={y(mean)} stroke="var(--text)" strokeWidth={1} strokeDasharray="3 4" opacity={0.55} />
               <text x={padL + 6} y={y(mean) - 6} className="chart__tick chart__tick--mean">
                 {meanLabel}

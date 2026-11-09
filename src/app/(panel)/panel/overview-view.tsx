@@ -1,524 +1,329 @@
 "use client";
 
-import { IconChevronRight, IconRefresh } from "@/components/ui/icons";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useState } from "react";
-import { ColumnChart } from "@/components/charts/column-chart";
-import { AnimatedNumber } from "@/components/ui/animated-number";
-import { InfoTip } from "@/components/ui/info-tip";
-import { Avatar, MethodIcon, Skeleton, StatusBadge, TitleRow } from "@/components/ui/bits";
-import { useToast } from "@/components/ui/toast";
-import type { DashboardStats, RangeKey } from "@/lib/api";
-import { useQueueCounts, useResendVerification, useStats } from "@/lib/api/queries";
+import { useMemo, useState } from "react";
+import type { Tone } from "@/components/cases/case-ui";
+import { CLAIM_TONE, INQUIRY_TONE, PRIVACY_TONE, QUOTE_TONE } from "@/components/cases/tones";
+import { resolvePermissions } from "@/components/shell/access";
+import { buildNav } from "@/components/shell/nav";
+import { useSessionUser } from "@/components/shell/session-context";
+import { Skeleton } from "@/components/ui/bits";
+import { IconArrowRight, IconChevronRight, IconComplaints, IconInquiries, IconPrivacy, IconQuotes, type AppIcon } from "@/components/ui/icons";
+import type { Claim, Inquiry, PrivacyRequest, Quote } from "@/data/types";
+import { api, type CaseListParams, type CaseModule, type QueueCounts } from "@/lib/api";
+import { keys, useQueueCounts } from "@/lib/api/queries";
 import { businessDaysLeft } from "@/lib/business-days";
-import { DeadlineChip } from "@/components/cases/case-ui";
-import { formatDate, formatNumber, formatPercent, formatTime, relativeTime } from "@/lib/format";
+import { formatNumber, relativeTime } from "@/lib/format";
 import { usePrefs } from "@/lib/prefs";
-import type { SignupMethod } from "@/data/types";
+import { useHomeCopy, type HomeCopy } from "./home-copy";
 import "./overview.css";
 
-const RANGES: RangeKey[] = ["7d", "30d", "90d", "all"];
-const METHODS: SignupMethod[] = ["google", "email", "facebook"];
+// Inicio (brief de diseño §6.4): responde "qué tengo que hacer ahora". De arriba abajo: "Para hoy" con una frase y el
+// único botón principal, la lista de lo pendiente (plazos legales a 3 días hábiles o menos primero, después lo que lleva
+// más tiempo esperando; máximo 7 filas), tres accesos con su cifra real y, cerrado, "Ver números del mes", que carga sus
+// gráficos solo al abrirse.
+
+const MAX_ROWS = 7;
+const SOON = 3;
+
+const MODULES = ["claims", "privacy", "quotes", "inquiries"] as const satisfies readonly CaseModule[];
+
+/** Mismas consultas (y misma clave de caché) que las listas de Solicitudes: lo que se atiende allí se refleja aquí. */
+const PARAMS: Record<CaseModule, CaseListParams> = {
+  quotes: { page: 0, size: MAX_ROWS, status: "new", sort: "oldest" },
+  inquiries: { page: 0, size: MAX_ROWS, status: "new", sort: "oldest" },
+  claims: { page: 0, size: MAX_ROWS, sort: "due" },
+  privacy: { page: 0, size: MAX_ROWS, sort: "due" },
+};
+
+/** Lo que espera atención en cada cola: igual que el conteo del menú (queueCounts). */
+const WAITING: Record<CaseModule, readonly string[]> = {
+  quotes: ["new"],
+  inquiries: ["new"],
+  claims: ["received", "in_progress"],
+  privacy: ["received", "identity", "processing"],
+};
+
+const BASE: Record<CaseModule, string> = { quotes: "/cotizaciones", inquiries: "/consultas", claims: "/reclamaciones", privacy: "/privacidad" };
+const ICON: Record<CaseModule, AppIcon> = { quotes: IconQuotes, inquiries: IconInquiries, claims: IconComplaints, privacy: IconPrivacy };
+const TONE: Record<CaseModule, Record<string, Tone>> = { quotes: QUOTE_TONE, inquiries: INQUIRY_TONE, claims: CLAIM_TONE, privacy: PRIVACY_TONE };
+
+type PillKind = Tone | "late";
+
+type Task = {
+  key: string;
+  module: CaseModule;
+  href: string;
+  title: string;
+  when: string;
+  whenTone: "late" | "soon" | null;
+  who: string;
+  state: { text: string; kind: PillKind };
+  createdAt: number;
+  dueAt: number | null;
+};
+
+const MonthNumbers = dynamic(() => import("./month-numbers"), { ssr: false, loading: () => <NumbersLoading /> });
 
 export function OverviewView() {
-  const { t, lang } = usePrefs();
-  const [range, setRange] = useState<RangeKey>("30d");
-  const stats = useStats(range);
-  const s = stats.data;
-  const o = t.overview;
+  const { t } = usePrefs();
+  const c = useHomeCopy();
+  const user = useSessionUser();
+  const nav = useMemo(() => buildNav(resolvePermissions(user.roles)), [user.roles]);
+  const pages = new Set(nav.flatMap((s) => s.pages.map((p) => p.key)));
+  const can = (m: CaseModule) => pages.has(m);
+  const canAccounts = pages.has("accounts");
+  const requestsHref = nav.find((s) => s.key === "requests")?.href ?? "/cotizaciones";
+
   const queues = useQueueCounts();
-  // Un plazo legal a 3 días hábiles o menos manda sobre todo lo demás: es el hallazgo y la acción de la pantalla.
-  const urgent = queues.data?.due.find((d) => businessDaysLeft(d.dueAt) <= 3) ?? null;
-  const urgentHref = urgent ? `/${urgent.module === "claims" ? "reclamaciones" : "privacidad"}/${urgent.id}` : null;
+  const lists = useQueries({
+    queries: MODULES.map((m) => ({
+      queryKey: ["cases", m, "list", PARAMS[m]],
+      queryFn: () => api.listCases(m, PARAMS[m]),
+      enabled: pages.has(m),
+      staleTime: 15_000,
+    })),
+  });
+  const pending = useQuery({ queryKey: keys.stats("30d"), queryFn: () => api.stats("30d"), enabled: canAccounts });
+
+  const failed = queues.isError || lists.some((l) => l.isError);
+  const ready = !!queues.data && MODULES.every((m, i) => !can(m) || !!lists[i].data);
+
+  // La hora de la última consulta sirve de "ahora": el render queda puro y los plazos se recalculan al refrescar.
+  const now = queues.dataUpdatedAt;
+  const tasks: Task[] = [];
+  if (ready) {
+    const seen = new Set<string>();
+    MODULES.forEach((m, i) => {
+      if (!can(m)) return;
+      const items = (lists[i].data?.items ?? []) as { id: string; status: string }[];
+      for (const item of items) {
+        if (!WAITING[m].includes(item.status)) continue;
+        seen.add(`${m}:${item.id}`);
+        tasks.push(toTask(m, item, c, t, now));
+      }
+    });
+    // Un plazo legal cercano que no entró en las primeras filas de su lista igual va en "Para hoy".
+    for (const d of queues.data?.due ?? []) {
+      if (!can(d.module) || seen.has(`${d.module}:${d.id}`) || businessDaysLeft(d.dueAt, now) > SOON) continue;
+      tasks.push(fromDue(d, c, now));
+    }
+  }
+  const isUrgent = (task: Task) => task.dueAt !== null && businessDaysLeft(task.dueAt, now) <= SOON;
+  const urgent = tasks.filter(isUrgent).sort((a, b) => (a.dueAt ?? 0) - (b.dueAt ?? 0));
+  const rest = tasks.filter((task) => !isUrgent(task)).sort((a, b) => a.createdAt - b.createdAt);
+  const rows = [...urgent, ...rest].slice(0, MAX_ROWS);
+
+  const q = queues.data;
+  const total = q ? MODULES.reduce((sum, m) => sum + (can(m) ? q[m] : 0), 0) : 0;
+  const first = rows[0];
+
+  const retry = () => {
+    void queues.refetch();
+    lists.forEach((l) => void l.refetch());
+  };
 
   return (
-    <>
-      <TitleRow
-        className="overview-head"
-        title={o.title}
-        sub={
-          urgent ? (
-            <span className={businessDaysLeft(urgent.dueAt) < 0 ? "is-bad-soft" : "is-warn-soft"}>{o.dueFinding(urgent.code, t.cases.nav[urgent.module], businessDaysLeft(urgent.dueAt))}</span>
-          ) : s ? (
-            s.pendingOver48h > 0 ? o.finding(s.pendingOver48h) : o.findingNone
-          ) : (
-            <Skeleton w={360} h={16} />
-          )
-        }
-        actions={
-          urgent && urgentHref ? (
-            <Link href={urgentHref} className="btn btn--primary">
-              {o.openCase}
-            </Link>
-          ) : (
-            <Link href="/usuarios?estado=pending" className="btn btn--primary">
-              {o.review}
-              {s && s.pending > 0 ? <span className="btn__count num">{s.pending}</span> : null}
-            </Link>
-          )
-        }
-      />
-
-      <TodayStrip pending={s?.pending} />
-
-      <div className="scope-row">
-        <div className="segmented" role="group" aria-label={o.rangeLabel}>
-          {RANGES.map((r) => (
-            <button key={r} type="button" aria-pressed={range === r} onClick={() => setRange(r)}>
-              {o.range[r]}
-            </button>
-          ))}
-        </div>
-        <span className="stamp">
-          {s ? o.updated(formatTime(s.generatedAt, t.locale)) : null}
-          <button type="button" className="icon-btn icon-btn--sm" onClick={() => stats.refetch()} aria-label={o.refresh} title={o.refresh} disabled={stats.isFetching}>
-            <IconRefresh size={14} aria-hidden="true" className={stats.isFetching ? "is-spinning" : undefined} />
-          </button>
-        </span>
-      </div>
-
-      <div className="overview">
-        <div className="overview__main stagger">
-          <Kpis s={s} range={range} />
-          <TrendCard s={s} range={range} />
-          <div className="overview__pair">
-            <FunnelCard s={s} range={range} />
-            <MixCard s={s} range={range} />
-          </div>
-        </div>
-        <aside className="overview__rail stagger" aria-label={`${o.pendingTitle} · ${o.latestTitle}`}>
-          <DueList />
-          <PendingList s={s} />
-          <LatestList s={s} lang={lang} />
-        </aside>
-      </div>
-    </>
-  );
-}
-
-function Kpis({ s, range }: { s?: DashboardStats; range: RangeKey }) {
-  const { t } = usePrefs();
-  const o = t.overview;
-  const n = (v: number) => formatNumber(v, t.locale);
-  const delta = s ? s.newInRange - s.newPrevRange : 0;
-  const deltaText = !s ? null : range === "all" ? (
-    o.noPrev
-  ) : s.newPrevRange === 0 && s.newInRange > 0 ? (
-    o.prevNew(s.newInRange)
-  ) : (
-    <>
-      <span className={delta > 0 ? "is-good" : delta < 0 ? "is-bad" : undefined}>{delta > 0 ? `+${n(delta)}` : delta < 0 ? `−${n(-delta)}` : "0"}</span>
-      {o.vsPrev(o.prevRange[range])}
-    </>
-  );
-
-  const cells = [
-    { label: o.newUsers, help: o.help.newUsers, value: s?.newInRange, lead: true, caption: deltaText },
-    { label: o.total, help: o.help.total, value: s?.total, caption: o.totalHint },
-    {
-      label: o.pending,
-      help: o.help.pending,
-      value: s?.pending,
-      caption: s ? <span className={s.pendingOver48h > 0 ? "is-bad" : undefined}>{o.pendingHint(s.pendingOver48h)}</span> : null,
-    },
-    { label: o.activeWeek, help: o.help.activeWeek, value: s?.activeWeek, caption: s ? o.activeHint(formatPercent(s.activeWeek / Math.max(1, s.total), t.locale)) : null },
-  ];
-
-  return (
-    <section className="kpis" aria-label={o.title}>
-      {cells.map((c) => (
-        <div key={c.label} className="kpi">
-          <p className="kpi__label">
-            {c.label} <InfoTip label={o.what(c.label)} text={c.help} />
+    <div className="home">
+      <header className="home-head">
+        <div className="home-head__text">
+          <h1 className="home-head__title">{c.title}</h1>
+          <p className="home-head__lead" aria-live="polite">
+            {ready ? (
+              <>
+                <strong>{c.lead(total)}</strong> {total > 0 ? (urgent.length > 0 ? c.leadLegal(urgent.length) : c.leadOrder) : null}
+              </>
+            ) : failed ? (
+              c.loadError
+            ) : (
+              <Skeleton w="min(100%, 420px)" h={18} />
+            )}
           </p>
-          {c.value === undefined ? (
-            <span className={`kpi__value${c.lead ? " kpi__value--lead" : ""}`}>
-              <Skeleton w={56} h={c.lead ? 30 : 24} />
-            </span>
-          ) : (
-            <span className={`kpi__value num${c.lead ? " kpi__value--lead" : ""}`}>
-              <AnimatedNumber value={c.value} format={n} />
-            </span>
-          )}
-          <p className="kpi__caption">{c.caption ?? <Skeleton w={120} h={12} />}</p>
         </div>
-      ))}
-    </section>
-  );
-}
-
-function TrendCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
-  const { t } = usePrefs();
-  const o = t.overview;
-  const [asTable, setAsTable] = useState(false);
-  const short: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
-  const points = (s?.series ?? []).map((p) => ({ x: formatDate(p.day, t.locale, short), y: p.count, full: formatDate(p.day, t.locale, { weekday: "short", day: "numeric", month: "long" }) }));
-  const peak = Math.max(0, ...points.map((p) => p.y));
-  const peakIndex = points.findIndex((p) => p.y === peak);
-  const avg = new Intl.NumberFormat(t.locale, { maximumFractionDigits: 1 }).format(points.length ? points.reduce((a, p) => a + p.y, 0) / points.length : 0);
-  const summary = s && peak > 0 && peakIndex >= 0 ? o.chartSummary(avg, peak, formatDate(s.series[peakIndex].day, t.locale, { day: "numeric", month: "long" })) : null;
-
-  return (
-    <section className="panel" aria-labelledby="trend-title">
-      <div className="panel__head">
-        <div>
-          <h2 id="trend-title" className="panel__title">
-            {o.chartTitle} <InfoTip label={o.what(o.chartTitle)} text={o.help.chart} />
-          </h2>
-          <p className="panel__meta">{s ? o.chartDesc(s.newInRange, o.rangeLong[range]) : <Skeleton w={160} h={12} />}</p>
+        <div className="home-head__action">
+          {first ? (
+            <Link href={first.href} className="btn btn--primary btn--lg">
+              {c.urgent}
+              <IconArrowRight size={18} aria-hidden="true" />
+            </Link>
+          ) : !ready && !failed ? (
+            <Skeleton w={241} h={48} />
+          ) : null}
         </div>
-        <button type="button" className="card-link" onClick={() => setAsTable((v) => !v)} aria-pressed={asTable}>
-          {asTable ? o.chartHide : o.chartTable}
-        </button>
-      </div>
-      {!s ? (
-        <Skeleton h={220} />
-      ) : asTable ? (
-        <div className="chart-table">
-          <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">{o.day}</th>
-                <th scope="col" className="n">
-                  {o.count}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...points].reverse().map((p) => (
-                <tr key={p.full}>
-                  <td>{p.full}</td>
-                  <td className="n num">{p.y}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <ColumnChart points={points} label={o.chartAria(s.newInRange, o.rangeLong[range], peak)} valueLabel={o.chartPoint} meanLabel={o.chartMean(avg)} />
-      )}
-      {!asTable && <p className="chart-summary">{summary ?? (s ? null : <Skeleton w="70%" h={12} />)}</p>}
-    </section>
-  );
-}
+      </header>
 
-function pct(part: number, whole: number, locale: string) {
-  return formatPercent(whole ? part / whole : 0, locale);
-}
-
-/** Elemento propio de FUNDIGSAC: cuántas cuentas nuevas llegan a pedir una cotización de válvulas. */
-function FunnelCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
-  const { t } = usePrefs();
-  const o = t.overview;
-  const f = s?.funnel;
-  const steps = f
-    ? [
-        { key: "registered", label: o.funnel.registered, value: f.registered, cls: "barlist__fill--lead" },
-        { key: "verified", label: o.funnel.verified, value: f.verified, cls: "barlist__fill--lead" },
-        { key: "quoted", label: o.funnel.quoted, value: f.quoted, cls: "barlist__fill--accent" },
-      ]
-    : [];
-  return (
-    <section className="panel" aria-labelledby="funnel-title">
-      <div className="panel__head">
-        <div>
-          <h2 id="funnel-title" className="panel__title">
-            {o.funnelTitle} <InfoTip label={o.what(o.funnelTitle)} text={o.help.funnel} />
-          </h2>
-          <p className="panel__meta">{o.funnelDesc(o.rangeLong[range])}</p>
+      <section className="tasks" aria-label={c.listLabel} aria-busy={!ready && !failed}>
+        {failed && !ready ? (
+          <div className="tasks__empty" role="alert">
+            <p>{c.loadError}</p>
+            <button type="button" className="btn" onClick={retry}>
+              {c.retry}
+            </button>
+          </div>
+        ) : !ready ? (
+          <div className="tasks__list" aria-hidden="true">
+            {Array.from({ length: MAX_ROWS }, (_, i) => (
+              <div key={i} className="task task--skeleton">
+                <Skeleton w={40} h={40} />
+                <span className="task__body">
+                  <Skeleton w="62%" h={16} />
+                  <Skeleton w="38%" h={12} />
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="tasks__empty">
+            <p className="tasks__empty-title">{c.empty}</p>
+            <p>{c.emptyHint}</p>
+          </div>
+        ) : (
+          <ol className="tasks__list">
+            {rows.map((task) => {
+              const Icon = ICON[task.module];
+              return (
+                <li key={task.key} className={`task${task.whenTone ? ` task--${task.whenTone}` : ""}`}>
+                  <span className="task__icon" aria-hidden="true">
+                    <Icon size={22} />
+                  </span>
+                  <span className="task__body">
+                    <span className="task__what">
+                      {task.title}, <span className={task.whenTone ? `task__when task__when--${task.whenTone}` : "task__when"}>{task.when}</span>
+                    </span>
+                    <span className="task__who">{task.who}</span>
+                  </span>
+                  <span className={`pill pill--${task.state.kind === "late" ? "disabled" : task.state.kind} task__state`}>
+                    <span className="pill__dot" aria-hidden="true" />
+                    {task.state.text}
+                  </span>
+                  <Link href={task.href} className="btn task__go" aria-label={c.attendFor(`${task.title}, ${task.when}`)}>
+                    {c.attend}
+                    <IconChevronRight size={16} aria-hidden="true" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+        <div className="tasks__foot">
+          {ready && total > rows.length ? (
+            <Link href={requestsHref} className="card-link tasks__all">
+              {c.seeAll(total)}
+              <IconChevronRight size={14} aria-hidden="true" />
+            </Link>
+          ) : null}
         </div>
-      </div>
-      {!f ? (
-        <FakeBars />
-      ) : f.registered === 0 ? (
-        <p className="empty">{o.empty}</p>
-      ) : (
-        <ol className="barlist">
-          {steps.map((step) => (
-            <li key={step.key} className="barlist__row">
-              <span className="barlist__label">{step.label}</span>
-              <span className="barlist__value num">
-                {formatNumber(step.value, t.locale)}
-                {step.key !== "registered" && <small>{pct(step.value, f.registered, t.locale)}</small>}
-              </span>
-              <span className="barlist__track" aria-hidden="true">
-                <span className={`grow-x barlist__fill ${step.cls}`} style={{ display: "block", width: `${(step.value / f.registered) * 100}%` }} />
-              </span>
-            </li>
-          ))}
-        </ol>
-      )}
-      {f && f.registered > 0 && <p className="chart-summary">{o.funnelSummary(new Intl.NumberFormat(t.locale, { maximumFractionDigits: 0 }).format((f.quoted / f.registered) * 10))}</p>}
-    </section>
-  );
-}
+      </section>
 
-function MixCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
-  const { t } = usePrefs();
-  const o = t.overview;
-  const [view, setView] = useState<"method" | "source">("method");
-  const total = s?.newInRange ?? 0;
-  const rows = !s
-    ? []
-    : view === "method"
-      ? METHODS.map((m) => ({ key: m, label: t.method[m], value: s.byMethod[m], icon: <MethodIcon method={m} /> })).sort((a, b) => b.value - a.value)
-      : s.bySource.map((x) => ({ key: x.source, label: t.source[x.source as keyof typeof t.source], value: x.count, icon: null }));
-  const max = Math.max(1, ...rows.map((r) => r.value));
+      <Shortcuts queues={q} pending={pending.data?.pending} can={can} canAccounts={canAccounts} />
 
-  return (
-    <section className="panel" aria-labelledby="mix-title">
-      <div className="panel__head">
-        <div>
-          <h2 id="mix-title" className="panel__title">
-            {o.mixTitle} <InfoTip label={o.what(o.mixTitle)} text={o.help.mix} />
-          </h2>
-          <p className="panel__meta">{o.mixDesc(o.rangeLong[range])}</p>
-        </div>
-        <div className="segmented segmented--sm" role="group" aria-label={o.mixTitle}>
-          <button type="button" aria-pressed={view === "method"} onClick={() => setView("method")}>
-            {o.mixMethod}
-          </button>
-          <button type="button" aria-pressed={view === "source"} onClick={() => setView("source")}>
-            {o.mixSource}
-          </button>
-        </div>
-      </div>
-      {!s ? (
-        <FakeBars />
-      ) : total === 0 ? (
-        <p className="empty">{o.empty}</p>
-      ) : (
-        <ul className="barlist">
-          {rows.slice(0, 4).map((r, i) => (
-            <li key={r.key} className="barlist__row">
-              <span className="barlist__label">
-                {r.icon}
-                {r.label}
-              </span>
-              <span className="barlist__value num">
-                {formatNumber(r.value, t.locale)}
-                <small>{pct(r.value, total, t.locale)}</small>
-              </span>
-              <span className="barlist__track" aria-hidden="true">
-                <span className={`grow-x barlist__fill${i === 0 ? " barlist__fill--lead" : ""}`} style={{ display: "block", width: `${(r.value / max) * 100}%` }} />
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-function FakeBars() {
-  return (
-    <div className="barlist" aria-hidden="true">
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="barlist__row">
-          <Skeleton w={140} h={14} />
-          <Skeleton w={40} h={14} />
-          <span className="barlist__track" />
-        </div>
-      ))}
+      {canAccounts && <Numbers />}
     </div>
   );
 }
 
-/** Lo pendiente en palabras simples, cada cosa con su enlace: se entiende sin leer ninguna cifra más.
- *  Siempre muestra las cinco colas (las que están en 0 se ven atenuadas): así la lista mide lo mismo cargando y
- *  cargada, y el resto del resumen no salta cuando llegan los datos. */
-function TodayStrip({ pending }: { pending?: number }) {
+function toTask(m: CaseModule, item: { id: string; status: string }, c: HomeCopy, t: ReturnType<typeof usePrefs>["t"], now: number): Task {
+  const href = `${BASE[m]}/${item.id}`;
+  const statusText = (t.cases[m].status as Record<string, string>)[item.status] ?? item.status;
+  const base = { key: `${m}:${item.id}`, module: m, href, state: { text: statusText, kind: TONE[m][item.status] ?? ("todo" as PillKind) } };
+  if (m === "claims" || m === "privacy") {
+    const legal = item as Claim | PrivacyRequest;
+    const left = businessDaysLeft(legal.dueAt, now);
+    const whenTone = left < 0 ? "late" : left <= SOON ? "soon" : null;
+    const state = left < 0 ? { text: c.state.late, kind: "late" as const } : left <= SOON ? { text: c.state.soon, kind: "todo" as const } : base.state;
+    const title = m === "claims" ? c.task.claim(t.cases.claims.kind[(legal as Claim).kind], legal.code) : c.task.privacy(legal.code);
+    return { ...base, title, when: c.deadline(left), whenTone, who: `${legal.name} · ${m === "claims" ? c.task.legalClaim : c.task.legalPrivacy}`, state, createdAt: legal.createdAt, dueAt: legal.dueAt };
+  }
+  if (m === "quotes") {
+    const quote = item as Quote;
+    return { ...base, title: c.task.quote(quote.code), when: c.task.arrived(relativeTime(quote.createdAt, t.locale, now)), whenTone: null, who: [quote.company, c.task.items(quote.items.length)].filter(Boolean).join(" · "), createdAt: quote.createdAt, dueAt: null };
+  }
+  const inquiry = item as Inquiry;
+  return {
+    ...base,
+    title: c.task.inquiry(inquiry.fullName),
+    when: c.task.waiting(relativeTime(inquiry.createdAt, t.locale, now)),
+    whenTone: null,
+    who: [inquiry.company, t.cases.inquiries.reason[inquiry.reason]].filter(Boolean).join(" · "),
+    createdAt: inquiry.createdAt,
+    dueAt: null,
+  };
+}
+
+function fromDue(d: QueueCounts["due"][number], c: HomeCopy, now: number): Task {
+  const left = businessDaysLeft(d.dueAt, now);
+  return {
+    key: `${d.module}:${d.id}`,
+    module: d.module,
+    href: `${BASE[d.module]}/${d.id}`,
+    title: d.module === "claims" ? c.task.claimFallback(d.code) : c.task.privacy(d.code),
+    when: c.deadline(left),
+    whenTone: left < 0 ? "late" : "soon",
+    who: `${d.name} · ${d.module === "claims" ? c.task.legalClaim : c.task.legalPrivacy}`,
+    state: left < 0 ? { text: c.state.late, kind: "late" } : { text: c.state.soon, kind: "todo" },
+    // Sin fecha de llegada en el resumen de plazos: ordena por su vencimiento, que es lo que importa aquí.
+    createdAt: d.dueAt,
+    dueAt: d.dueAt,
+  };
+}
+
+function Shortcuts({ queues, pending, can, canAccounts }: { queues?: QueueCounts; pending?: number; can: (m: CaseModule) => boolean; canAccounts: boolean }) {
   const { t } = usePrefs();
-  const o = t.overview;
-  const q = useQueueCounts().data;
-  const ready = !!q && pending !== undefined;
+  const c = useHomeCopy().shortcuts;
   const items = [
-    { key: "pending", n: pending ?? 0, text: o.today.pending, href: "/usuarios?estado=pending" },
-    { key: "claims", n: q?.claims ?? 0, text: o.today.claims, href: "/reclamaciones" },
-    { key: "quotes", n: q?.quotes ?? 0, text: o.today.quotes, href: "/cotizaciones?estado=new" },
-    { key: "inquiries", n: q?.inquiries ?? 0, text: o.today.inquiries, href: "/consultas?estado=new" },
-    { key: "privacy", n: q?.privacy ?? 0, text: o.today.privacy, href: "/privacidad" },
-  ];
-  const allClear = ready && items.every((i) => i.n === 0);
+    can("quotes") && { key: "quotes", label: c.quotes, value: queues?.quotes, href: "/cotizaciones?estado=new" },
+    can("inquiries") && { key: "inquiries", label: c.inquiries, value: queues?.inquiries, href: "/consultas?estado=new" },
+    canAccounts && { key: "accounts", label: c.accounts, value: pending, href: "/usuarios?estado=pending" },
+  ].filter(Boolean) as { key: string; label: string; value?: number; href: string }[];
+  if (items.length === 0) return null;
   return (
-    <nav className="today" aria-label={o.today.title} aria-busy={!ready}>
-      <p className="today__title">
-        <span className="label-caps">{o.today.title}</span>
-        {allClear && <span className="today__none">{o.today.none}</span>}
-      </p>
-      <ul className="today__list">
-        {items.map(({ key, n, text, href }) => (
-          <li key={key}>
-            {ready ? (
-              // La cifra va en su columna: el texto la repite solo para lectores de pantalla.
-              <Link href={href} className={`today__item${n === 0 ? " today__item--zero" : ""}`}>
-                <span className="today__n num" aria-hidden="true">{n}</span>
-                <span>
-                  <span className="sr-only">{n} </span>
-                  {text(n).slice(String(n).length + 1)}
-                </span>
-                <IconChevronRight size={14} className="today__go" />
-              </Link>
-            ) : (
-              <span className="today__item" aria-hidden="true">
-                <Skeleton w={16} h={20} />
-                <Skeleton w="55%" h={14} />
+    <section className="shortcuts" aria-labelledby="shortcuts-title">
+      <h2 id="shortcuts-title" className="shortcuts__title">
+        {c.title}
+      </h2>
+      <ul className="shortcuts__list">
+        {items.map((item) => (
+          <li key={item.key}>
+            <Link href={item.href} className="shortcut" aria-label={item.value === undefined ? item.label : c.open(item.label, item.value)}>
+              <span className="shortcut__n" aria-hidden="true">
+                {item.value === undefined ? <Skeleton w={36} h={28} /> : formatNumber(item.value, t.locale)}
               </span>
-            )}
+              <span className="shortcut__label">{item.label}</span>
+              <IconChevronRight size={16} className="shortcut__go" aria-hidden="true" />
+            </Link>
           </li>
         ))}
       </ul>
-    </nav>
-  );
-}
-
-function DueList() {
-  const { t } = usePrefs();
-  const o = t.overview;
-  const queues = useQueueCounts();
-  const due = queues.data?.due ?? [];
-  if (queues.data && due.length === 0) return null;
-  return (
-    <section aria-labelledby="due-title">
-      <div className="panel panel--list">
-        <div className="panel__head panel__head--list">
-          <h2 id="due-title" className="panel__title">
-            {o.dueTitle} <InfoTip label={o.what(o.dueTitle)} text={o.help.due} />
-          </h2>
-        </div>
-        {!queues.data ? (
-          <RowSkeletons n={2} />
-        ) : (
-          <ul className="rows">
-            {due.slice(0, 4).map((d) => (
-              <li key={d.id} className="row">
-                <span className="row__main">
-                  <Link href={`/${d.module === "claims" ? "reclamaciones" : "privacidad"}/${d.id}`}>{d.name}</Link>
-                  <span className="row__sub">
-                    {t.cases.nav[d.module]} · <span className="code">{d.code}</span>
-                  </span>
-                </span>
-                <DeadlineChip dueAt={d.dueAt} closed={false} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
     </section>
   );
 }
 
-function PendingList({ s }: { s?: DashboardStats }) {
-  const { t } = usePrefs();
-  const o = t.overview;
-  const toast = useToast();
-  const resend = useResendVerification();
-  const [sent, setSent] = useState<string[]>([]);
-
+/** "Ver números del mes": cerrado por defecto; los gráficos se descargan y se piden solo al abrirlo. */
+function Numbers() {
+  const c = useHomeCopy().numbers;
+  const [open, setOpen] = useState(false);
   return (
-    <section aria-labelledby="pending-title">
-      <div className="panel panel--list">
-        <div className="panel__head panel__head--list">
-          <h2 id="pending-title" className="panel__title">
-            {o.pendingTitle} <InfoTip label={o.what(o.pendingTitle)} text={o.help.pendingList} />
-          </h2>
-        </div>
-        {!s ? (
-          <RowSkeletons n={3} />
-        ) : s.pendingOldest.length === 0 ? (
-          <p className="empty">{o.allVerified}</p>
-        ) : (
-          <ul className="rows">
-            {s.pendingOldest.map((u) => (
-              <li key={u.id} className="row">
-                <Avatar name={u.name} />
-                <span className="row__main">
-                  <Link href={`/usuarios/${u.id}`}>{u.name}</Link>
-                  <span className="row__sub">{o.waiting(relativeTime(u.registeredAt, t.locale))}</span>
-                </span>
-                <button
-                  type="button"
-                  className="btn"
-                  aria-label={o.resendFor(u.name)}
-                  disabled={sent.includes(u.id) || (resend.isPending && resend.variables === u.id)}
-                  onClick={() =>
-                    resend.mutate(u.id, {
-                      onSuccess: () => {
-                        setSent((list) => [...list, u.id]);
-                        toast.success(t.toast.resent);
-                      },
-                    })
-                  }
-                >
-                  {resend.isPending && resend.variables === u.id ? <span className="spinner" aria-hidden="true" /> : null}
-                  {sent.includes(u.id) ? o.resent : o.resend}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-        {s && s.pending > s.pendingOldest.length && (
-          <Link href="/usuarios?estado=pending" className="btn btn--block panel__foot-btn">
-            {o.viewPending(s.pending)}
-          </Link>
-        )}
-      </div>
-    </section>
+    <details className="numbers" onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary className="numbers__summary">
+        <IconChevronRight size={18} className="numbers__chev" aria-hidden="true" />
+        <span className="numbers__label">
+          <span className="numbers__name">{c.summary}</span>
+          <span className="numbers__hint">{c.hint}</span>
+        </span>
+      </summary>
+      {open && <MonthNumbers />}
+    </details>
   );
 }
 
-function LatestList({ s, lang }: { s?: DashboardStats; lang: string }) {
-  const { t } = usePrefs();
-  const o = t.overview;
+function NumbersLoading() {
+  const c = useHomeCopy().numbers;
   return (
-    <section aria-labelledby="latest-title" lang={lang === "es" ? "es" : "en"}>
-      <div className="panel panel--list">
-        <div className="panel__head panel__head--list">
-          <h2 id="latest-title" className="panel__title">
-            {o.latestTitle} <InfoTip label={o.what(o.latestTitle)} text={o.help.latest} />
-          </h2>
-        </div>
-        {!s ? (
-          <RowSkeletons n={5} />
-        ) : s.latest.length === 0 ? (
-          <p className="empty">{o.empty}</p>
-        ) : (
-          <ul className="rows">
-            {s.latest.slice(0, 5).map((u) => (
-              <li key={u.id} className="row">
-                <Avatar name={u.name} />
-                <span className="row__main">
-                  <Link href={`/usuarios/${u.id}`}>{u.name}</Link>
-                  <span className="row__sub">{u.company ?? u.email}</span>
-                </span>
-                <span className="row__end">
-                  {u.status === "pending" ? <StatusBadge status="pending" /> : <MethodIcon method={u.method} />}
-                  <span className="row__time">{relativeTime(u.registeredAt, t.locale)}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-        <Link href="/usuarios" className="btn btn--block panel__foot-btn">
-          {o.viewAll}
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-function RowSkeletons({ n }: { n: number }) {
-  return (
-    <div className="rows" aria-hidden="true">
-      {Array.from({ length: n }, (_, i) => (
-        <div key={i} className="row">
-          <Skeleton w={32} h={32} />
-          <span className="row__main">
-            <Skeleton w="60%" h={14} />
-            <Skeleton w="40%" h={12} />
-          </span>
-        </div>
-      ))}
+    <div className="numbers__loading" role="status">
+      <span className="spinner" aria-hidden="true" />
+      {c.loading}
     </div>
   );
 }

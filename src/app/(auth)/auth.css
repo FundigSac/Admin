@@ -1,249 +1,302 @@
-/* Acceso: la foto de la planta de tratamiento ocupa más de la mitad de la pantalla, con un velo neutro solo
-   donde va el texto; el formulario vive en un panel completo, sin tarjeta flotante. */
+/* Acceso. Fondo gris del panel y una hoja blanca: a la izquierda qué hacer (título, frase y el formulario del paso
+   actual); a la derecha, en escritorio, los tres pasos con el actual marcado. En teléfono los pasos se vuelven una
+   línea de avance sobre el formulario y la hoja ocupa la pantalla. Sin fotos ni degradados.
+   Movimiento: el título queda fijo; el bloque de trabajo se asienta 8 px (solo transform); el cambio de paso y los
+   errores aparecen con opacidad y 8 px en 200 ms; la línea de avance crece con scaleX. */
 
 .auth {
   display: grid;
   min-height: 100dvh;
-  grid-template-columns: minmax(0, 1.15fr) minmax(420px, 0.85fr);
-  background: var(--surface);
+  grid-template-rows: auto 1fr auto;
+  background: var(--chrome);
 }
 
-/* ===== Escena ===== */
-.auth-visual {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  padding: 48px clamp(28px, 4.5vw, 72px);
-  overflow: hidden;
-  color: #fff;
-  isolation: isolate;
-}
-
-.auth-visual__photo {
-  z-index: -2;
-  object-fit: cover;
-  object-position: 62% 50%;
-}
-
-/* Velo neutro (la única degradación permitida: bajo texto sobre foto). */
-.auth-visual__scrim {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  background: linear-gradient(180deg, rgb(0 0 0 / 0%) 30%, rgb(0 0 0 / 62%) 72%, rgb(0 0 0 / 78%) 100%);
-}
-
-.auth-visual__content {
-  display: grid;
-  max-width: 580px;
-  gap: 16px;
-}
-
-.auth-visual__kicker {
-  color: rgb(255 255 255 / 82%);
-  font-size: var(--fs-label);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.auth-visual__title {
-  color: #fff;
-  font-size: clamp(34px, 3.6vw, 50px);
-  font-weight: 500;
-  line-height: 1.06;
-  letter-spacing: -0.025em;
-  text-wrap: balance;
-}
-
-.auth-visual__lead {
-  max-width: 520px;
-  color: rgb(255 255 255 / 90%);
-  font-size: 16px;
-  line-height: 24px;
-  text-wrap: pretty;
-}
-
-/* ===== Panel del formulario ===== */
-.auth-panel {
-  display: flex;
-  flex-direction: column;
-  padding: 20px clamp(20px, 4vw, 56px) 20px;
-  background: var(--surface);
-}
-
-.auth-panel__bar {
+.auth__bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: 18px clamp(16px, 4vw, 48px);
 }
 
-.auth-panel__logo {
-  width: 156px;
+.auth__logo {
+  width: 164px;
   height: auto;
 }
 
-.auth-panel__prefs {
+.auth__prefs {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.auth-panel__inner {
+.auth__main {
   display: grid;
-  width: 100%;
-  max-width: 400px;
-  align-content: center;
-  flex: 1;
-  gap: 24px;
-  margin: 0 auto;
-  padding: 40px 0;
+  align-content: start;
+  justify-items: center;
+  padding: clamp(8px, 4vh, 48px) 16px 32px;
+  outline: none;
 }
 
-.auth-head {
-  display: grid;
-  gap: 6px;
+.auth__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 16px;
+  padding: 0 16px 20px;
+  color: var(--faint);
+  font-size: 12px;
+  line-height: 18px;
 }
 
-.auth-head__title {
-  font-size: var(--fs-title);
+.auth__foot p {
+  text-align: center;
+}
+
+/* ===== Hoja ===== */
+.login {
+  display: grid;
+  width: min(100%, 1040px);
+  grid-template-areas:
+    "head steps"
+    "work steps"
+    "demo steps";
+  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-rows: auto auto 1fr;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sheet);
+  background: var(--surface);
+}
+
+.login__head {
+  position: relative;
+  grid-area: head;
+  padding: 48px 56px 0;
+}
+
+/* La cota de la marca: regla de 1 px con un tramo inicial de 40 × 3 px en petróleo, sobre el título. */
+.login__head::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: var(--rule-strong);
+  content: "";
+}
+
+.login__head::after {
+  position: absolute;
+  top: 0;
+  left: 56px;
+  width: 40px;
+  height: 3px;
+  background: var(--primary);
+  content: "";
+}
+
+.login__title {
+  font-size: 34px;
   font-weight: 600;
-  line-height: 30px;
+  line-height: 40px;
+  letter-spacing: -0.025em;
 }
 
-.auth-head__sub {
+.login__lead {
+  max-width: 52ch;
+  margin-top: 12px;
   color: var(--muted);
-  font-size: 15px;
-  line-height: 22px;
+  font-size: 17px;
+  line-height: 26px;
 }
 
-.auth-form {
+.login__work {
+  grid-area: work;
+  max-width: 480px;
+  padding: 32px 56px 0;
+  animation: login-settle 420ms var(--ease-out) both;
+}
+
+@keyframes login-settle {
+  from {
+    transform: translateY(8px);
+  }
+}
+
+.login-form {
   display: grid;
-  gap: 16px;
+  gap: 18px;
 }
 
-.auth-form__row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+.login-form .input {
+  height: 48px;
+  font-size: 16px;
 }
 
-.auth-form .input {
-  height: 44px;
-  font-size: 15px;
+.login-form .check {
+  min-height: 44px;
 }
 
-.auth-caps {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--warning);
-}
-
-.auth-alert {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius-control);
-  background: var(--pill-negative-bg);
-  color: var(--pill-negative-ink);
-  font-weight: 600;
-}
-
-.auth-demo {
-  display: grid;
-  gap: 4px;
-  padding: 14px 16px;
-  border-radius: var(--radius-card);
-  background: var(--raised);
-}
-
-.auth-demo__title {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.auth-demo__text {
+.login__why {
   color: var(--muted);
   font-size: 13px;
   line-height: 19px;
 }
 
-.auth-demo__btn {
-  justify-self: start;
-  margin-top: 8px;
+/* Cambio de paso y errores: aparecen en su sitio, sin empujar lo de alrededor. */
+.login-swap,
+.login-error {
+  animation: rise var(--dur-2) var(--ease-out) both;
 }
 
-.auth-demo__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
+.login-error {
+  align-items: flex-start;
+  line-height: 19px;
 }
 
-.auth-sent {
+.login-error svg {
+  margin-top: 2px;
+}
+
+/* ===== Pasos (escritorio: columna derecha) ===== */
+.login-steps {
+  position: relative;
   display: grid;
-  gap: 12px;
+  grid-area: steps;
+  align-content: start;
+  padding: 40px 32px;
+  border-left: 1px solid var(--border);
+  background: var(--raised);
 }
 
-.auth-sent__icon {
+:root[data-theme="dark"] .login-steps {
+  background: var(--chrome);
+}
+
+.login-step {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 14px;
+  padding: 18px 0;
+}
+
+.login-step + .login-step {
+  border-top: 1px solid var(--border);
+}
+
+.login-step__mark {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.login-step[data-state="current"] .login-step__mark {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  color: var(--accent);
+}
+
+.login-step[data-state="done"] .login-step__mark {
+  border-color: var(--positive);
+  background: var(--positive);
+  color: var(--surface);
+}
+
+.login-step__body {
+  display: grid;
+  gap: 4px;
+  padding-top: 5px;
+}
+
+.login-step__title {
+  color: var(--text);
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.login-step[data-state="next"] .login-step__title {
+  color: var(--muted);
+}
+
+.login-step__short {
+  display: none;
+}
+
+.login-step__text {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 19px;
+}
+
+/* ===== Paso del código ===== */
+.login-code {
+  display: grid;
+  gap: 8px;
+}
+
+.login-code__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.login-code__title svg {
   color: var(--positive);
 }
 
-.auth-panel__legal {
-  color: var(--faint);
-  font-size: 12px;
-  text-align: center;
-  text-wrap: balance;
+.login-code__sub {
+  margin-bottom: 14px;
+  color: var(--muted);
+  line-height: 22px;
 }
 
-/* ===== Tablet y móvil: la foto pasa a ser una franja superior con el título ===== */
-@media (max-width: 960px) {
-  .auth {
-    grid-template-columns: 1fr;
-  }
-
-  .auth-visual {
-    min-height: 300px;
-    padding: 28px 20px;
-  }
-
-  .auth-panel {
-    padding: 16px 20px 20px;
-  }
-
-  .auth-panel__bar {
-    order: -1;
-  }
-
-  .auth-panel__inner {
-    padding: 28px 0;
-  }
+.login-code__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
 }
 
-@media (max-width: 480px) {
-  .auth-visual {
-    min-height: 240px;
-  }
-
-  .auth-visual__title {
-    font-size: 30px;
-  }
-
-  .auth-visual__lead {
-    font-size: 15px;
-    line-height: 22px;
-  }
-
-  .auth-panel__logo {
-    width: 132px;
-  }
+.login-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ===== Código de un solo uso: un solo campo real (pegar y autocompletar funcionan) dibujado como 6 casillas ===== */
+.login-timer.is-expired {
+  color: var(--negative);
+  font-weight: 600;
+}
+
+.login-code__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.login-code__links .btn--ghost {
+  height: var(--target);
+  padding: 0 8px 0 0;
+}
+
+/* Un solo campo real (pegar y autocompletar funcionan) dibujado como 6 casillas. */
 .otp {
   position: relative;
   display: grid;
@@ -269,17 +322,18 @@
 
 .otp__cell {
   display: grid;
-  height: 52px;
+  height: 56px;
   place-items: center;
   border: 1px solid var(--control);
   border-radius: var(--radius-control);
   background: var(--surface);
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  transition:
-    border-color var(--t-hover) ease,
-    box-shadow var(--t-hover) ease;
+}
+
+.otp__cell.is-filled {
+  border-color: var(--rule-strong);
 }
 
 .otp__input:focus-visible ~ .otp__cell.is-current,
@@ -297,41 +351,206 @@
   border-color: var(--negative);
 }
 
-.auth-timer {
-  color: var(--muted);
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
+/* ===== Versión de prueba ===== */
+.auth-demo {
+  display: grid;
+  grid-area: demo;
+  align-self: start;
+  gap: 6px;
+  max-width: 480px;
+  margin: 32px 56px 48px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--raised);
 }
 
-.auth-timer.is-expired {
-  color: var(--negative);
+.auth-demo__title {
+  font-size: 15px;
+  line-height: 22px;
 }
 
-.auth-form__links {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.auth-form__links .btn--ghost {
-  padding: 0;
-}
-
-.auth-why {
+.auth-demo__text {
   color: var(--muted);
   font-size: 13px;
   line-height: 19px;
 }
 
+.auth-demo__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 .auth-demo__mail {
-  margin-top: 4px;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-control);
   background: var(--surface);
   font-size: 13px;
-  font-variant-numeric: tabular-nums;
+  text-align: start;
+}
+
+/* ===== Tableta y teléfono: una columna; los pasos pasan a una línea de avance ===== */
+@media (max-width: 900px) {
+  .login {
+    grid-template-areas:
+      "head"
+      "steps"
+      "work"
+      "demo";
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+
+  .login__head {
+    padding: 32px 24px 0;
+  }
+
+  .login__head::after {
+    left: 24px;
+  }
+
+  .login__work {
+    max-width: none;
+    padding: 24px 24px 0;
+  }
+
+  .auth-demo {
+    max-width: none;
+    margin: 28px 24px 28px;
+  }
+
+  /* .login delante: la regla base ol[class] { margin: 0 } pesa más que una sola clase. */
+  .login .login-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 24px 24px 0;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  :root[data-theme="dark"] .login-steps {
+    background: none;
+  }
+
+  /* Línea de avance entre los centros de la primera y la última marca. */
+  .login-steps::before,
+  .login-steps::after {
+    position: absolute;
+    top: 15px;
+    right: calc(100% / 6);
+    left: calc(100% / 6);
+    height: 2px;
+    background: var(--border);
+    content: "";
+  }
+
+  .login-steps::after {
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  .login-steps[data-current="1"]::after {
+    transform: scaleX(0.5);
+  }
+
+  .login-steps[data-current="2"]::after {
+    transform: scaleX(1);
+  }
+
+  .login-step,
+  .login-step + .login-step {
+    position: relative;
+    z-index: 1;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    text-align: center;
+  }
+
+  .login-step__body {
+    padding: 0;
+  }
+
+  .login-step__long,
+  .login-step__text {
+    display: none;
+  }
+
+  .login-step__short {
+    display: inline;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 600px) {
+  .auth {
+    background: var(--surface);
+  }
+
+  .auth__bar {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .auth__logo {
+    width: 132px;
+  }
+
+  .auth__main {
+    padding: 0;
+  }
+
+  .login {
+    border: 0;
+    border-radius: 0;
+  }
+
+  .login__head {
+    padding: 24px 16px 0;
+  }
+
+  .login__head::before {
+    display: none;
+  }
+
+  .login__head::after {
+    display: none;
+  }
+
+  .login__title {
+    font-size: 28px;
+    line-height: 34px;
+  }
+
+  .login__lead {
+    margin-top: 8px;
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .login .login-steps {
+    margin: 24px 16px 0;
+  }
+
+  .login__work {
+    padding: 20px 16px 0;
+  }
+
+  .auth-demo {
+    margin: 24px 16px;
+  }
+
+  .auth-demo__actions .btn {
+    flex: 1 1 auto;
+  }
 }
 
 @media (max-width: 380px) {
@@ -340,7 +559,19 @@
   }
 
   .otp__cell {
-    height: 46px;
+    height: 48px;
     font-size: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login__work,
+  .login-swap,
+  .login-error {
+    animation: none;
+  }
+
+  .login-steps::after {
+    transition: none;
   }
 }
