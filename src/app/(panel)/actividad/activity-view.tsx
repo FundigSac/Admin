@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Children, useDeferredValue, useState } from "react";
+import { useDeferredValue, useState } from "react";
 import { Skeleton } from "@/components/ui/bits";
 import {
   IconActive,
@@ -84,12 +84,25 @@ export function ActivityView() {
       .map((x) => t.roles[x as keyof typeof t.roles] ?? x)
       .join(", ");
 
+  // Cada pieza con nombre aparece una sola vez por frase, así que su papel sirve de key. React 19 ya no acepta que
+  // Children.toArray le ponga keys a un arreglo de elementos sin ellas: lo avisa en consola.
   const sentence = (e: Activity) => {
-    const user = e.type === "delete" ? <strong>{e.userName}</strong> : <Link href={`/usuarios/${e.userId}`}>{e.userName}</Link>;
-    const actor = e.actor ? <strong>{e.actor}</strong> : null;
-    const detail = e.type === "quote" && e.detail ? <span className="code">{e.detail}</span> : null;
-    const parts = h.sentence(e.type, { user, actor, method: h.method[e.detail ?? "email"] ?? e.detail ?? "", roles: roles(e.detail ?? ""), detail });
-    return Children.toArray(parts);
+    const user =
+      e.type === "delete" ? (
+        <strong key="user">{e.userName}</strong>
+      ) : (
+        <Link key="user" href={`/usuarios/${e.userId}`}>
+          {e.userName}
+        </Link>
+      );
+    const actor = e.actor ? <strong key="actor">{e.actor}</strong> : null;
+    const detail =
+      e.type === "quote" && e.detail ? (
+        <span key="detail" className="code">
+          {e.detail}
+        </span>
+      ) : null;
+    return h.sentence(e.type, { user, actor, method: h.method[e.detail ?? "email"] ?? e.detail ?? "", roles: roles(e.detail ?? ""), detail });
   };
 
   const clear = () => {
