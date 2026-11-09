@@ -86,11 +86,34 @@ test("responde una hoja de reclamación y queda como respondida", async ({ page 
   await expect(page.locator(".case-head").getByText("Respondida")).toBeVisible();
 });
 
-test("cambia a inglés y se mantiene al navegar", async ({ page, isMobile }) => {
-  test.skip(isMobile, "El selector de idioma del teléfono está en el menú");
-  await signIn(page);
-  await page.getByRole("group", { name: "Idioma" }).getByRole("button", { name: "EN" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Overview" })).toBeVisible();
+// El idioma salió de la barra superior: se cambia en Ajustes > Mis preferencias (brief de diseño §6.1).
+test("cambia a inglés desde Mis preferencias y se mantiene al navegar", async ({ page }) => {
+  await signIn(page, "/configuracion?tab=preferences");
+  await page.getByRole("group", { name: "Idioma" }).getByRole("button", { name: "English" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
   await page.goto("/usuarios");
-  await expect(page.getByRole("heading", { level: 1, name: "Users" })).toBeVisible();
+  await expect(page.locator(".topbar__title")).toHaveText("Accounts");
+  await expect(page.getByRole("navigation", { name: "Panel sections" }).getByRole("link", { name: /Requests/ })).toBeVisible();
+});
+
+test("el menú tiene cuatro secciones y Solicitudes agrupa las cuatro colas", async ({ page }) => {
+  await signIn(page, "/cotizaciones");
+  const sections = page.getByRole("navigation", { name: "Secciones del panel" });
+  await expect(sections.getByRole("link")).toHaveCount(4);
+  await expect(sections.getByRole("link", { name: /Solicitudes/ })).toHaveAttribute("aria-current", "page");
+  const kinds = page.getByRole("navigation", { name: "Tipos de solicitud" });
+  await expect(kinds.getByRole("link")).toHaveCount(4);
+  await kinds.getByRole("link", { name: /Reclamos/ }).click();
+  await page.waitForURL("**/reclamaciones");
+  await expect(kinds.getByRole("link", { name: /Reclamos/ })).toHaveAttribute("aria-current", "page");
+});
+
+test("la búsqueda encuentra una solicitud por su código", async ({ page }) => {
+  await signIn(page);
+  await page.getByRole("button", { name: "Buscar por nombre, correo o código" }).click();
+  await page.getByRole("combobox", { name: "Buscar por nombre, correo o código" }).fill("COT-2026-0521");
+  const option = page.getByRole("option", { name: /COT-2026-0521/ });
+  await expect(option).toBeVisible();
+  await option.click();
+  await page.waitForURL(/\/cotizaciones\/.+/);
 });

@@ -1,7 +1,8 @@
-/* Tokens del gestor. Dirección "registro industrial": se lee como un libro de control de ingeniería.
+/* Tokens del panel. Dirección "registro industrial": se lee como un libro de control de ingeniería.
    Marco gris neutro y hoja blanca; las secciones no son tarjetas sino bloques abiertos bajo una regla de tinta
    (--rule-strong), como el cajetín de un plano. El azul de marca (#0972a1) solo marca datos: la serie, la pestaña y
-   el elemento activos y el foco; el naranja del logo queda en el logo. Radios secos: hoja 10, piezas 6, controles 4.
+   el elemento activos y el foco; el naranja del logo queda en el logo. La acción principal de cada pantalla es el
+   único botón relleno, en petróleo (#004257, brief de diseño §6.6). Radios secos: hoja 10, piezas 6, controles 4.
    Tipografía: IBM Plex Sans; Plex Mono solo para códigos, documentos y horas. */
 
 :root {
@@ -23,8 +24,8 @@
   --accent: #0972a1;
   --accent-soft: #e5f1f7;
   --focus: #0972a1;
-  --primary: #12222d;
-  --primary-hover: #223644;
+  --primary: #004257;
+  --primary-hover: #00303f;
   --primary-ink: #ffffff;
 
   --positive: #247b50;
@@ -52,23 +53,25 @@
   --radius-card: 6px;
   --radius-control: 4px;
 
-  --sidebar-w: 232px;
-  --topbar-h: 48px;
+  --sidebar-w: 248px;
+  --topbar-h: 60px;
+  --tabbar-h: 64px;
   --inset: 8px;
-  --pad: 28px;
+  --pad: 32px;
   --gap: 16px;
   --section-gap: 36px;
   --card-pad: 20px;
-  --control-h: 34px;
-  --row-h: 52px;
+  --control-h: 40px;
+  --row-h: 56px;
+  --target: 44px;
 
-  --fs-title: 26px;
-  --fs-section: 15px;
+  --fs-title: 24px;
+  --fs-section: 17px;
   --fs-kpi: 28px;
   --fs-lead-figure: 34px;
-  --fs-label: 11.5px;
-  --fs-body: 14px;
-  --fs-small: 12px;
+  --fs-label: 13px;
+  --fs-body: 15px;
+  --fs-small: 13px;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --t-press: 120ms;
@@ -76,8 +79,15 @@
   --t-ui: 200ms;
 }
 
+/* En teléfono los controles crecen a 48 px: se usan con el pulgar. */
+@media (max-width: 600px) {
+  :root {
+    --control-h: 48px;
+  }
+}
+
 :root[data-density="compact"] {
-  --row-h: 42px;
+  --row-h: 48px;
   --card-pad: 16px;
 }
 

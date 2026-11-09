@@ -27,10 +27,12 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Mismo color que la barra superior del teléfono, que es blanca (o la hoja oscura en tema oscuro).
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eef3f6" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b0c0d" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#141617" },
   ],
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

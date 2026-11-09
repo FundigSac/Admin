@@ -14,7 +14,7 @@ body {
   min-height: 100dvh;
   background: var(--chrome);
   color: var(--text);
-  font: var(--fs-body) / 20px var(--font);
+  font: var(--fs-body) / 22px var(--font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -129,11 +129,20 @@ table,
   transform: none;
 }
 
-/* Párrafos justificados como en el sitio, sin cortar palabras con guion. */
+/* Párrafos justificados en todos los anchos, como en el sitio, sin cortar palabras con guion. :where() deja la
+   especificidad en 0: títulos, botones, rótulos y columnas de cifras conservan su alineación, y un contenedor
+   centrado (estado vacío) puede devolver el centrado a sus párrafos. */
+:where(p),
 .prose {
   text-align: justify;
   hyphens: manual;
   text-wrap: pretty;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
 @media (prefers-reduced-motion: reduce) {

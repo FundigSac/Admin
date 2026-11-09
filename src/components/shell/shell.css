@@ -1,6 +1,7 @@
-/* Marco en L: barra lateral y barra superior comparten el fondo gris neutro, sin línea entre ellas; el trabajo vive
-   en una hoja blanca separada 8px de los bordes derecho e inferior, con borde de 1px, radio 10 y sin sombra.
-   Cuadrícula: 232 (barra) + hoja fluida; dentro de la hoja, 24px de margen y un solo hueco de 16px. */
+/* Marco del panel (brief de diseño §6.1). Cuatro secciones sin grupos: Inicio, Solicitudes, Cuentas y Ajustes.
+   Escritorio: menú a la izquierda sobre el marco gris, barra superior con la sección, la búsqueda y la ayuda, y la
+   hoja blanca de trabajo separada 8 px de los bordes. Hasta 1024 px no hay menú lateral: barra inferior fija de
+   64 px con las mismas cuatro secciones, al alcance del pulgar. Sin sombras ni desenfoque: líneas de 1 px. */
 
 .app {
   display: grid;
@@ -8,122 +9,107 @@
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
 }
 
-/* ===== Barra lateral ===== */
+/* ===== Menú lateral ===== */
 .sidebar {
   display: flex;
   min-height: 0;
   flex-direction: column;
-  padding: 14px 12px 12px;
+  padding: 20px 12px 12px;
   overflow-y: auto;
   background: var(--chrome);
 }
 
-.sidebar__brand {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 2px 8px 0;
+.sidebar__logo {
+  display: block;
+  width: fit-content;
+  padding: 4px 12px 0;
 }
 
 .sidebar__logo img {
-  width: 138px;
+  width: 148px;
   height: auto;
 }
 
-.sidebar__close {
-  display: none;
-}
-
-.sidebar__scope {
-  margin: 6px 8px 0;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 500;
-}
-
 .sidebar__nav {
+  margin-top: 32px;
+}
+
+.side-list {
   display: grid;
-  gap: 22px;
-  margin-top: 26px;
+  gap: 4px;
 }
 
-.sidebar__label {
-  margin: 0 10px 8px;
-  color: var(--faint);
-  font-size: var(--fs-label);
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.sidebar__list {
-  display: grid;
-  gap: 2px;
-}
-
-/* Elemento activo: tinta y una regla azul de 2px a la izquierda que crece al llegar (no un bloque gris). */
-.nav-item {
-  position: relative;
+/* Sección: 48 px, icono de 22 px y nombre en 15 px. La elegida es una lengüeta blanca unida a la hoja. */
+.side-item {
   display: flex;
-  height: 32px;
+  height: 48px;
   align-items: center;
-  gap: 10px;
-  padding: 0 10px;
-  border-radius: var(--radius-control);
+  gap: 12px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-card);
   color: var(--muted);
-  font-weight: 500;
-  transition:
-    background-color var(--t-hover) ease,
-    color var(--t-hover) ease;
+  font-size: 15px;
+  font-weight: 600;
 }
 
-.nav-item::before {
-  position: absolute;
-  top: 7px;
-  bottom: 7px;
-  left: 0;
-  width: 2px;
-  border-radius: 1px;
-  background: var(--accent);
-  content: "";
-  transform: scaleY(0);
-  transition: transform var(--t-ui) var(--ease);
-}
-
-.nav-item svg {
+.side-item svg {
   flex: none;
 }
 
-.nav-item:hover {
+.side-item:hover {
   background: var(--active);
   color: var(--text);
 }
 
-.nav-item[aria-current="page"] {
+.side-item[aria-current="page"] {
+  border-color: var(--border);
+  background: var(--surface);
   color: var(--text);
-  font-weight: 600;
 }
 
-.nav-item[aria-current="page"]::before {
-  transform: scaleY(1);
-}
-
-.nav-item[aria-current="page"] svg {
+.side-item[aria-current="page"] svg {
   color: var(--accent);
 }
 
-.sidebar__mobile-prefs {
-  display: none;
+.side-item__label {
+  min-width: 0;
+  flex: 1;
+}
+
+/* Cuántas cosas esperan en la sección: cifra tabular sobre un rectángulo de 2 px de radio, con texto oculto para
+   lectores de pantalla ("3 por atender"). */
+.count {
+  display: inline-grid;
+  min-width: 24px;
+  height: 22px;
+  flex: none;
+  place-items: center;
+  padding: 0 6px;
+  border-radius: 2px;
+  background: var(--primary);
+  color: var(--primary-ink);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.count--soft {
+  background: var(--accent-soft);
+  color: var(--text);
 }
 
 .sidebar__account {
   margin-top: auto;
-  padding-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
 .account-btn {
   display: flex;
   width: 100%;
+  min-height: 52px;
   align-items: center;
   gap: 10px;
   padding: 8px;
@@ -132,7 +118,6 @@
   background: transparent;
   color: var(--muted);
   text-align: left;
-  transition: background-color var(--t-hover) ease;
 }
 
 .account-btn:hover,
@@ -149,14 +134,14 @@
 .account-btn__text strong {
   overflow: hidden;
   color: var(--text);
-  font-size: 13px;
+  font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .account-btn__text span {
   overflow: hidden;
-  font-size: 12px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -177,63 +162,78 @@
   background: var(--chrome);
 }
 
+/* Barra superior, de izquierda a derecha: sección actual, Buscar y Ayuda. */
 .topbar {
-  position: relative;
   display: flex;
   height: var(--topbar-h);
   flex: none;
   align-items: center;
   gap: 12px;
-  padding: 0 4px 0 8px;
+  padding: 0 0 0 12px;
 }
 
-.topbar__menu,
-.topbar__title {
+.topbar__brand,
+.topbar__account {
   display: none;
 }
 
-/* Búsqueda centrada en la ventana, 548×32, con el atajo a la vista. */
-.search-btn {
-  position: absolute;
-  left: 50%;
-  display: flex;
-  width: min(548px, calc(100% - 220px));
-  height: 32px;
-  align-items: center;
-  gap: 8px;
-  padding: 0 6px 0 11px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--surface);
-  color: var(--faint);
-  transform: translateX(calc(-50% - var(--sidebar-w) / 2 + var(--inset) / 2));
-  transition: border-color var(--t-hover) ease;
-}
-
-.search-btn:hover {
-  border-color: var(--control);
-}
-
-.search-btn__text {
-  flex: 1;
+.topbar__title {
+  min-width: 0;
+  flex: 1 1 0;
   overflow: hidden;
-  text-align: left;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 24px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.topbar__end {
+/* Parece un campo porque es la puerta a la búsqueda: abre el buscador con el foco ya puesto. */
+.search-field {
   display: flex;
+  width: min(440px, 42vw);
+  height: 40px;
+  flex: none;
   align-items: center;
-  gap: 6px;
-  margin-left: auto;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: text;
+  font-size: 15px;
+  text-align: left;
+}
+
+.search-field:hover {
+  border-color: var(--faint);
+}
+
+.search-field__text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar__help {
+  height: 40px;
+  color: var(--muted);
+}
+
+.topbar__help:hover:not(:disabled) {
+  background: var(--active);
+  color: var(--text);
 }
 
 .sheet {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
-  padding: var(--pad);
+  padding: 28px var(--pad) 40px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sheet);
   background: var(--surface);
@@ -248,13 +248,159 @@
   margin-left: auto;
 }
 
-.sidebar-scrim {
+/* ===== Pestañas de sección (Solicitudes y Ajustes) ===== */
+.section-tabs {
+  margin-top: -8px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-tabs__list {
+  display: flex;
+  gap: 8px 28px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.section-tabs__list::-webkit-scrollbar {
   display: none;
 }
 
-/* ===== Búsqueda rápida ===== */
+.section-tab {
+  position: relative;
+  display: inline-flex;
+  height: 52px;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.section-tab:hover {
+  color: var(--text);
+}
+
+.section-tab[aria-current="page"] {
+  color: var(--text);
+}
+
+.section-tab[aria-current="page"] svg {
+  color: var(--accent);
+}
+
+/* El indicador vive siempre plegado: al elegir otra pestaña uno se recoge y el otro crece (scaleX, 150 ms). */
+.section-tab::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 3px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent);
+  content: "";
+  transform: scaleX(0);
+  transition: transform 150ms var(--ease);
+}
+
+.section-tab[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+/* ===== Barra inferior (teléfono y tableta) ===== */
+.tabbar {
+  display: none;
+}
+
+.tabbar__list {
+  display: grid;
+  max-width: 640px;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  margin: 0 auto;
+}
+
+.tabbar__item {
+  position: relative;
+  display: flex;
+  height: var(--tabbar-h);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 2px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.tabbar__item::before {
+  position: absolute;
+  top: -1px;
+  right: 24%;
+  left: 24%;
+  height: 3px;
+  border-radius: 0 0 2px 2px;
+  background: var(--accent);
+  content: "";
+  transform: scaleX(0);
+  transition: transform 150ms var(--ease);
+}
+
+.tabbar__item[aria-current="page"] {
+  color: var(--text);
+}
+
+.tabbar__item[aria-current="page"] svg {
+  color: var(--accent);
+}
+
+.tabbar__item[aria-current="page"]::before {
+  transform: scaleX(1);
+}
+
+.tabbar__item:active svg {
+  transform: translateY(1px);
+}
+
+.tabbar__icon {
+  position: relative;
+  display: grid;
+}
+
+.tabbar__badge {
+  position: absolute;
+  top: -6px;
+  left: calc(100% - 8px);
+  display: grid;
+  min-width: 20px;
+  height: 18px;
+  place-items: center;
+  padding: 0 5px;
+  border: 2px solid var(--surface);
+  border-radius: 9px;
+  background: var(--primary);
+  color: var(--primary-ink);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  box-sizing: content-box;
+}
+
+.tabbar__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== Búsqueda ===== */
 .palette {
-  width: min(620px, calc(100vw - 24px));
+  width: min(640px, calc(100vw - 24px));
   margin-top: 12vh;
 }
 
@@ -266,37 +412,47 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 14px;
+  padding: 0 12px 0 16px;
   border-bottom: 1px solid var(--border);
-  color: var(--faint);
+  color: var(--muted);
 }
 
 .palette__input {
-  height: 52px;
+  height: 56px;
+  min-width: 0;
   flex: 1;
   border: 0;
   background: transparent;
   color: var(--text);
-  font-size: 15px;
+  font-size: 16px;
   outline: none;
 }
 
+.palette__input::placeholder {
+  color: var(--faint);
+  opacity: 1;
+}
+
+.palette__esc {
+  cursor: pointer;
+}
+
 .palette__list {
-  max-height: min(52dvh, 420px);
+  max-height: min(56dvh, 460px);
   overflow-y: auto;
   padding: 6px;
 }
 
 .palette__group {
-  padding: 10px 10px 4px;
-  color: var(--faint);
-  font-size: var(--fs-small);
-  font-weight: 500;
+  padding: 12px 10px 4px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .palette__option {
   display: flex;
-  min-height: 44px;
+  min-height: 48px;
   align-items: center;
   gap: 10px;
   padding: 6px 10px;
@@ -321,7 +477,7 @@
 .palette__text span {
   overflow: hidden;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -339,11 +495,12 @@
 .palette__hint {
   padding: 10px 16px;
   border-top: 1px solid var(--border);
-  color: var(--faint);
-  font-size: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
 }
 
-/* ===== Tablet y teléfono: el marco desaparece y la hoja es la pantalla ===== */
+/* ===== Teléfono y tableta: barra superior blanca, hoja a pantalla completa y barra inferior ===== */
 @media (max-width: 1024px) {
   .app {
     display: block;
@@ -352,48 +509,7 @@
   }
 
   .sidebar {
-    position: fixed;
-    z-index: 60;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: min(320px, 86vw);
-    padding-bottom: 16px;
-    box-shadow: var(--shadow-float);
-    transform: translateX(-104%);
-    transition: transform var(--t-ui) var(--ease);
-    visibility: hidden;
-  }
-
-  .sidebar.is-open {
-    transform: none;
-    visibility: visible;
-  }
-
-  .sidebar__close {
-    display: inline-grid;
-  }
-
-  .sidebar__mobile-prefs {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 24px;
-    padding: 0 8px;
-  }
-
-  .nav-item {
-    height: 44px;
-    font-size: 15px;
-  }
-
-  .sidebar-scrim {
-    position: fixed;
-    z-index: 55;
-    inset: 0;
-    display: block;
-    background: rgb(8 14 20 / 44%);
-    animation: fade-in var(--t-ui) ease;
+    display: none;
   }
 
   .frame {
@@ -406,84 +522,105 @@
     position: sticky;
     z-index: 30;
     top: 0;
-    height: 52px;
-    padding: 0 8px;
-    background: var(--chrome);
+    height: 56px;
+    gap: 4px;
+    padding: 0 8px 0 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
   }
 
-  .topbar__menu {
-    display: inline-grid;
-    width: 44px;
+  .topbar__brand {
+    display: grid;
+    width: 36px;
     height: 44px;
+    flex: none;
+    place-items: center start;
   }
 
   .topbar__title {
-    display: block;
-    flex: 1;
-    overflow: hidden;
-    font-size: 16px;
-    font-weight: 600;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 17px;
   }
 
-  .search-btn {
-    position: static;
-    width: 44px;
-    height: 44px;
-    flex: none;
+  /* En el teléfono Buscar y Ayuda quedan como iconos de 44 px; el texto sigue para lectores de pantalla. */
+  .search-field,
+  .topbar__help {
+    width: var(--target);
+    height: var(--target);
     justify-content: center;
     padding: 0;
     border-color: transparent;
     background: transparent;
-    color: var(--muted);
-    transform: none;
+    color: var(--text);
   }
 
-  /* El texto sigue disponible para lectores de pantalla aunque en teléfono solo se vea la lupa. */
-  .search-btn__text {
+  .search-field__text,
+  .topbar__help-text {
     position: absolute;
     width: 1px;
     height: 1px;
     overflow: hidden;
-    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
     white-space: nowrap;
   }
 
-  .search-btn .kbd,
-  .topbar__end {
-    display: none;
+  .topbar__account {
+    display: block;
+  }
+
+  .account-icon {
+    display: grid;
+    width: var(--target);
+    height: var(--target);
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-control);
+    background: transparent;
+  }
+
+  .account-icon[aria-expanded="true"] {
+    background: var(--active);
   }
 
   .sheet {
     overflow: visible;
-    padding: 20px 16px 32px;
+    padding: 20px 16px calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 32px);
     border: 0;
     border-radius: 0;
   }
+
+  .section-tabs {
+    margin: -8px -16px 24px;
+    padding: 0 16px;
+  }
+
+  .section-tabs__list {
+    gap: 4px 24px;
+  }
+
+  .section-tab {
+    height: 48px;
+  }
+
+  .tabbar {
+    position: fixed;
+    z-index: 40;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: block;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  /* Los avisos suben por encima de la barra inferior. */
+  body:has(.tabbar) .toasts {
+    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 12px);
+  }
 }
 
-/* Conteo de una cola que espera acción ("Reclamaciones 2"). */
-.nav-item__label {
-  flex: 1;
-}
-
-/* Pendientes de cada cola: cifra tabular alineada a la derecha, sin cápsula. */
-.nav-count {
-  min-width: 20px;
-  color: var(--text);
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 18px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.nav-item[aria-current="page"] .nav-count {
-  color: var(--accent);
-}
-
-/* ===== Guía rápida ===== */
+/* ===== Ayuda ===== */
 .guide {
   display: grid;
   gap: 24px;
@@ -491,7 +628,7 @@
 
 .guide__title {
   margin-bottom: 10px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -502,9 +639,9 @@
 
 .guide__item {
   display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
+  grid-template-columns: 160px minmax(0, 1fr);
   gap: 12px;
-  padding: 9px 0;
+  padding: 12px 0;
 }
 
 .guide__item + .guide__item {
@@ -513,19 +650,20 @@
 
 .guide__item dt {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   font-weight: 600;
 }
 
 .guide__item dt svg {
+  flex: none;
   color: var(--accent);
 }
 
 .guide__item dd {
   margin: 0;
   color: var(--muted);
-  line-height: 20px;
+  line-height: 22px;
 }
 
 .guide__colors {
@@ -555,6 +693,13 @@ ul.guide__tips {
 @media (max-width: 560px) {
   .guide__item {
     grid-template-columns: minmax(0, 1fr);
-    gap: 2px;
+    gap: 4px;
+  }
+}
+
+@media print {
+  .tabbar,
+  .section-tabs {
+    display: none !important;
   }
 }

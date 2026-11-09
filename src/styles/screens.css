@@ -17,6 +17,15 @@
   font-size: 13px;
 }
 
+/* Rótulos y leyendas cortas bajo una cifra no son párrafos: se alinean al inicio, sin justificar. */
+.kpi__label,
+.kpi__caption,
+.panel__meta,
+.row__sub,
+.stamp {
+  text-align: start;
+}
+
 /* ===== KPIs: fila de cifras bajo la regla de tinta, columnas separadas por líneas finas, sin caja ===== */
 .kpis {
   display: grid;
@@ -39,13 +48,11 @@
 
 /* Dos líneas reservadas: si una etiqueta se parte, las cifras de la fila siguen a la misma altura. */
 .kpi__label {
-  min-height: 32px;
+  min-height: 36px;
   color: var(--muted);
   font-size: var(--fs-label);
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  line-height: 16px;
-  text-transform: uppercase;
+  font-weight: 600;
+  line-height: 18px;
 }
 
 .kpi__value {
@@ -139,7 +146,7 @@
 
 .row {
   display: flex;
-  min-height: 52px;
+  min-height: var(--row-h);
   align-items: center;
   gap: 12px;
   padding: 8px 0;
@@ -251,22 +258,20 @@
 }
 
 .table th {
-  height: 38px;
+  height: 44px;
   padding: 0 12px;
   color: var(--muted);
   font-size: var(--fs-small);
-  font-weight: 500;
+  font-weight: 600;
   text-align: left;
   white-space: nowrap;
   border-bottom: 1px solid var(--border);
 }
 
-/* Encabezado de columnas en versalitas bajo la regla de tinta: la tabla abre como una hoja de registro.
-   Los encabezados de fila (th scope="row") conservan su texto normal. */
+/* Encabezado de columnas bajo la regla de tinta: la tabla abre como una hoja de registro. Rótulos de 13 px en
+   minúscula normal, legibles sin versalitas. */
 .table thead th {
   font-size: var(--fs-label);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   border-top: 1px solid var(--rule-strong);
 }
 
@@ -307,4 +312,67 @@
 
 :root[data-theme="dark"] .is-warn-soft {
   color: var(--warning);
+}
+
+/* ===== Tabla que pasa a tarjetas en teléfono (brief §6.5) =====
+   Opcional con .table--cards: desde 721 px es una tabla semántica de filas de 56 px; hasta 720 px cada fila es una
+   tarjeta, sin duplicar el DOM. Marcado esperado en cada celda:
+   - data-primary: identidad (nombre o código), ocupa el ancho y va en 16 px;
+   - data-label="Estado": rótulo que se antepone al valor;
+   - data-action: el botón "Abrir", a todo el ancho y de 48 px.
+   Se conservan role="table", "row", "columnheader" y "cell" en el marcado, porque display cambia la semántica. */
+@media (max-width: 720px) {
+  .table--cards,
+  .table--cards tbody {
+    display: block;
+  }
+
+  .table--cards thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .table--cards tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 12px;
+    margin-bottom: 8px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+  }
+
+  .table--cards td,
+  .table--cards td:first-child,
+  .table--cards td:last-child {
+    display: block;
+    height: auto;
+    padding: 0;
+    border: 0;
+  }
+
+  .table--cards td[data-primary] {
+    grid-column: 1 / -1;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .table--cards td[data-label]::before {
+    color: var(--muted);
+    content: attr(data-label) ": ";
+  }
+
+  .table--cards td[data-action] {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+  }
+
+  .table--cards td[data-action] .btn {
+    width: 100%;
+    min-height: 48px;
+  }
 }

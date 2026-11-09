@@ -1,61 +1,31 @@
-/* Movimiento: breve (120-420 ms), solo transform y opacidad, una vez por llegada. Con "reducir movimiento"
-   el contenido aparece directo (base.css acorta toda animación a 1 ms). */
+/* Movimiento del panel (brief de diseño §6.7). El panel se abre para trabajar: las pantallas llegan quietas, las
+   cifras no cuentan y los gráficos no crecen. Lo que se mueve confirma una acción: pestaña elegida (scaleX, 150 ms),
+   diálogo y aviso (opacidad y 8 px, 200 ms; salida 140 ms), botón presionado (1 px, 120 ms) y menú (120 ms).
+   Solo transform y opacidad. Con "reducir movimiento" todo es inmediato (base.css acorta cualquier resto a 1 ms). */
 
 :root {
   --dur-1: 120ms;
   --dur-2: 200ms;
   --dur-3: 320ms;
-  --dur-4: 520ms;
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* Llegada a una pantalla: cada bloque sube 8px y aparece, escalonado 40ms (máximo 7 pasos). */
-.route > * {
-  animation: rise var(--dur-3) var(--ease-out) both;
+/* Contenido que cambia en el sitio (otra página de la lista, otro filtro, otra pestaña de Ajustes): aparece con
+   opacidad y 4 px, sin mover lo que lo rodea. No se usa al llegar a una pantalla. */
+.fade-in {
+  animation: settle var(--dur-2) var(--ease-out) both;
 }
 
-.route > :nth-child(2) {
-  animation-delay: 40ms;
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
 }
 
-.route > :nth-child(3) {
-  animation-delay: 80ms;
-}
-
-.route > :nth-child(4) {
-  animation-delay: 120ms;
-}
-
-.route > :nth-child(5) {
-  animation-delay: 160ms;
-}
-
-.route > :nth-child(n + 6) {
-  animation-delay: 200ms;
-}
-
-/* Dentro de una cuadrícula, las tarjetas también se escalonan. */
-.stagger > * {
-  animation: rise var(--dur-3) var(--ease-out) both;
-}
-
-.stagger > :nth-child(2) {
-  animation-delay: 50ms;
-}
-
-.stagger > :nth-child(3) {
-  animation-delay: 100ms;
-}
-
-.stagger > :nth-child(4) {
-  animation-delay: 150ms;
-}
-
-.stagger > :nth-child(n + 5) {
-  animation-delay: 200ms;
-}
-
+/* Entrada de un elemento que aparece por una acción (por ejemplo, la barra de selección múltiple). */
 @keyframes rise {
   from {
     opacity: 0;
@@ -63,105 +33,40 @@
   }
 }
 
-/* Filas que llegan (al cambiar de página o filtro): aparecen sin desplazar el diseño. */
-.fade-in {
-  animation: fade-in var(--dur-2) ease both;
-}
-
-/* Barras: crecen desde su origen. */
-.grow-x {
-  transform-origin: left center;
-  animation: grow-x var(--dur-4) var(--ease-out) both;
-}
-
-@keyframes grow-x {
-  from {
-    transform: scaleX(0);
-  }
-}
-
-/* Columnas del gráfico: crecen desde la base, en cascada corta (el retraso lo pone el componente). */
-.grow-y {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-  animation: grow-y var(--dur-4) var(--ease-out) both;
-}
-
-@keyframes grow-y {
-  from {
-    transform: scaleY(0);
-  }
-}
-
+/* Clases de llegada retiradas: se conservan vacías para que el marcado existente no dependa de ellas. */
+.route > *,
+.stagger > *,
+.today__list > li,
+.grow-x,
+.grow-y,
 .fade-area {
-  animation: fade-in 500ms ease 250ms both;
+  animation: none;
 }
 
 /* Cambio de tema con View Transitions: fundido corto de toda la página. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 240ms;
+  animation-duration: 200ms;
   animation-timing-function: ease;
 }
 
-/* Pestaña elegida: su subrayado crece desde el centro (confirma el cambio sin mover la tabla). */
-.tabs__tab[aria-selected="true"]::after,
-.tabs__tab[aria-current="page"]::after {
-  animation: tab-in var(--dur-3) var(--ease-out);
-}
-
-@keyframes tab-in {
-  from {
-    transform: scaleX(0.2);
-    opacity: 0;
-  }
-}
-
-/* "Para hoy": las filas llegan en cascada corta con la pantalla. */
-.today__list > li {
-  animation: rise var(--dur-3) var(--ease-out) both;
-}
-
-.today__list > li:nth-child(2) { animation-delay: 40ms; }
-.today__list > li:nth-child(3) { animation-delay: 80ms; }
-.today__list > li:nth-child(4) { animation-delay: 120ms; }
-.today__list > li:nth-child(n + 5) { animation-delay: 160ms; }
-
-/* Respuesta táctil de los controles. */
+/* Respuesta al presionar: 1 px hacia abajo, sin escalar. */
 .btn:active:not(:disabled),
 .icon-btn:active,
-.nav-item:active,
-.segmented button:active {
-  transform: scale(0.97);
+.segmented button:active,
+.lang-toggle button:active {
+  transform: translateY(1px);
 }
 
 .segmented button,
 .lang-toggle button {
-  transition:
-    background-color var(--dur-2) var(--ease-out),
-    color var(--dur-2) ease,
-    transform var(--dur-1) ease;
-}
-
-.nav-item svg {
-  transition:
-    color var(--dur-2) ease,
-    transform var(--dur-2) var(--ease-out);
-}
-
-.nav-item:hover svg {
-  transform: translateX(1px);
+  transition: transform var(--dur-1) ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .route > *,
-  .stagger > *,
-  .grow-x,
-  .grow-y,
-  .today__list > li,
-  .tabs__tab::after,
-  .fade-area,
-  .fade-in {
+  .fade-in,
+  .tabs__tab::after {
     animation: none !important;
+    transition: none !important;
   }
 }
