@@ -92,10 +92,26 @@ button {
   color: var(--text);
 }
 
-/* Cifras tabulares en todo lo que se compara o cambia. */
+/* Cifras tabulares en todo lo que se compara o cambia (B9-1): tablas, contadores, KPI, plazos y fechas. Con dígitos
+   de ancho fijo las columnas alinean y un contador que sube no hace "bailar" el texto que tiene al lado. */
 .num,
 table,
-.kpi__value {
+time,
+.code,
+.kpi,
+.kpi__value,
+.tabs__count,
+.nav-count,
+.btn__count,
+.toolbar__count,
+.title-count,
+.role-row__count,
+.pager__label,
+.list-foot__range,
+.deadline,
+.today__n,
+.barlist__value,
+.chart {
   font-variant-numeric: tabular-nums;
 }
 
