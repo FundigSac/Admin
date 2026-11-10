@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Avatar, Skeleton, TitleRow } from "@/components/ui/bits";
-import { IconActive, IconLegal } from "@/components/ui/icons";
+import { IconActive, IconChevronRight, IconLegal } from "@/components/ui/icons";
 import { PERMISSIONS, ROLE_PERMISSIONS, STAFF_ROLES, type PermissionGroup } from "@/data/permissions";
 import { useUserList } from "@/lib/api/queries";
 import { usePrefs } from "@/lib/prefs";
@@ -16,6 +17,8 @@ export function RolesView() {
   const staff = useUserList({ page: 0, size: 200, kind: "staff", sort: { id: "name", desc: false } });
   const customers = useUserList({ page: 0, size: 1, kind: "customer" });
   const members = (role: string) => staff.data?.items.filter((u) => u.roles.includes(role as never)) ?? [];
+  const [closed, setClosed] = useState<PermissionGroup[]>([]);
+  const toggle = (g: PermissionGroup) => setClosed((list) => (list.includes(g) ? list.filter((x) => x !== g) : [...list, g]));
 
   return (
     <>
@@ -75,7 +78,22 @@ export function RolesView() {
             </h2>
             <p className="panel__meta">{r.matrixDesc}</p>
           </div>
+          <button type="button" className="card-link" onClick={() => setClosed(closed.length ? [] : GROUPS)}>
+            {closed.length ? r.expandAll : r.collapseAll}
+          </button>
         </div>
+        <p className="matrix-legend">
+          <span className="sr-only">{r.legend}: </span>
+          <span className="matrix-legend__item">
+            <IconActive size={16} className="matrix-legend__on" />
+            {r.granted}
+          </span>
+          <span className="matrix-legend__item">
+            <span className="matrix__off" aria-hidden="true" />
+            {r.denied}
+          </span>
+          <span className="matrix-legend__note">{r.readOnly}</span>
+        </p>
         <div className="table-frame" tabIndex={0} role="region" aria-label={r.matrix}>
           <table className="table matrix">
             <thead>
@@ -88,15 +106,21 @@ export function RolesView() {
                 ))}
               </tr>
             </thead>
-            {GROUPS.map((group) => (
-              <tbody key={group}>
+            {GROUPS.map((group) => {
+              const perms = PERMISSIONS.filter((p) => p.group === group);
+              const open = !closed.includes(group);
+              return (
+              <tbody key={group} data-group={group}>
                 <tr className="matrix__group">
                   <th scope="rowgroup" colSpan={STAFF_ROLES.length + 1}>
-                    {t.permGroups[group]}
+                    <button type="button" className="matrix__toggle" aria-expanded={open} aria-controls={perms.map((p) => `perm-${p.id.replace(":", "-")}`).join(" ")} onClick={() => toggle(group)}>
+                      <IconChevronRight size={14} className="matrix__chev" />
+                      {r.groupToggle(t.permGroups[group], perms.length)}
+                    </button>
                   </th>
                 </tr>
-                {PERMISSIONS.filter((p) => p.group === group).map((p) => (
-                  <tr key={p.id}>
+                {perms.map((p) => (
+                  <tr key={p.id} id={`perm-${p.id.replace(":", "-")}`} hidden={!open}>
                     <th scope="row" className="matrix__perm">
                       {t.perms[p.id]}
                       <span className="matrix__code">{p.id}</span>
@@ -105,14 +129,17 @@ export function RolesView() {
                       const ok = ROLE_PERMISSIONS[role].includes(p.id);
                       return (
                         <td key={role} className={`matrix__cell${ok ? " is-on" : ""}`}>
-                          {ok ? <IconActive size={18} aria-label={r.granted} role="img" aria-hidden={false} /> : <span className="matrix__off" aria-label={r.denied} role="img" />}
+                          {/* X13-3: ícono decorativo y el texto real para lectores de pantalla (también en WebKit). */}
+                          {ok ? <IconActive size={18} /> : <span className="matrix__off" aria-hidden="true" />}
+                          <span className="sr-only">{ok ? r.granted : r.denied}</span>
                         </td>
                       );
                     })}
                   </tr>
                 ))}
               </tbody>
-            ))}
+              );
+            })}
           </table>
         </div>
       </section>

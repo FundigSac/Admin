@@ -1,6 +1,6 @@
 "use client";
 
-import { IconChevronRight, IconRefresh } from "@/components/ui/icons";
+import { IconChevronRight, IconClose, IconFilter, IconRefresh } from "@/components/ui/icons";
 import Link from "next/link";
 import { useState } from "react";
 import { ColumnChart } from "@/components/charts/column-chart";
@@ -8,13 +8,13 @@ import { AnimatedNumber } from "@/components/ui/animated-number";
 import { InfoTip } from "@/components/ui/info-tip";
 import { Avatar, MethodIcon, RelTime, Skeleton, StatusBadge, TitleCount, TitleRow } from "@/components/ui/bits";
 import { useToast } from "@/components/ui/toast";
-import type { DashboardStats, RangeKey } from "@/lib/api";
-import { useQueueCounts, useResendVerification, useStats } from "@/lib/api/queries";
+import type { DashboardStats, RangeKey, StatsSegment } from "@/lib/api";
+import { useCaseList, useQueueCounts, useResendVerification, useStats } from "@/lib/api/queries";
 import { businessDaysLeft } from "@/lib/business-days";
 import { DeadlineChip } from "@/components/cases/case-ui";
 import { formatDate, formatNumber, formatPercent, formatTime, relativeTime } from "@/lib/format";
 import { usePrefs } from "@/lib/prefs";
-import type { SignupMethod } from "@/data/types";
+import type { QuoteStatus, SignupMethod } from "@/data/types";
 import "./overview.css";
 
 const RANGES: RangeKey[] = ["7d", "30d", "90d", "all"];
@@ -23,6 +23,14 @@ const METHODS: SignupMethod[] = ["google", "email", "facebook"];
 export function OverviewView() {
   const { t, lang } = usePrefs();
   const [range, setRange] = useState<RangeKey>("30d");
+  // B4-1: un KPI pulsado limita el gráfico y los últimos registros a su subconjunto.
+  const [segment, setSegment] = useState<StatsSegment | null>(null);
+  const clearSegment = () => {
+    const was = segment;
+    setSegment(null);
+    // El botón «Quitar filtro» desaparece: el foco vuelve al KPI que aplicó el filtro.
+    if (was) requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-segment="${was}"]`)?.focus());
+  };
   const stats = useStats(range);
   const s = stats.data;
   const o = t.overview;
@@ -69,6 +77,20 @@ export function OverviewView() {
             </button>
           ))}
         </div>
+        <div className="seg-filter" role="status">
+          {segment && (
+            <>
+              <span className="seg-filter__label">
+                <IconFilter size={14} />
+                {o.filterOn(o.segment[segment])}
+              </span>
+              <button type="button" className="btn seg-filter__clear" onClick={clearSegment}>
+                <IconClose size={14} />
+                {o.clearFilter}
+              </button>
+            </>
+          )}
+        </div>
         <span className="stamp">
           {s ? o.updated(formatTime(s.generatedAt, t.locale)) : null}
           <button type="button" className="icon-btn icon-btn--sm" onClick={() => stats.refetch()} aria-label={o.refresh} title={o.refresh} disabled={stats.isFetching}>
@@ -79,24 +101,25 @@ export function OverviewView() {
 
       <div className="overview">
         <div className="overview__main stagger">
-          <Kpis s={s} range={range} />
-          <TrendCard s={s} range={range} />
+          <Kpis s={s} range={range} segment={segment} onSegment={(seg) => (seg === segment ? clearSegment() : setSegment(seg))} />
+          <TrendCard s={s} range={range} segment={segment} />
           <div className="overview__pair">
             <FunnelCard s={s} range={range} />
             <MixCard s={s} range={range} />
           </div>
+          <QuoteStagesCard />
         </div>
         <aside className="overview__rail stagger" aria-label={`${o.pendingTitle} · ${o.latestTitle}`}>
           <DueList />
           <PendingList s={s} />
-          <LatestList s={s} lang={lang} />
+          <LatestList s={s} lang={lang} segment={segment} />
         </aside>
       </div>
     </>
   );
 }
 
-function Kpis({ s, range }: { s?: DashboardStats; range: RangeKey }) {
+function Kpis({ s, range, segment, onSegment }: { s?: DashboardStats; range: RangeKey; segment: StatsSegment | null; onSegment: (seg: StatsSegment) => void }) {
   const { t } = usePrefs();
   const o = t.overview;
   const n = (v: number) => formatNumber(v, t.locale);
@@ -112,51 +135,75 @@ function Kpis({ s, range }: { s?: DashboardStats; range: RangeKey }) {
     </>
   );
 
-  const cells = [
+  const cells: { label: string; help: string; value?: number; lead?: boolean; caption: React.ReactNode; seg?: StatsSegment }[] = [
     { label: o.newUsers, help: o.help.newUsers, value: s?.newInRange, lead: true, caption: deltaText },
     { label: o.total, help: o.help.total, value: s?.total, caption: o.totalHint },
     {
       label: o.pending,
       help: o.help.pending,
       value: s?.pending,
+      seg: "pending",
       caption: s ? <span className={s.pendingOver48h > 0 ? "is-bad" : undefined}>{o.pendingHint(s.pendingOver48h)}</span> : null,
     },
-    { label: o.activeWeek, help: o.help.activeWeek, value: s?.activeWeek, caption: s ? o.activeHint(formatPercent(s.activeWeek / Math.max(1, s.total), t.locale)) : null },
+    { label: o.activeWeek, help: o.help.activeWeek, value: s?.activeWeek, seg: "active", caption: s ? o.activeHint(formatPercent(s.activeWeek / Math.max(1, s.total), t.locale)) : null },
   ];
 
   return (
     <section className="kpis" aria-label={o.title}>
-      {cells.map((c) => (
-        <div key={c.label} className="kpi">
-          <p className="kpi__label">
-            {c.label} <InfoTip label={o.what(c.label)} text={c.help} />
-          </p>
-          {c.value === undefined ? (
-            <span className={`kpi__value${c.lead ? " kpi__value--lead" : ""}`}>
-              <Skeleton w={56} h={c.lead ? 30 : 24} />
-            </span>
-          ) : (
-            <span className={`kpi__value num${c.lead ? " kpi__value--lead" : ""}`}>
-              <AnimatedNumber value={c.value} format={n} />
-            </span>
-          )}
-          <p className="kpi__caption">{c.caption ?? <Skeleton w={120} h={12} />}</p>
-        </div>
-      ))}
+      {cells.map((c) => {
+        const body = (
+          <>
+            {c.value === undefined ? (
+              <span className={`kpi__value${c.lead ? " kpi__value--lead" : ""}`}>
+                <Skeleton w={56} h={c.lead ? 30 : 24} />
+              </span>
+            ) : (
+              <span className={`kpi__value num${c.lead ? " kpi__value--lead" : ""}`}>
+                <AnimatedNumber value={c.value} format={n} />
+              </span>
+            )}
+            <span className="kpi__caption">{c.caption ?? <Skeleton w={120} h={12} />}</span>
+          </>
+        );
+        const on = !!c.seg && segment === c.seg;
+        return (
+          <div key={c.label} className={`kpi${c.seg ? " kpi--filter" : ""}${on ? " is-on" : ""}`}>
+            <p className="kpi__label">
+              {c.label} <InfoTip label={o.what(c.label)} text={c.help} />
+            </p>
+            {c.seg ? (
+              // La cifra y su texto son el botón; la etiqueta queda fuera porque lleva su propio botón de ayuda.
+              <button type="button" className="kpi__filter" aria-pressed={on} data-segment={c.seg} disabled={!s} onClick={() => onSegment(c.seg!)}>
+                <span className="sr-only">{o.kpiFilter(c.label)}: </span>
+                {body}
+                {/* Siempre presente (misma altura pulsado o no): «Filtrar» invita, «Filtro aplicado» confirma. */}
+                <span className={`kpi__state${on ? " is-on" : ""}`} aria-hidden="true">
+                  <IconFilter size={12} />
+                  {on ? o.filtering : o.filterHint}
+                </span>
+              </button>
+            ) : (
+              body
+            )}
+          </div>
+        );
+      })}
     </section>
   );
 }
 
-function TrendCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
+function TrendCard({ s, range, segment }: { s?: DashboardStats; range: RangeKey; segment: StatsSegment | null }) {
   const { t } = usePrefs();
   const o = t.overview;
   const [asTable, setAsTable] = useState(false);
   const short: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
-  const points = (s?.series ?? []).map((p) => ({ x: formatDate(p.day, t.locale, short), y: p.count, full: formatDate(p.day, t.locale, { weekday: "short", day: "numeric", month: "long" }) }));
+  const series = (segment ? s?.segments[segment].series : s?.series) ?? [];
+  const total = segment ? series.reduce((a, p) => a + p.count, 0) : (s?.newInRange ?? 0);
+  const points = series.map((p) => ({ x: formatDate(p.day, t.locale, short), y: p.count, full: formatDate(p.day, t.locale, { weekday: "short", day: "numeric", month: "long" }) }));
   const peak = Math.max(0, ...points.map((p) => p.y));
   const peakIndex = points.findIndex((p) => p.y === peak);
   const avg = new Intl.NumberFormat(t.locale, { maximumFractionDigits: 1 }).format(points.length ? points.reduce((a, p) => a + p.y, 0) / points.length : 0);
-  const summary = s && peak > 0 && peakIndex >= 0 ? o.chartSummary(avg, peak, formatDate(s.series[peakIndex].day, t.locale, { day: "numeric", month: "long" })) : null;
+  const summary = s && peak > 0 && peakIndex >= 0 ? o.chartSummary(avg, peak, formatDate(series[peakIndex].day, t.locale, { day: "numeric", month: "long" })) : null;
 
   return (
     <section className="panel" aria-labelledby="trend-title">
@@ -165,7 +212,9 @@ function TrendCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
           <h2 id="trend-title" className="panel__title">
             {o.chartTitle} <InfoTip label={o.what(o.chartTitle)} text={o.help.chart} />
           </h2>
-          <p className="panel__meta">{s ? o.chartDesc(s.newInRange, o.rangeLong[range]) : <Skeleton w={160} h={12} />}</p>
+          <p className="panel__meta" data-segment-meta={segment ?? undefined}>
+            {!s ? <Skeleton w={160} h={12} /> : segment ? o.chartDescSeg(total, o.segment[segment], o.rangeLong[range]) : o.chartDesc(total, o.rangeLong[range])}
+          </p>
         </div>
         <button type="button" className="card-link" onClick={() => setAsTable((v) => !v)} aria-pressed={asTable}>
           {asTable ? o.chartHide : o.chartTable}
@@ -195,7 +244,7 @@ function TrendCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
           </table>
         </div>
       ) : (
-        <ColumnChart points={points} label={o.chartAria(s.newInRange, o.rangeLong[range], peak)} valueLabel={o.chartPoint} meanLabel={o.chartMean(avg)} />
+        <ColumnChart points={points} label={o.chartAria(total, o.rangeLong[range], peak)} valueLabel={o.chartPoint} meanLabel={o.chartMean(avg)} />
       )}
       {!asTable && <p className="chart-summary">{summary ?? (s ? null : <Skeleton w="70%" h={12} />)}</p>}
     </section>
@@ -305,6 +354,71 @@ function MixCard({ s, range }: { s?: DashboardStats; range: RangeKey }) {
             </li>
           ))}
         </ul>
+      )}
+    </section>
+  );
+}
+
+const QUOTE_STAGES: QuoteStatus[] = ["new", "reviewing", "sent", "won"];
+
+/**
+ * B2-2: las cotizaciones de hoy en cada etapa (Nueva, En revisión, Cotizada, Ganada), con su conteo y su parte del
+ * total. Sale de los estados que ya existen; no muestra montos en S/ porque el pedido de cotización no los guarda.
+ */
+function QuoteStagesCard() {
+  const { t } = usePrefs();
+  const o = t.overview;
+  const q = t.cases.quotes;
+  const list = useCaseList("quotes", { page: 0, size: 1 });
+  if (list.isError) return null;
+  const counts = list.data?.statusCounts;
+  const all = counts?.all ?? 0;
+  return (
+    <section className="panel" aria-labelledby="stages-title">
+      <div className="panel__head">
+        <div>
+          <h2 id="stages-title" className="panel__title">
+            {o.quoteStagesTitle}
+            <TitleCount n={counts ? all : undefined} /> <InfoTip label={o.what(o.quoteStagesTitle)} text={o.help.quoteStages} />
+          </h2>
+          <p className="panel__meta">{o.quoteStagesDesc}</p>
+        </div>
+      </div>
+      {!counts ? (
+        <FakeBars />
+      ) : all === 0 ? (
+        <p className="empty">{q.empty.title}</p>
+      ) : (
+        <>
+          <ol className="barlist stages">
+            {QUOTE_STAGES.map((st, i) => {
+              const v = counts[st] ?? 0;
+              return (
+                <li key={st} className="barlist__row" data-stage={st}>
+                  <Link className="barlist__label stages__link" href={`/cotizaciones?estado=${st}`} title={o.quoteStagesOpen(q.status[st])}>
+                    <span className="stages__step num" aria-hidden="true">
+                      {i + 1}
+                    </span>
+                    {q.status[st]}
+                  </Link>
+                  <span className="barlist__value num">
+                    {formatNumber(v, t.locale)}
+                    <small>{o.quoteStagesOf(pct(v, all, t.locale))}</small>
+                  </span>
+                  <span className="barlist__track" aria-hidden="true">
+                    <span className={`grow-x barlist__fill${st === "won" ? " barlist__fill--accent" : " barlist__fill--lead"}`} style={{ display: "block", width: `${(v / all) * 100}%` }} />
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+          <p className="chart-summary">
+            {o.quoteStagesSummary(new Intl.NumberFormat(t.locale, { maximumFractionDigits: 0 }).format(((counts.won ?? 0) / all) * 10))}{" "}
+            <Link className="link" href="/cotizaciones?estado=lost">
+              {o.quoteStagesLost(counts.lost ?? 0)}
+            </Link>
+          </p>
+        </>
       )}
     </section>
   );
@@ -469,24 +583,25 @@ function PendingList({ s }: { s?: DashboardStats }) {
   );
 }
 
-function LatestList({ s, lang }: { s?: DashboardStats; lang: string }) {
+function LatestList({ s, lang, segment }: { s?: DashboardStats; lang: string; segment: StatsSegment | null }) {
   const { t } = usePrefs();
   const o = t.overview;
+  const latest = (segment ? s?.segments[segment].latest : s?.latest) ?? [];
   return (
     <section aria-labelledby="latest-title" lang={lang === "es" ? "es" : "en"}>
       <div className="panel panel--list">
         <div className="panel__head panel__head--list">
           <h2 id="latest-title" className="panel__title">
-            {o.latestTitle} <InfoTip label={o.what(o.latestTitle)} text={o.help.latest} />
+            {segment ? o.latestTitleSeg[segment] : o.latestTitle} <InfoTip label={o.what(o.latestTitle)} text={o.help.latest} />
           </h2>
         </div>
         {!s ? (
           <RowSkeletons n={5} />
-        ) : s.latest.length === 0 ? (
-          <p className="empty">{o.empty}</p>
+        ) : latest.length === 0 ? (
+          <p className="empty">{segment ? o.emptySeg : o.empty}</p>
         ) : (
           <ul className="rows">
-            {s.latest.slice(0, 5).map((u) => (
+            {latest.slice(0, 5).map((u) => (
               <li key={u.id} className="row">
                 <Avatar name={u.name} />
                 <span className="row__main">

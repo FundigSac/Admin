@@ -8,6 +8,9 @@ export type PageResult<T> = { items: T[]; page: number; size: number; totalItems
 
 export type SortKey = "name" | "registeredAt" | "lastActiveAt" | "quotes" | "status";
 export type RangeKey = "7d" | "30d" | "90d" | "all";
+/** Subconjuntos que los KPI del resumen pueden aplicar al gráfico y a los últimos registros (B4-1). */
+export type StatsSegment = "pending" | "active";
+export type SegmentStats = { series: { day: number; count: number }[]; latest: User[] };
 
 export type UserListParams = {
   page: number;
@@ -46,6 +49,8 @@ export type DashboardStats = {
   /** Pendientes de verificar, la más antigua primero, y cuántas llevan más de 48 h. */
   pendingOldest: User[];
   pendingOver48h: number;
+  /** Mismo gráfico y misma lista, pero solo con las cuentas por verificar o las activas en los últimos 7 días. */
+  segments: Record<StatsSegment, SegmentStats>;
   generatedAt: number;
 };
 

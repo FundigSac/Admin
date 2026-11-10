@@ -22,7 +22,7 @@ export function CasePill({ tone, children }: { tone: Tone; children: React.React
 
 export type DeadlineState = "ok" | "soon" | "late";
 
-/** En plazo con más de 3 días hábiles, vence pronto a 3 o menos (incluido el último día), vencido después. */
+/** En plazo con más de 3 días hábiles, por vencer a 3 o menos (incluido el último día), vencido después. */
 export function deadlineState(left: number): DeadlineState {
   return left < 0 ? "late" : left <= 3 ? "soon" : "ok";
 }
@@ -30,7 +30,7 @@ export function deadlineState(left: number): DeadlineState {
 const DEADLINE_ICON = { ok: IconOnTime, soon: IconWarning, late: IconOverdue } as const;
 
 /**
- * Plazo legal en días hábiles (X12-1): "En plazo / Vence pronto / Vencido" con ícono de forma propia (círculo,
+ * Plazo legal en días hábiles (X12-1): "En plazo / Por vencer / Vencido" con ícono de forma propia (círculo,
  * triángulo, octágono), un marco que crece con la urgencia (sin marco, contorno, relleno) y el texto. El color
  * refuerza, pero quien no lo distingue lee el mismo estado.
  */
@@ -53,6 +53,14 @@ export function DeadlineChip({ dueAt, closed, compact }: { dueAt: number; closed
   );
 }
 
+/** Eventos que cambian el estado del caso; el resto (asignaciones, notas, constancias) son movimientos. */
+const STATUS_EVENTS = new Set(["received", "reviewing", "sent", "won", "lost", "replied", "answered", "closed", "identity", "processing", "done"]);
+
+/**
+ * B12-4: línea de tiempo vertical del caso, la más reciente arriba. Los cambios de estado llevan marca cuadrada
+ * rellena y la etiqueta «Cambio de estado»; los movimientos, un círculo hueco. Cada fecha es un <time> con la hora
+ * exacta de Lima en el título.
+ */
 export function Timeline({ events }: { events: CaseEvent[] }) {
   const t = useT();
   const sorted = [...events].sort((a, b) => b.at - a.at);
@@ -61,10 +69,12 @@ export function Timeline({ events }: { events: CaseEvent[] }) {
       {sorted.map((e, i) => {
         const tpl = t.cases.events[e.label];
         const label = typeof tpl === "function" ? tpl(e.note ?? "") : (tpl ?? e.label);
+        const status = STATUS_EVENTS.has(e.label);
         return (
-          <li key={`${e.at}-${i}`} className="timeline__item">
+          <li key={`${e.at}-${i}`} className={`timeline__item${status ? " timeline__item--status" : ""}`} data-kind={status ? "status" : "event"}>
             <span className="timeline__dot" aria-hidden="true" />
             <div>
+              {status && <p className="timeline__kind">{t.cases.common.statusChange}</p>}
               <p className="timeline__label">{label}</p>
               {e.label === "note" && e.note && <p className="timeline__note">{e.note}</p>}
               <p className="timeline__meta">

@@ -36,6 +36,7 @@ export const casesEn: CasesCopy = {
     status: "Status",
     updated: "Case updated.",
     system: "Website",
+    statusChange: "Status change",
     page: (p, total) => `Page ${p} of ${total}`,
     prev: "Previous page",
     next: "Next page",

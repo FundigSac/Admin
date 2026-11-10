@@ -18,6 +18,7 @@ import {
   CheckCircle,
   ClipboardText,
   Clock,
+  FunnelSimple,
   Copy,
   DesktopTower,
   DeviceMobile,
@@ -96,7 +97,7 @@ export const IconBlocked = make(Prohibit, "bold");
 export const IconAlert = make(WarningCircle, "fill");
 export const IconWarning = make(Warning, "fill");
 export const IconSuccess = make(CheckCircle, "fill");
-/* Plazo legal: círculo (en plazo), triángulo (vence pronto) y octágono (vencido). La forma distingue sin color. */
+/* Plazo legal: círculo (en plazo), triángulo (por vencer) y octágono (vencido). La forma distingue sin color. */
 export const IconOnTime = make(Clock, "bold");
 export const IconOverdue = make(WarningOctagon, "fill");
 
@@ -108,6 +109,7 @@ export const IconSignOut = line(SignOut);
 export const IconUpDown = bold(CaretUpDown);
 export const IconEnter = bold(ArrowElbowDownLeft);
 export const IconRefresh = bold(ArrowClockwise);
+export const IconFilter = bold(FunnelSimple);
 export const IconUndo = line(ArrowCounterClockwise);
 export const IconSun = duo(Sun);
 export const IconMoon = duo(Moon);

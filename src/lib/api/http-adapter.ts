@@ -20,7 +20,7 @@ import type {
   UserStatus,
 } from "@/data/types";
 import { addBusinessDays, businessDaysLeft } from "@/lib/business-days";
-import type { CaseListResult, CaseMap, CaseModule, DashboardStats, PageResult, QueueCounts, StaffMember, UserListParams, UsersApi } from "./contract";
+import type { CaseListResult, CaseMap, CaseModule, DashboardStats, PageResult, QueueCounts, StaffMember, StatsSegment, UserListParams, UsersApi } from "./contract";
 
 // Adaptador del Backend real: llama al BFF del panel (/api/backend/staff/... → /api/v1/staff/...) y traduce sus vistas
 // al modelo del panel. Las colas de atención son pequeñas (B2B), así que se leen completas y se filtran aquí, como en
@@ -470,8 +470,10 @@ export const httpAdapter: UsersApi = {
   },
 
   async stats(range) {
-    type Stats = Omit<DashboardStats, "series" | "byMethod" | "byStatus" | "latest" | "pendingOldest" | "generatedAt" | "byCity"> & {
+    type RawSegment = { series: { day: string; count: number }[]; latest: Row[] };
+    type Stats = Omit<DashboardStats, "series" | "byMethod" | "byStatus" | "latest" | "pendingOldest" | "generatedAt" | "byCity" | "segments"> & {
       series: { day: string; count: number }[];
+      segments?: Partial<Record<StatsSegment, RawSegment>>;
       byMethod: Record<string, number>;
       byStatus: Record<string, number>;
       latest: Row[];
@@ -479,6 +481,8 @@ export const httpAdapter: UsersApi = {
       generatedAt: string;
     };
     const s = await get<Stats>(`accounts/stats${qs({ range })}`);
+    // Un Backend anterior a B4-1 no manda los segmentos: el filtro queda vacío en vez de romper el resumen.
+    const segment = (raw?: RawSegment) => ({ series: (raw?.series ?? []).map((d) => ({ day: startOfLocalDay(d.day), count: d.count })), latest: (raw?.latest ?? []).map(user) });
     return {
       ...s,
       series: s.series.map((d) => ({ day: startOfLocalDay(d.day), count: d.count })),
@@ -487,6 +491,7 @@ export const httpAdapter: UsersApi = {
       byCity: [],
       latest: s.latest.map(user),
       pendingOldest: s.pendingOldest.map(user),
+      segments: { pending: segment(s.segments?.pending), active: segment(s.segments?.active) },
       generatedAt: Date.parse(s.generatedAt),
     };
   },

@@ -685,3 +685,25 @@
   outline-offset: 4px;
   border-radius: var(--radius-control);
 }
+
+/* B12-4: cambio de estado = cuadrado relleno con su etiqueta; movimiento = círculo hueco. La forma y el texto
+   distinguen los dos tipos sin depender del color. */
+.timeline__item--status .timeline__dot {
+  border-color: var(--text);
+  border-radius: 2px;
+  background: var(--text);
+}
+
+.timeline__item--status:first-child .timeline__dot {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.timeline__kind {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 16px;
+  text-transform: uppercase;
+}

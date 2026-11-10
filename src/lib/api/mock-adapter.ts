@@ -191,6 +191,16 @@ export const mockAdapter: UsersApi = {
     }
 
     const pending = customers.filter((u) => u.status === "pending").sort((a, b) => a.registeredAt - b.registeredAt);
+    const isActive = (u: User) => !!u.lastActiveAt && u.lastActiveAt >= now - 7 * DAY;
+    const segment = (match: (u: User) => boolean) => {
+      const own = series.map((p) => ({ day: p.day, count: 0 }));
+      for (const u of customers) {
+        if (!match(u) || u.registeredAt < start) continue;
+        const idx = Math.floor((u.registeredAt - (startOfToday - (days - 1) * DAY)) / DAY);
+        if (own[idx]) own[idx].count += 1;
+      }
+      return { series: own, latest: customers.filter(match).sort((a, b) => b.registeredAt - a.registeredAt).slice(0, 6) };
+    };
     const sortDesc = (map: Map<string, number>) => [...map].sort((a, b) => b[1] - a[1]);
     const stats: DashboardStats = {
       total: customers.length,
@@ -212,6 +222,7 @@ export const mockAdapter: UsersApi = {
       funnel,
       pendingOldest: pending.slice(0, 4),
       pendingOver48h: pending.filter((u) => now - u.registeredAt > 2 * DAY).length,
+      segments: { pending: segment((u) => u.status === "pending"), active: segment(isActive) },
       generatedAt: now,
     };
     return delay(stats, 320);

@@ -89,7 +89,10 @@
   font-weight: 500;
 }
 
+/* position: relative contiene el texto sr-only de cada celda dentro del marco desplazable: sin esto, al ser
+   absoluto, escapaba del recorte y la página entera se desplazaba de lado en el teléfono. */
 .matrix__cell {
+  position: relative;
   text-align: center;
 }
 
@@ -128,5 +131,65 @@
   .role-row__perms {
     width: auto;
     margin-left: auto;
+  }
+}
+
+/* X13-3/X13-4: leyenda visible y módulos plegables (botón con aria-expanded en la cabecera de cada grupo). */
+.matrix-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.matrix-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+}
+
+.matrix-legend__on {
+  color: var(--positive);
+}
+
+.matrix-legend__note {
+  flex-basis: 100%;
+  text-align: justify;
+}
+
+.matrix__toggle {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px 0 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.matrix__toggle:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.matrix__chev {
+  transition: transform 0.15s ease;
+}
+
+.matrix__toggle[aria-expanded="true"] .matrix__chev {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .matrix__chev {
+    transition: none;
   }
 }

@@ -343,6 +343,16 @@ const stats: Route = async (request) => {
     select d::date::text as day, coalesce(c.n, 0)::int as count
       from generate_series((now() at time zone 'America/Lima')::date - ${days - 1}::int, (now() at time zone 'America/Lima')::date, interval '1 day') d
       left join (select (u.created_at at time zone 'America/Lima')::date dd, count(*) n from ${C} group by 1) c on c.dd = d::date order by d`;
+  // B4-1: el mismo gráfico y los últimos registros, solo con las cuentas por verificar o activas en 7 días.
+  const segSeries = await sql`
+    select d::date::text as day, coalesce(c.pending, 0)::int as pending, coalesce(c.active, 0)::int as active
+      from generate_series((now() at time zone 'America/Lima')::date - ${days - 1}::int, (now() at time zone 'America/Lima')::date, interval '1 day') d
+      left join (select (u.created_at at time zone 'America/Lima')::date dd,
+                        count(*) filter (where u.status = 'PENDING_VERIFICATION') pending,
+                        count(*) filter (where u.last_login_at >= now() - interval '7 days') active
+                   from ${C} group by 1) c on c.dd = d::date order by d`;
+  const latestPending = await sql`select * from (${ROW_SELECT(sql)} where u.kind = 'CUSTOMER' and u.status = 'PENDING_VERIFICATION') u order by u.created_at desc, u.id limit 6`;
+  const latestActive = await sql`select * from (${ROW_SELECT(sql)} where u.kind = 'CUSTOMER' and u.status <> 'DELETED' and u.last_login_at >= now() - interval '7 days') u order by u.created_at desc, u.id limit 6`;
   const bySource = await sql`select coalesce(u.signup_source, 'registro') source, count(*)::int count from ${C} and u.created_at >= ${from} group by 1 order by 2 desc, 1`;
   const latest = await sql`select * from (${ROW_SELECT(sql)} where u.kind = 'CUSTOMER' and u.status <> 'DELETED') u order by u.created_at desc, u.id limit 6`;
   const pendingOldest = await sql`select * from (${ROW_SELECT(sql)} where u.kind = 'CUSTOMER' and u.status = 'PENDING_VERIFICATION') u order by u.created_at, u.id limit 4`;
@@ -353,7 +363,12 @@ const stats: Route = async (request) => {
     byMethod: { EMAIL: t.m_email, GOOGLE: t.m_google, FACEBOOK: t.m_facebook },
     byStatus: { ACTIVE: t.s_active, PENDING_VERIFICATION: t.pending, DISABLED: t.disabled },
     bySource, latest: latest.map(accountRow), funnel: { registered: t.new_in, verified: t.f_verified, quoted: t.f_quoted },
-    pendingOldest: pendingOldest.map(accountRow), pendingOver48h: t.pending48, generatedAt: new Date().toISOString(),
+    pendingOldest: pendingOldest.map(accountRow), pendingOver48h: t.pending48,
+    segments: {
+      pending: { series: segSeries.map((r) => ({ day: r.day, count: r.pending })), latest: latestPending.map(accountRow) },
+      active: { series: segSeries.map((r) => ({ day: r.day, count: r.active })), latest: latestActive.map(accountRow) },
+    },
+    generatedAt: new Date().toISOString(),
   });
 };
 
