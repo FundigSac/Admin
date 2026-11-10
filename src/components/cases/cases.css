@@ -20,10 +20,6 @@
   font-weight: 600;
 }
 
-.deadline__detail::before {
-  content: "· ";
-}
-
 .deadline__icon {
   flex: none;
 }

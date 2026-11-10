@@ -47,7 +47,8 @@ export function DeadlineChip({ dueAt, closed, compact }: { dueAt: number; closed
     <span className={`deadline deadline--${state}`} data-state={state} title={`${d.state[state]}: ${detail}. ${d.dueOn(formatDate(dueAt, t.locale))}`}>
       <Icon size={14} className="deadline__icon" />
       <span className="deadline__state">{d.state[state]}</span>
-      <span className="deadline__detail">{compact ? short : detail}</span>
+      {/* Separador en el texto (no en CSS) para que el lector de pantalla no junte las dos partes. */}
+      <span className="deadline__detail">· {compact ? short : detail}</span>
     </span>
   );
 }
