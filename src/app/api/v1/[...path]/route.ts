@@ -11,12 +11,18 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 20;
 
+let lastSweep = 0;
+
 type Ctx = { params: Promise<{ path: string[] }> };
 
 async function handle(request: Request, { params }: Ctx): Promise<Response> {
   const response = await dispatch(routes, request, (await params).path);
-  // Los correos que dejó esta petición en la bandeja se envían después de responder.
-  if (request.method !== "GET" && mailConfigured()) after(() => dispatchOutbox(10).catch(() => undefined));
+  // Los correos pendientes (de esta petición o reintentos) se envían después de responder: tras cada escritura y,
+  // como mucho una vez por minuto por instancia, también tras una lectura.
+  if (mailConfigured() && (request.method !== "GET" || Date.now() - lastSweep > 60_000)) {
+    lastSweep = Date.now();
+    after(() => dispatchOutbox(10).catch(() => undefined));
+  }
   return response;
 }
 

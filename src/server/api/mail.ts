@@ -18,7 +18,7 @@ export async function enqueueMail(tx: Tx, mail: OutboxMail): Promise<void> {
 
 export const mailConfigured = () => Boolean(process.env.RESEND_API_KEY?.trim() && process.env.MAIL_FROM?.trim());
 
-/** Envía hasta `limit` correos pendientes. Espera exponencial; a los 8 intentos queda FAILED. El cuerpo se borra al enviar. */
+/** Envía hasta `limit` correos pendientes. Espera exponencial (tope 1 h); a los 30 intentos (~1 día) queda FAILED. El cuerpo se borra al enviar. */
 export async function dispatchOutbox(limit = 10): Promise<{ sent: number; failed: number; skipped: boolean }> {
   if (!mailConfigured()) return { sent: 0, failed: 0, skipped: true };
   const sql = db();
@@ -42,7 +42,7 @@ export async function dispatchOutbox(limit = 10): Promise<{ sent: number; failed
       sent++;
     } catch (e) {
       const attempts = row.attempts + 1;
-      const final = attempts >= 8;
+      const final = attempts >= 30;
       await sql`update app.email_outbox set attempts = ${attempts}, last_error = ${String((e as Error).message).slice(0, 500)},
         status = ${final ? "FAILED" : "PENDING"}, body = case when ${final} then null else body end,
         next_attempt_at = now() + make_interval(secs => ${Math.min(3600, 30 * 2 ** attempts)}) where id = ${row.id}`;
