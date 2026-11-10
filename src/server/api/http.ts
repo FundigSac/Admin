@@ -1,4 +1,5 @@
 import "server-only";
+import { timingSafeEqual } from "node:crypto";
 
 /** Error de negocio que termina en una respuesta RFC 9457 con el mismo `code` que usa el Backend Java. */
 export class Problem extends Error {
@@ -45,8 +46,14 @@ export async function readJson(request: Request, max = 64 * 1024): Promise<Recor
   }
 }
 
-/** IP del visitante: la reenvía el BFF en X-Forwarded-For, o la pone Vercel. Solo para límites de frecuencia. */
+/**
+ * IP del visitante, solo para límites de frecuencia. El BFF del sitio la manda en X-Client-IP con el secreto compartido
+ * (Vercel reescribe X-Forwarded-For entre proyectos); sin ese secreto vale la IP que pone Vercel.
+ */
 export function clientIp(request: Request): string {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip")?.trim() || "";
+  const shared = process.env.API_CLIENT_SECRET?.trim();
+  const given = request.headers.get("x-client-auth") ?? "";
+  const trusted = !!shared && given.length === shared.length && timingSafeEqual(Buffer.from(given), Buffer.from(shared));
+  const ip = (trusted && request.headers.get("x-client-ip")?.trim()) || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip")?.trim() || "";
   return /^[0-9a-fA-F:.]{3,45}$/.test(ip) ? ip : "unknown";
 }
