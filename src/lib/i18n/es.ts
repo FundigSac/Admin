@@ -33,6 +33,7 @@ export const es = {
     error: "Algo salió mal. Inténtalo de nuevo.",
     copy: "Copiar",
     copied: "Copiado",
+    limaTime: (when: string) => `${when} (hora de Lima)`,
   },
   nav: {
     skip: "Saltar al contenido",

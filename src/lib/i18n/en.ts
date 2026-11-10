@@ -32,6 +32,7 @@ export const en: Copy = {
     error: "Something went wrong. Please try again.",
     copy: "Copy",
     copied: "Copied",
+    limaTime: (when) => `${when} (Lima time)`,
   },
   nav: {
     skip: "Skip to content",

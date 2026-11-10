@@ -3,7 +3,8 @@
 import { IconAlert, IconChevronLeft, IconChevronRight, IconClock } from "@/components/ui/icons";
 import type { CaseEvent } from "@/data/types";
 import { businessDaysLeft } from "@/lib/business-days";
-import { formatDate, formatDateTime, relativeTime } from "@/lib/format";
+import { RelTime } from "@/components/ui/bits";
+import { formatDate } from "@/lib/format";
 import { useT } from "@/lib/prefs";
 import "./cases.css";
 
@@ -50,9 +51,7 @@ export function Timeline({ events }: { events: CaseEvent[] }) {
               <p className="timeline__label">{label}</p>
               {e.label === "note" && e.note && <p className="timeline__note">{e.note}</p>}
               <p className="timeline__meta">
-                <time dateTime={new Date(e.at).toISOString()} title={formatDateTime(e.at, t.locale)}>
-                  {relativeTime(e.at, t.locale)}
-                </time>
+                <RelTime at={e.at} />
                 {" · "}
                 {e.actor ?? t.cases.common.system}
               </p>

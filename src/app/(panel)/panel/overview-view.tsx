@@ -6,7 +6,7 @@ import { useState } from "react";
 import { ColumnChart } from "@/components/charts/column-chart";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { InfoTip } from "@/components/ui/info-tip";
-import { Avatar, MethodIcon, Skeleton, StatusBadge, TitleRow } from "@/components/ui/bits";
+import { Avatar, MethodIcon, RelTime, Skeleton, StatusBadge, TitleRow } from "@/components/ui/bits";
 import { useToast } from "@/components/ui/toast";
 import type { DashboardStats, RangeKey } from "@/lib/api";
 import { useQueueCounts, useResendVerification, useStats } from "@/lib/api/queries";
@@ -493,7 +493,7 @@ function LatestList({ s, lang }: { s?: DashboardStats; lang: string }) {
                 </span>
                 <span className="row__end">
                   {u.status === "pending" ? <StatusBadge status="pending" /> : <MethodIcon method={u.method} />}
-                  <span className="row__time">{relativeTime(u.registeredAt, t.locale)}</span>
+                  <RelTime className="row__time" at={u.registeredAt} />
                 </span>
               </li>
             ))}

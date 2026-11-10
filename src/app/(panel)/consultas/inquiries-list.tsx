@@ -5,7 +5,7 @@ import { CasePill } from "@/components/cases/case-ui";
 import { INQUIRY_TONE } from "@/components/cases/tones";
 import type { Inquiry, InquiryStatus } from "@/data/types";
 import { useQueueCounts } from "@/lib/api/queries";
-import { relativeTime } from "@/lib/format";
+import { RelTime } from "@/components/ui/bits";
 import { usePrefs } from "@/lib/prefs";
 
 const STATUSES: InquiryStatus[] = ["new", "answered", "closed"];
@@ -40,7 +40,7 @@ export function InquiriesList() {
           ),
         },
         { key: "reason", header: c.col.reason, render: (x: Inquiry) => <span className="cell-muted">{c.reason[x.reason]}</span> },
-        { key: "received", header: c.col.received, className: "col-optional", render: (x: Inquiry) => <span className="cell-muted">{relativeTime(x.createdAt, t.locale)}</span> },
+        { key: "received", header: c.col.received, className: "col-optional", render: (x: Inquiry) => <span className="cell-muted"><RelTime at={x.createdAt} /></span> },
         { key: "status", header: c.col.status, render: (x: Inquiry) => <CasePill tone={INQUIRY_TONE[x.status]}>{c.status[x.status]}</CasePill> },
       ]}
       mobile={(x: Inquiry) => ({
@@ -49,7 +49,7 @@ export function InquiriesList() {
         sub: (
           <>
             <span>{c.reason[x.reason]}</span>
-            <span>{relativeTime(x.createdAt, t.locale)}</span>
+            <span><RelTime at={x.createdAt} /></span>
           </>
         ),
       })}

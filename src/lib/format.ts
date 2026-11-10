@@ -12,6 +12,14 @@ export function formatDateTime(t: number, locale: string) {
   return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }).format(t);
 }
 
+/** Zona de referencia del negocio: los plazos legales y la auditoría se leen en hora de Lima (UTC-5, sin horario de verano). */
+export const LIMA_TZ = "America/Lima";
+
+/** Fecha y hora exactas en Lima, para el título de una fecha relativa ("hace 3 h" → "10 nov 2026, 14:03"). */
+export function formatLimaDateTime(t: number, locale: string) {
+  return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: LIMA_TZ }).format(t);
+}
+
 export function formatTime(t: number, locale: string) {
   return new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(t);
 }

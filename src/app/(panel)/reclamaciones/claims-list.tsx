@@ -5,7 +5,7 @@ import { CasePill, DeadlineChip } from "@/components/cases/case-ui";
 import { CLAIM_TONE } from "@/components/cases/tones";
 import type { Claim, ClaimStatus } from "@/data/types";
 import { businessDaysLeft } from "@/lib/business-days";
-import { relativeTime } from "@/lib/format";
+import { RelTime } from "@/components/ui/bits";
 import { useCaseList } from "@/lib/api/queries";
 import { usePrefs } from "@/lib/prefs";
 
@@ -39,7 +39,7 @@ export function ClaimsList() {
             <span className="cell-main">
               <strong>{x.name}</strong>
               <span>
-                {x.docType} <span className="code">{x.docNumber}</span> · {relativeTime(x.createdAt, t.locale)}
+                {x.docType} <span className="code">{x.docNumber}</span> · <RelTime at={x.createdAt} />
               </span>
             </span>
           ),

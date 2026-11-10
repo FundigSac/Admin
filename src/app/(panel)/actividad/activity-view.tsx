@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useDeferredValue, useState } from "react";
-import { Skeleton, TitleRow } from "@/components/ui/bits";
+import { RelTime, Skeleton, TitleRow } from "@/components/ui/bits";
 import {
   IconActive,
   IconBlocked,
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/icons";
 import type { Activity, ActivityType } from "@/data/types";
 import { useActivity } from "@/lib/api/queries";
-import { dayKey, formatDate, formatTime } from "@/lib/format";
+import { dayKey, formatDate } from "@/lib/format";
 import { usePrefs } from "@/lib/prefs";
 import "./activity.css";
 
@@ -127,9 +127,7 @@ export function ActivityView() {
                         {e.type === "delete" ? sentence(e) : <Link href={`/usuarios/${e.userId}`}>{sentence(e)}</Link>}
                         <span className="feed__tag">{a.types[e.type]}</span>
                       </p>
-                      <time className="feed__time code" dateTime={new Date(e.at).toISOString()}>
-                        {formatTime(e.at, t.locale)}
-                      </time>
+                      <RelTime at={e.at} className="feed__time code" recent />
                     </li>
                   );
                 })}

@@ -2,8 +2,9 @@
 
 import { IconMail } from "@/components/ui/icons";
 import Image from "next/image";
+import { useState } from "react";
 import type { SignupMethod, UserStatus } from "@/data/types";
-import { initials } from "@/lib/format";
+import { formatLimaDateTime, formatTime, initials, relativeTime } from "@/lib/format";
 import { useT } from "@/lib/prefs";
 
 export function Logo({ className, priority }: { className?: string; priority?: boolean }) {
@@ -78,5 +79,23 @@ export function TitleRow({ title, sub, actions, className }: { title: string; su
       </div>
       {actions && <div className="title-row__actions">{actions}</div>}
     </header>
+  );
+}
+
+/**
+ * Fecha relativa con la exacta detrás (X10-1): se lee "hace 3 horas" y el título y el atributo datetime guardan el
+ * instante exacto en hora de Lima. Con `recent`, lo de las últimas 24 horas va en relativo y lo anterior muestra la
+ * hora del día (útil en listas ya agrupadas por día).
+ */
+export function RelTime({ at, className, recent }: { at: number; className?: string; recent?: boolean }) {
+  const t = useT();
+  const exact = t.common.limaTime(formatLimaDateTime(at, t.locale));
+  // Se fija al montar: la frase no cambia sola mientras se lee y el render queda puro.
+  const [now] = useState(() => Date.now());
+  const text = recent && now - at >= 86_400_000 ? formatTime(at, t.locale) : relativeTime(at, t.locale, now);
+  return (
+    <time className={className} dateTime={new Date(at).toISOString()} title={exact}>
+      {text}
+    </time>
   );
 }

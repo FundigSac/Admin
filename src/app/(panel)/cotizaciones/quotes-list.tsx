@@ -5,7 +5,7 @@ import { CasePill } from "@/components/cases/case-ui";
 import { QUOTE_TONE } from "@/components/cases/tones";
 import type { Quote, QuoteStatus } from "@/data/types";
 import { useQueueCounts } from "@/lib/api/queries";
-import { relativeTime } from "@/lib/format";
+import { RelTime } from "@/components/ui/bits";
 import { usePrefs } from "@/lib/prefs";
 
 const STATUSES: QuoteStatus[] = ["new", "reviewing", "sent", "won", "lost"];
@@ -45,7 +45,7 @@ export function QuotesList() {
         },
         { key: "request", header: c.col.request, className: "case-cell--main", render: (x: Quote) => <span className="cell-muted cell-clip">{summary(x)}</span> },
         { key: "destination", header: c.col.destination, className: "col-optional", render: (x: Quote) => <span className="cell-muted">{x.destination}</span> },
-        { key: "received", header: c.col.received, className: "col-optional", render: (x: Quote) => <span className="cell-muted">{relativeTime(x.createdAt, t.locale)}</span> },
+        { key: "received", header: c.col.received, className: "col-optional", render: (x: Quote) => <span className="cell-muted"><RelTime at={x.createdAt} /></span> },
         { key: "status", header: c.col.status, render: (x: Quote) => <CasePill tone={QUOTE_TONE[x.status]}>{c.status[x.status]}</CasePill> },
       ]}
       mobile={(x: Quote) => ({
@@ -55,7 +55,7 @@ export function QuotesList() {
           <>
             <span>{summary(x)}</span>
             <span>
-              {x.destination} · {relativeTime(x.createdAt, t.locale)}
+              {x.destination} · <RelTime at={x.createdAt} />
             </span>
           </>
         ),

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useSessionUser } from "@/components/shell/session-context";
-import { Avatar, MethodIcon, TitleRow } from "@/components/ui/bits";
+import { Avatar, MethodIcon, RelTime, TitleRow } from "@/components/ui/bits";
 import { IconActive, IconDesktop, IconMobile } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/toast";
 import { ConfirmDialog } from "@/components/users/confirm-dialog";
@@ -118,7 +118,7 @@ export function SettingsView() {
                     <span className="row__main">
                       <span>{sentence(e)}</span>
                     </span>
-                    <span className="row__end">{relativeTime(e.at, t.locale)}</span>
+                    <RelTime className="row__end" at={e.at} />
                   </li>
                 ))}
               </ul>

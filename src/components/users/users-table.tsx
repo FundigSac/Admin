@@ -3,11 +3,11 @@
 import { createColumnHelper, rowSelectionFeature, rowSortingFeature, tableFeatures, useTable, type RowSelectionState, type SortingState } from "@tanstack/react-table";
 import Link from "next/link";
 import { useMemo } from "react";
-import { Avatar, MethodChip, StatusBadge } from "@/components/ui/bits";
+import { Avatar, MethodChip, RelTime, StatusBadge } from "@/components/ui/bits";
 import { IconEdit, IconMore, IconSend, IconSortDown, IconSortUp, IconTrash, IconUndo, IconUsers, IconBlocked } from "@/components/ui/icons";
 import { Menu, MenuItem } from "@/components/ui/menu";
 import type { User } from "@/data/types";
-import { formatDate, relativeTime } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { usePrefs } from "@/lib/prefs";
 
 // Tabla de usuarios: TanStack Table resuelve selección y orden; el orden y la paginación los aplica el origen de
@@ -104,7 +104,7 @@ export function UsersTable({ rows, sorting, onSortingChange, selection, onSelect
         helper.accessor("lastActiveAt", {
           header: u.col.lastActive,
           meta: { className: "n col-optional" },
-          cell: ({ row }) => <span className="cell-muted">{row.original.lastActiveAt ? relativeTime(row.original.lastActiveAt, t.locale) : u.never}</span>,
+          cell: ({ row }) => <span className="cell-muted">{row.original.lastActiveAt ? <RelTime at={row.original.lastActiveAt} /> : u.never}</span>,
         }),
         helper.accessor("quotes", { header: u.col.quotes, meta: { className: "n" }, cell: ({ row }) => <span className="num">{row.original.quotes}</span> }),
         helper.display({

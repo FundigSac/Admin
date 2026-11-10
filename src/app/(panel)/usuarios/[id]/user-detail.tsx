@@ -8,7 +8,7 @@ import { CasePill, Field } from "@/components/cases/case-ui";
 import { QUOTE_TONE } from "@/components/cases/tones";
 import { useSessionUser } from "@/components/shell/session-context";
 import { AnimatedNumber } from "@/components/ui/animated-number";
-import { Avatar, MethodChip, StatusBadge } from "@/components/ui/bits";
+import { Avatar, MethodChip, RelTime, StatusBadge } from "@/components/ui/bits";
 import { IconArrowLeft, IconBlocked, IconCopy, IconEdit, IconMore, IconSend, IconTrash, IconUndo } from "@/components/ui/icons";
 import { Menu, MenuItem } from "@/components/ui/menu";
 import { useToast } from "@/components/ui/toast";
@@ -16,7 +16,7 @@ import { ConfirmDialog } from "@/components/users/confirm-dialog";
 import { UserFormDialog } from "@/components/users/user-form-dialog";
 import { PERMISSIONS, ROLE_PERMISSIONS } from "@/data/permissions";
 import { useActivity, useCaseList, useDeleteUsers, usePasswordReset, useResendVerification, useSetStatus, useUpdateUser, useUser } from "@/lib/api/queries";
-import { formatDate, formatDateTime, formatNumber, relativeTime } from "@/lib/format";
+import { formatDate, formatDateTime, formatNumber } from "@/lib/format";
 import { usePrefs } from "@/lib/prefs";
 import "../users.css";
 import "./user-detail.css";
@@ -170,7 +170,7 @@ export function UserDetail({ id }: { id: string }) {
               <Field label={d.verified}>{x.emailVerified ? t.common.yes : t.common.no}</Field>
               <Field label={d.newsletter}>{x.newsletter ? d.subscribed : d.notSubscribed}</Field>
               <Field label={d.privacy}>{d.privacyValue(x.privacyNoticeVersion)}</Field>
-              <Field label={d.lastActive}>{x.lastActiveAt ? relativeTime(x.lastActiveAt, t.locale) : t.users.never}</Field>
+              <Field label={d.lastActive}>{x.lastActiveAt ? <RelTime at={x.lastActiveAt} /> : t.users.never}</Field>
             </dl>
           </section>
 
@@ -198,7 +198,7 @@ export function UserDetail({ id }: { id: string }) {
                           {q.items[0].product} {q.items[0].dn} · {q.destination}
                         </span>
                       </span>
-                      <span className="row__end">{relativeTime(q.createdAt, t.locale)}</span>
+                      <RelTime className="row__end" at={q.createdAt} />
                       <CasePill tone={QUOTE_TONE[q.status]}>{t.cases.quotes.status[q.status]}</CasePill>
                     </li>
                   ))}
@@ -225,9 +225,7 @@ export function UserDetail({ id }: { id: string }) {
                     <span className="row__main">
                       <span>{t.activity.sentence(a, (m) => t.method[m as keyof typeof t.method] ?? m, (r) => r.split(",").map((x) => t.roles[x as keyof typeof t.roles] ?? x).join(", "))}</span>
                     </span>
-                    <time className="row__end" dateTime={new Date(a.at).toISOString()} title={formatDateTime(a.at, t.locale)}>
-                      {relativeTime(a.at, t.locale)}
-                    </time>
+                    <RelTime className="row__end" at={a.at} />
                   </li>
                 ))}
               </ul>
