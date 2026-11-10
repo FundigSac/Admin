@@ -86,9 +86,12 @@
   }
 }
 
-:root[data-density="compact"] {
-  --row-h: 48px;
-  --card-pad: 16px;
+/* Densidad compacta: solo en pantallas grandes; en el teléfono se ignora para no achicar los objetivos del dedo. */
+@media (min-width: 601px) {
+  :root[data-density="compact"] {
+    --row-h: 48px;
+    --card-pad: 16px;
+  }
 }
 
 /* Oscuro: un gris neutro de verdad (sin azul marino), elevación por luminosidad, dos grises que se distinguen. */

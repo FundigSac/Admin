@@ -3,7 +3,7 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Tone } from "@/components/cases/case-ui";
 import { CLAIM_TONE, INQUIRY_TONE, PRIVACY_TONE, QUOTE_TONE } from "@/components/cases/tones";
 import { resolvePermissions } from "@/components/shell/access";
@@ -300,12 +300,19 @@ function Shortcuts({ queues, pending, can, canAccounts }: { queues?: QueueCounts
   );
 }
 
-/** "Ver números del mes": cerrado por defecto; los gráficos se descargan y se piden solo al abrirlo. */
+/**
+ * "Ver números del mes": abierto de entrada en computadora (como el inicio de antes del rediseño) y cerrado en el
+ * teléfono, donde los gráficos se descargan y se piden solo al abrirlo.
+ */
 function Numbers() {
   const c = useHomeCopy().numbers;
   const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (ref.current && window.matchMedia("(min-width: 1024px)").matches) ref.current.open = true;
+  }, []);
   return (
-    <details className="numbers" onToggle={(e) => setOpen(e.currentTarget.open)}>
+    <details ref={ref} className="numbers" onToggle={(e) => setOpen(e.currentTarget.open)}>
       <summary className="numbers__summary">
         <IconChevronRight size={18} className="numbers__chev" aria-hidden="true" />
         <span className="numbers__label">

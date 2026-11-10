@@ -152,3 +152,36 @@ test("la búsqueda encuentra una solicitud por su código", async ({ page }) => 
   await option.click();
   await page.waitForURL(/\/cotizaciones\/.+/);
 });
+
+test("la barra superior tiene tema e idioma en computadora", async ({ page, isMobile }) => {
+  test.skip(isMobile, "En el teléfono siguen en Ajustes");
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await signIn(page);
+  const bar = page.locator(".topbar");
+  await expect(bar.getByRole("group", { name: /idioma/i })).toBeVisible();
+  const toggle = bar.getByRole("button", { name: /modo (oscuro|claro)/i });
+  await expect(toggle).toBeVisible();
+  const before = await page.locator("html").getAttribute("data-theme");
+  await toggle.click();
+  await expect(page.locator("html")).not.toHaveAttribute("data-theme", before ?? "");
+});
+
+test("Ajustes permite filas compactas en computadora y se aplica al guardar", async ({ page, isMobile }) => {
+  test.skip(isMobile, "La opción solo existe en computadora");
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await signIn(page, "/configuracion");
+  await page.getByRole("group", { name: "Altura de las filas" }).getByRole("button", { name: "Compacta" }).click();
+  await page.getByRole("button", { name: /Guardar/ }).first().click();
+  await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
+});
+
+test("la entrada Regla de tinta se ve una vez por sesión y no bloquea el panel", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await signIn(page);
+  // Ya se mostró al entrar: no se repite al navegar ni al recargar en la misma sesión.
+  await expect(page.locator("html")).not.toHaveAttribute("data-intro", /.*/, { timeout: 2500 });
+  expect(await page.evaluate(() => sessionStorage.getItem("fx-intro-admin"))).toBe("1");
+  await page.reload();
+  await expect(page.locator("html")).not.toHaveAttribute("data-intro", /.*/);
+  await expect(page.locator(".shell-intro")).toBeHidden();
+});
