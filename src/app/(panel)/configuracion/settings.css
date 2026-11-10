@@ -1,392 +1,210 @@
-/* Ajustes: una sola hoja de bloques (brief de diseño §6.1 y referencias, "Ajustes en bloques independientes").
-   Cada bloque es un rótulo con su frase a la izquierda y el contenido a la derecha, separados por la regla.
-   Mis preferencias se edita como borrador y se guarda con la barra fija al pie (brief §6.3).
-   Movimiento: el punto y el texto de la barra cambian con opacidad cuando hay algo por guardar; nada más. */
+/* Configuración: una vista por área; cada sección es una etiqueta a la izquierda y su panel a la derecha. */
 
-.settings-title {
-  margin-bottom: 28px;
+.settings-tabs {
+  margin-bottom: 24px;
 }
 
-.title-row .settings-title__lead {
-  max-width: 76ch;
-  text-align: justify;
+.settings-select {
+  display: none;
+  margin-bottom: 20px;
 }
 
-.settings-sheet {
+.settings {
   display: grid;
+  gap: 32px;
 }
 
-/* ===== Bloque: rótulo a la izquierda, contenido a la derecha ===== */
-.block {
+.settings-row {
   display: grid;
-  grid-template-columns: minmax(0, 280px) minmax(0, 760px);
-  gap: 16px 48px;
-  padding: 24px 0 32px;
-  border-top: 1px solid var(--rule-strong);
-  scroll-margin-top: 16px;
+  grid-template-columns: minmax(0, 300px) minmax(0, 720px);
+  gap: 24px;
 }
 
-.block__label {
-  display: grid;
-  align-content: start;
-  gap: 6px;
-}
-
-.block__title {
-  font-size: var(--fs-section);
-  line-height: 22px;
-}
-
-.block__desc {
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 20px;
-  text-align: justify;
-}
-
-.block__body {
-  display: grid;
-  min-width: 0;
-  align-content: start;
-  gap: 20px;
-}
-
-/* ===== Una preferencia: qué es, para qué sirve y sus opciones ===== */
-.choice {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px 24px;
-}
-
-.choice + .choice {
-  padding-top: 20px;
+.settings-row + .settings-row {
+  padding-top: 32px;
   border-top: 1px solid var(--rule);
 }
 
-.choice__text {
+.settings-row__label {
   display: grid;
-  min-width: 0;
-  flex: 1 1 260px;
+  align-content: start;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+.settings-row__panel {
+  display: grid;
   gap: 4px;
 }
 
-.choice__label {
+.setting {
+  display: flex;
+  min-height: 56px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+}
+
+.setting + .setting {
+  border-top: 1px solid var(--rule);
+}
+
+.setting > span:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.setting--block {
+  display: grid;
+  justify-content: stretch;
+  gap: 6px;
+}
+
+.setting__label {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-weight: 600;
 }
 
-.choice__icon {
-  display: inline-grid;
-  color: var(--accent);
+.setting__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
 }
 
-.choice__hint {
-  color: var(--muted);
-  font-size: var(--fs-small);
-  line-height: 19px;
+.setting__select {
+  width: 90px;
 }
 
-.choice__options button {
-  min-width: 64px;
-  height: 38px;
-  padding: 0 14px;
-}
-
-/* ===== Tu cuenta ===== */
-.me-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 20px;
-}
-
-.me-card__data {
-  display: grid;
-  min-width: 0;
-  flex: 1;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px 24px;
-}
-
-.me-card__data dt {
-  color: var(--muted);
-  font-size: var(--fs-label);
-  font-weight: 600;
-  line-height: 18px;
-}
-
-.me-card__data dd {
-  display: grid;
-  justify-items: start;
-  gap: 4px;
-  margin-top: 4px;
-  overflow-wrap: anywhere;
-}
-
-.me-card__link {
-  font-size: 14px;
-}
-
-.me-access {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--raised);
-}
-
-:root[data-theme="dark"] .me-access {
-  background: var(--surface);
-}
-
-.me-access__icon {
-  flex: none;
+.ok-icon {
   color: var(--positive);
 }
 
-.me-access__title,
-.me-recent__title {
-  font-size: 15px;
-  line-height: 22px;
+.saved-stamp {
+  color: var(--positive);
+  font-size: 12px;
+  font-weight: 600;
+  animation: fade-in var(--dur-2, 200ms) ease;
 }
 
-.me-access__text {
-  margin-top: 2px;
-  color: var(--muted);
+.profile-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 6px 0;
 }
 
-.me-recent {
+/* Vista previa del correo que llega con cada registro nuevo. */
+.mail-preview {
   display: grid;
-  gap: 4px;
-}
-
-.me-recent__empty {
-  color: var(--muted);
-}
-
-/* ===== Avisos por correo: cuándo pasa y qué correo sale ===== */
-.settings-demo {
-  font-size: 14px;
-}
-
-.mail-table td {
-  height: auto;
-  padding-top: 14px;
-  padding-bottom: 14px;
-  vertical-align: top;
-}
-
-.mail-table td[data-primary] {
-  width: 34%;
-  font-weight: 600;
-}
-
-.mail-table__what {
-  color: var(--muted);
-  text-align: justify;
-}
-
-/* ===== Datos del panel ===== */
-.data-source {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 14px;
-}
-
-.data-source .pill {
-  font-weight: 600;
-}
-
-.data-source__text {
-  min-width: 0;
-  flex: 1 1 280px;
-  text-align: justify;
-}
-
-.data-counts__title {
-  margin-bottom: -8px;
-  color: var(--muted);
-  font-size: var(--fs-label);
-  font-weight: 600;
-}
-
-.data-counts {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  border-top: 1px solid var(--border);
-}
-
-.data-counts__item {
-  display: grid;
-  gap: 6px;
-  padding: 12px 16px 12px 0;
-  border-bottom: 1px solid var(--rule);
-}
-
-.data-counts dt {
-  color: var(--muted);
-  font-size: var(--fs-small);
-  line-height: 18px;
-}
-
-.data-counts dd {
-  font-size: 22px;
-  font-weight: 500;
-  line-height: 28px;
-}
-
-.data-reset {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px 24px;
-  padding-top: 4px;
-}
-
-.data-reset__text {
-  min-width: 0;
-  flex: 1 1 300px;
-  color: var(--muted);
-}
-
-/* ===== Barra para guardar: fija al pie de la hoja, con el único botón principal =====
-   Fija y alineada con la hoja blanca del marco (menú de --sidebar-w, margen --inset y borde de 1 px). La hoja deja
-   sitio al final para que la barra no tape el último bloque. */
-.settings-sheet {
-  padding-bottom: 96px;
-}
-
-.save-bar {
-  position: fixed;
-  z-index: 20;
-  right: calc(var(--inset) + 1px);
-  bottom: calc(var(--inset) + 1px);
-  left: calc(var(--sidebar-w) + 1px);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px 20px;
-  padding: 14px var(--pad);
-  border-top: 1px solid var(--rule-strong);
-  border-radius: 0 0 calc(var(--radius-sheet) - 1px) calc(var(--radius-sheet) - 1px);
-  background: var(--surface);
-}
-
-.save-bar__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--muted);
-  text-align: start;
-}
-
-.save-bar__dot {
-  width: 8px;
-  height: 8px;
-  flex: none;
-  border-radius: 1px;
-  background: var(--control);
-}
-
-.is-dirty .save-bar__status {
-  color: var(--text);
-  font-weight: 600;
-}
-
-.is-dirty .save-bar__dot {
-  background: #c27c0e;
-  animation: settle var(--t-ui) var(--ease) both;
-}
-
-:root[data-theme="dark"] .is-dirty .save-bar__dot {
-  background: var(--warning);
-}
-
-.save-bar__actions {
-  display: flex;
   gap: 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--raised);
 }
 
-/* Los avisos ("Preferencias guardadas") salen por encima de la barra, no encima del botón. */
-body:has(.save-bar) .toasts {
-  bottom: calc(var(--inset) + 84px);
+.mail-preview__from {
+  color: var(--muted);
+  font-size: 12px;
 }
 
-@media (max-width: 960px) {
-  .block {
+.mail-preview__subject {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mail-preview__body {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--text);
+  line-height: 21px;
+}
+
+.mail-preview__body svg {
+  flex: none;
+  transform: translateY(2px);
+}
+
+.mail-preview__cta {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.sessions {
+  display: grid;
+  margin-bottom: 12px;
+}
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  color: var(--muted);
+}
+
+.session + .session {
+  border-top: 1px solid var(--rule);
+}
+
+.session strong {
+  color: var(--text);
+}
+
+.sessions + .btn {
+  justify-self: start;
+}
+
+@media (max-width: 900px) {
+  .settings-row {
     grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
+    gap: 12px;
+  }
+
+  .settings-row__label {
+    padding-top: 0;
   }
 }
 
-/* Sin menú lateral: la barra sube por encima de la barra inferior de secciones y ocupa el ancho. */
-@media (max-width: 1024px) {
-  .save-bar {
-    right: 0;
-    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
-    left: 0;
-    padding: 10px 16px;
-    border-radius: 0;
-  }
-
-  body:has(.tabbar):has(.save-bar) .toasts {
-    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 80px);
-  }
-}
-
-@media (max-width: 600px) {
-  .choice__options {
-    display: flex;
+@media (max-width: 560px) {
+  .setting .segmented {
     width: 100%;
   }
 
-  .choice__options button {
-    min-width: 0;
+  .settings-row__panel {
+    padding: 16px;
+  }
+
+  .setting .segmented button {
+    flex: 1;
     height: auto;
-    min-height: var(--target);
-    flex: 1 1 0;
+    min-height: 36px;
     padding: 4px 8px;
-    line-height: 17px;
+    line-height: 16px;
     white-space: normal;
   }
 
-  .me-card {
+  .setting .pill {
+    white-space: normal;
+    height: auto;
+    padding: 3px 8px;
+  }
+
+  .settings-tabs {
+    display: none;
+  }
+
+  .settings-select {
+    display: block;
+  }
+
+  .profile-card {
     flex-direction: column;
-  }
-
-  .mail-table td[data-primary] {
-    width: auto;
-  }
-
-  /* En el teléfono la barra es solo botones: el estado sigue anunciándose a lectores de pantalla. */
-  .save-bar__status {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  .save-bar__actions {
-    width: 100%;
-  }
-
-  .save-bar__actions .btn {
-    flex: 1 1 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .is-dirty .save-bar__dot {
-    animation: none;
   }
 }

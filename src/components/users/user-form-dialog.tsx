@@ -13,18 +13,13 @@ import { api } from "@/lib/api";
 import { useCreateUser, useUpdateUser } from "@/lib/api/queries";
 import { isValidRuc } from "@/lib/format";
 import { useT } from "@/lib/prefs";
-import { useAccessCopy } from "./access-copy";
-import { useUsersCopy } from "./users-copy";
-import "./users-dialogs.css";
 
 const PHONE = /^\+?51\s?9\d{2}\s?\d{3}\s?\d{3}$/;
 
 /** Alta de cliente o invitación de personal, y edición de una cuenta existente. */
 export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose: () => void; user?: User | null }) {
   const t = useT();
-  const c = useUsersCopy();
-  const f = c.form;
-  const a = useAccessCopy();
+  const f = t.form;
   const me = useSessionUser();
   const toast = useToast();
   const create = useCreateUser();
@@ -97,13 +92,13 @@ export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose
       status: v.status,
       notes: v.notes,
     };
-    const fail = (e: Error) => (e.message === "email_taken" ? setError("email", { message: f.emailTaken }) : toast.error(c.error));
+    const fail = (e: Error) => (e.message === "email_taken" ? setError("email", { message: f.emailTaken }) : toast.error(t.common.error));
     if (user) {
       update.mutate(
         { id: user.id, patch: draft, actor: me.name },
         {
           onSuccess: () => {
-            toast.success(c.toast.updated);
+            toast.success(t.toast.updated);
             onClose();
           },
           onError: fail,
@@ -114,7 +109,7 @@ export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose
         { draft, actor: me.name },
         {
           onSuccess: (u) => {
-            toast.success(u.kind === "staff" ? c.toast.invited(u.email) : c.toast.created(u.name));
+            toast.success(u.kind === "staff" ? t.toast.invited(u.email) : t.toast.created(u.name));
             onClose();
           },
           onError: fail,
@@ -136,15 +131,15 @@ export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose
       open={open}
       onClose={onClose}
       title={editing ? f.editTitle : f.newTitle}
-      description={editing ? f.editSub : caps.createCustomers ? f.newSub : f.newSubStaffOnly}
+      description={editing ? f.editSub : f.newSub}
       footer={
         <>
           <button type="button" className="btn" onClick={onClose}>
-            {c.cancel}
+            {t.common.cancel}
           </button>
           <button type="submit" form="user-form" className="btn btn--primary" disabled={busy}>
             {busy && <span className="spinner" aria-hidden="true" />}
-            {busy ? (editing ? f.saving : kind === "staff" ? f.inviting : f.creating) : editing ? f.save : kind === "staff" ? f.invite : f.create}
+            {busy ? (editing ? t.common.saving : f.creating) : editing ? t.common.save : f.create}
           </button>
         </>
       }
@@ -158,7 +153,7 @@ export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose
               {(["customer", "staff"] as const).map((k) => (
                 <label key={k} className="segmented__option">
                   <input type="radio" value={k} {...register("kind")} />
-                  <span>{f.kindOpt[k]}</span>
+                  <span>{t.kind[k]}</span>
                 </label>
               ))}
             </div>
@@ -178,7 +173,6 @@ export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose
               {f.email}
             </label>
             <input id="uf-email" className="input" type="email" autoComplete="off" placeholder={f.emailPh} readOnly={editing && !caps.editEmail} {...register("email")} {...aria("email")} />
-            {editing && !caps.editEmail && <p className="field__hint">{f.emailLocked}</p>}
             {err("email")}
           </div>
           <div className="field">
@@ -209,7 +203,7 @@ export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose
               <select id="uf-status" className="select" {...register("status")}>
                 {(["pending", "active", "disabled"] as const).map((s) => (
                   <option key={s} value={s}>
-                    {c.status[s]}
+                    {t.status[s]}
                   </option>
                 ))}
               </select>
@@ -229,7 +223,7 @@ export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose
                   <input type="checkbox" className="checkbox" value={r} {...register("roles")} />
                   <span>
                     <strong>{t.roles[r]}</strong>
-                    <span>{a.roleText[r]}</span>
+                    <span>{t.roleText[r]}</span>
                   </span>
                 </label>
               ))}
@@ -245,7 +239,7 @@ export function UserFormDialog({ open, onClose, user }: { open: boolean; onClose
           <textarea id="uf-notes" className="textarea" rows={2} placeholder={f.notesPh} {...register("notes")} />
         </div>
 
-        {!editing && <p className="notice form-note">{kind === "staff" ? f.inviteNote : f.customerNote}</p>}
+        {!editing && <p className="notice">{kind === "staff" ? f.inviteNote : f.customerNote}</p>}
       </form>
     </Dialog>
   );

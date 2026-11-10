@@ -1,229 +1,56 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { resolvePermissions } from "@/components/shell/access";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { useSessionUser } from "@/components/shell/session-context";
-import { Avatar, Skeleton } from "@/components/ui/bits";
-import { IconMoon, IconSun } from "@/components/ui/icons";
+import { Avatar, MethodIcon, TitleRow } from "@/components/ui/bits";
+import { IconActive, IconDesktop, IconMobile } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/toast";
-import { IconLanguage, IconShield } from "@/components/users/account-icons";
 import { ConfirmDialog } from "@/components/users/confirm-dialog";
 import { STAFF } from "@/data/demo-account";
-import type { PermissionId } from "@/data/permissions";
 import { api } from "@/lib/api";
-import { useActivity, useCaseList, useResetDemo, useUserList } from "@/lib/api/queries";
 import { BACKEND_MODE } from "@/lib/backend-mode";
-import { relativeTime } from "@/lib/format";
-import { PAGE_SIZES, usePrefs, type Lang, type Theme } from "@/lib/prefs";
-import { settingsCopy, useSettingsCopy } from "./settings-copy";
+import { useActivity, useCaseList, useResetDemo, useUserList } from "@/lib/api/queries";
+import { formatNumber, relativeTime } from "@/lib/format";
+import { PAGE_SIZES, usePrefs, useStoredValue, type Density, type Theme } from "@/lib/prefs";
 import "./settings.css";
 
-const THEMES: Theme[] = ["light", "dark", "system"];
-const LANGS: { id: Lang; label: string }[] = [
-  { id: "es", label: "Español" },
-  { id: "en", label: "English" },
-];
-// Enlaces antiguos (?tab=...) y el menú de la cuenta llevan a su bloque dentro de la única hoja de Ajustes.
-const TAB_TO_BLOCK: Record<string, string> = { preferences: "preferencias", profile: "cuenta", security: "cuenta", notifications: "avisos", data: "datos" };
+const TABS = ["profile", "preferences", "notifications", "security", "data"] as const;
+type Tab = (typeof TABS)[number];
+const NOTIFS = ["signup", "digest", "pending", "security"] as const;
 
-/** Título y frase de propósito; también se ven mientras carga la pantalla. */
-export function SettingsTitle() {
-  const s = useSettingsCopy();
-  return (
-    <header className="title-row settings-title">
-      <div>
-        <h1 className="title-row__title">{s.title}</h1>
-        <p className="title-row__sub settings-title__lead">{s.lead}</p>
-      </div>
-    </header>
-  );
+/** Sello "Guardado" que aparece un momento junto al control que se guardó solo. */
+function useSaved() {
+  const [at, setAt] = useState<string | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  return {
+    saved: at,
+    mark: (key: string) => {
+      setAt(key);
+      clearTimeout(timer.current);
+      timer.current = setTimeout(() => setAt(null), 1800);
+    },
+  };
 }
 
 export function SettingsView() {
-  const { lang, setLang, theme, setTheme, density, setDensity, pageSize, setPageSize } = usePrefs();
-  const s = useSettingsCopy();
+  const { t, lang, setLang, theme, setTheme, density, setDensity, pageSize, setPageSize } = usePrefs();
+  const s = t.settings;
   const me = useSessionUser();
-  const toast = useToast();
+  const router = useRouter();
   const params = useSearchParams();
-
-  // Con Backend los roles vienen de la sesión firmada; en la demostración, del personal de prueba (o lo ve todo).
-  const myRoles = me.roles ?? STAFF.find((x) => x.email === me.email)?.roles;
-  const perms = resolvePermissions(myRoles);
-  const can = (p: PermissionId) => perms === null || perms.includes(p);
-  const isAdmin = can("users:manage");
-
-  // Borrador de preferencias: se aplica todo junto con "Guardar cambios" (brief §6.3).
-  const [draftLang, setDraftLang] = useState<Lang | null>(null);
-  const [draftTheme, setDraftTheme] = useState<Theme | null>(null);
-  const [draftSize, setDraftSize] = useState<number | null>(null);
-  const nextLang = draftLang ?? lang;
-  const nextTheme = draftTheme ?? theme;
-  const nextSize = draftSize ?? pageSize;
-  const dirty = nextLang !== lang || nextTheme !== theme || nextSize !== pageSize;
-
-  const discard = () => {
-    setDraftLang(null);
-    setDraftTheme(null);
-    setDraftSize(null);
-  };
-
-  const save = () => {
-    if (nextTheme !== theme) setTheme(nextTheme);
-    if (nextSize !== pageSize) setPageSize(nextSize);
-    // La densidad compacta se retiró (brief §6.6): quien la tenía guardada vuelve a la normal al guardar.
-    if (density !== "comfortable") setDensity("comfortable");
-    if (nextLang !== lang) setLang(nextLang);
-    discard();
-    toast.success(settingsCopy(nextLang).bar.saved);
-  };
-
-  // Al salir del navegador con cambios sin guardar, el navegador pregunta antes de perderlos.
-  useEffect(() => {
-    if (!dirty) return;
-    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
-
-  const tab = params.get("tab");
-  useEffect(() => {
-    const block = tab ? TAB_TO_BLOCK[tab] : undefined;
-    if (block && block !== "preferencias") document.getElementById(block)?.scrollIntoView({ block: "start" });
-  }, [tab]);
-
-  return (
-    <>
-      <SettingsTitle />
-
-      <div className="settings-sheet">
-        <Block id="preferencias" title={s.prefs.title} desc={s.prefs.desc}>
-          <Choice label={s.prefs.language} hint={s.prefs.languageHint} id="pref-lang" icon={<IconLanguage size={20} />}>
-            {LANGS.map((v) => (
-              <button key={v.id} type="button" lang={v.id} aria-pressed={nextLang === v.id} onClick={() => setDraftLang(v.id)}>
-                {v.label}
-              </button>
-            ))}
-          </Choice>
-          <Choice label={s.prefs.theme} hint={s.prefs.themeHint} id="pref-theme" icon={nextTheme === "dark" ? <IconMoon size={20} /> : <IconSun size={20} />}>
-            {THEMES.map((v) => (
-              <button key={v} type="button" aria-pressed={nextTheme === v} onClick={() => setDraftTheme(v)}>
-                {s.prefs.themeOpt[v]}
-              </button>
-            ))}
-          </Choice>
-          <Choice label={s.prefs.size} hint={s.prefs.sizeHint} id="pref-size">
-            {PAGE_SIZES.map((v) => (
-              <button key={v} type="button" className="num" aria-pressed={nextSize === v} onClick={() => setDraftSize(v)}>
-                {v}
-              </button>
-            ))}
-          </Choice>
-        </Block>
-
-        <Block id="cuenta" title={s.account.title} desc={s.account.desc}>
-          <div className="me-card">
-            <Avatar name={me.name} size="lg" />
-            <dl className="me-card__data">
-              <div>
-                <dt>{s.account.name}</dt>
-                <dd>{me.name}</dd>
-              </div>
-              <div>
-                <dt>{s.account.email}</dt>
-                <dd>{me.email}</dd>
-              </div>
-              <div>
-                <dt>{s.account.job}</dt>
-                <dd>
-                  <JobNames roles={myRoles} empty={s.account.noJob} />
-                  {isAdmin && (
-                    <Link href="/roles" className="card-link me-card__link">
-                      {s.account.jobLink}
-                    </Link>
-                  )}
-                </dd>
-              </div>
-            </dl>
-          </div>
-          <div className="me-access">
-            <IconShield size={22} className="me-access__icon" />
-            <div>
-              <h3 className="me-access__title">{s.account.access}</h3>
-              <p className="me-access__text">{s.account.accessText}</p>
-            </div>
-          </div>
-          {can("audit:read") && <MyRecent />}
-        </Block>
-
-        {isAdmin && <AdminBlocks />}
-      </div>
-
-      {/* Barra fija al pie: el único botón principal de Ajustes, activo solo si hay cambios. */}
-      <div className={`save-bar${dirty ? " is-dirty" : ""}`} role="region" aria-label={s.bar.label}>
-        <p className="save-bar__status" aria-live="polite">
-          <span className="save-bar__dot" aria-hidden="true" />
-          {dirty ? s.bar.dirty : s.bar.clean}
-        </p>
-        <div className="save-bar__actions">
-          {dirty && (
-            <button type="button" className="btn btn--ghost" onClick={discard}>
-              {s.bar.discard}
-            </button>
-          )}
-          <button type="button" className="btn btn--primary" onClick={save} disabled={!dirty}>
-            {s.bar.save}
-          </button>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function JobNames({ roles, empty }: { roles?: readonly string[]; empty: string }) {
-  const { t } = usePrefs();
-  if (!roles?.length) return <span>{empty}</span>;
-  return <span>{roles.map((r) => t.roles[r as keyof typeof t.roles] ?? r).join(", ")}</span>;
-}
-
-/** Lo último que hizo la persona en el panel (sale del Historial de cambios). */
-function MyRecent() {
-  const { t } = usePrefs();
-  const s = useSettingsCopy();
-  const me = useSessionUser();
-  const mine = useActivity({ page: 0, size: 5, q: me.name });
-  const sentence = (e: Parameters<typeof t.activity.sentence>[0]) =>
-    t.activity.sentence(e, (m) => t.method[m as keyof typeof t.method] ?? m, (r) => r.split(",").map((x) => t.roles[x as keyof typeof t.roles] ?? x).join(", "));
-  return (
-    <div className="me-recent">
-      <h3 className="me-recent__title">{s.account.recent}</h3>
-      {!mine.data ? (
-        <Skeleton w="100%" h={48} />
-      ) : mine.data.items.length === 0 ? (
-        <p className="me-recent__empty">{s.account.recentEmpty}</p>
-      ) : (
-        <ul className="rows">
-          {mine.data.items.map((e) => (
-            <li key={e.id} className="row">
-              <span className="row__main">
-                <span>{sentence(e)}</span>
-              </span>
-              <span className="row__end">{relativeTime(e.at, t.locale)}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-/** Avisos por correo y Datos del panel: solo administración. */
-function AdminBlocks() {
-  const s = useSettingsCopy();
   const toast = useToast();
-  const reset = useResetDemo();
+  const tab: Tab = (TABS as readonly string[]).includes(params.get("tab") ?? "") ? (params.get("tab") as Tab) : "profile";
+  const { saved, mark } = useSaved();
   const [confirmReset, setConfirmReset] = useState(false);
+  const reset = useResetDemo();
+  const sample = useUserList({ page: 0, size: 1, kind: "customer", sort: { id: "registeredAt", desc: true } });
+  const latest = sample.data?.items[0];
+  // Con Backend, los roles vienen de la sesión firmada; en la demostración, del personal de prueba.
+  const myRoles = me.roles ?? STAFF.find((x) => x.email === me.email)?.roles;
+  const mine = useActivity({ page: 0, size: 5, q: me.name });
   const counts = {
     users: useUserList({ page: 0, size: 1 }).data?.statusCounts.all,
     quotes: useCaseList("quotes", { page: 0, size: 1 }).data?.statusCounts.all,
@@ -231,78 +58,255 @@ function AdminBlocks() {
     claims: useCaseList("claims", { page: 0, size: 1 }).data?.statusCounts.all,
     privacy: useCaseList("privacy", { page: 0, size: 1 }).data?.statusCounts.all,
   };
+  const sentence = (e: Parameters<typeof t.activity.sentence>[0]) =>
+    t.activity.sentence(e, (m) => t.method[m as keyof typeof t.method] ?? m, (r) => r.split(",").map((x) => t.roles[x as keyof typeof t.roles] ?? x).join(", "));
+
+  const stamp = (k: string) => (saved === k ? <span className="saved-stamp">{s.saved}</span> : null);
+  const [otherSeenAt] = useState(() => Date.now() - 26 * 3_600_000);
 
   return (
     <>
-      <Block id="avisos" title={s.notices.title} desc={s.notices.desc}>
-        {!BACKEND_MODE && <p className="notice settings-demo">{s.notices.demo}</p>}
-        <table className="table table--cards mail-table" role="table">
-          <thead role="rowgroup">
-            <tr role="row">
-              <th scope="col" role="columnheader">
-                {s.notices.when}
-              </th>
-              <th scope="col" role="columnheader">
-                {s.notices.what}
-              </th>
-            </tr>
-          </thead>
-          <tbody role="rowgroup">
-            {s.notices.rows.map((r) => (
-              <tr key={r.when} role="row">
-                <td role="cell" data-primary="">
-                  {r.when}
-                </td>
-                <td role="cell" className="mail-table__what">
-                  {r.what}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Block>
+      <TitleRow title={s.title} sub={s.lead} />
 
-      <Block id="datos" title={s.data.title} desc={s.data.desc}>
-        <p className="data-source">
-          <span className={`pill ${BACKEND_MODE ? "pill--active" : "pill--progress"}`}>
-            <span className="pill__dot" aria-hidden="true" />
-            {BACKEND_MODE ? s.data.liveTag : s.data.demoTag}
-          </span>
-          <span className="data-source__text">{BACKEND_MODE ? s.data.sourceLive : s.data.sourceDemo}</span>
-        </p>
-        <h3 className="data-counts__title">{s.data.counts}</h3>
-        <dl className="data-counts">
-          {(Object.keys(counts) as (keyof typeof counts)[]).map((k) => (
-            <div key={k} className="data-counts__item">
-              <dt>{s.data.modules[k]}</dt>
-              <dd className="num">{counts[k] === undefined ? <Skeleton w={40} h={22} /> : s.count(counts[k] as number)}</dd>
+      <div className="tabs settings-tabs" role="tablist" aria-label={s.title}>
+        {TABS.map((k) => (
+          <Link key={k} href={`/configuracion?tab=${k}`} role="tab" className="tabs__tab" aria-selected={tab === k} replace scroll={false}>
+            {s.tabs[k]}
+          </Link>
+        ))}
+      </div>
+      <label className="sr-only" htmlFor="settings-tab">
+        {s.title}
+      </label>
+      <select id="settings-tab" className="select settings-select" value={tab} onChange={(e) => router.replace(`/configuracion?tab=${e.target.value}`, { scroll: false })}>
+        {TABS.map((k) => (
+          <option key={k} value={k}>
+            {s.tabs[k]}
+          </option>
+        ))}
+      </select>
+
+      <div className="settings fade-in" key={tab}>
+        {tab === "profile" && (
+          <>
+          <Row title={s.profileTitle} desc={s.profileDesc}>
+            <div className="profile-card">
+              <Avatar name={me.name} size="lg" />
+              <dl className="kvs kvs--stack">
+                <div className="kv">
+                  <dt>{s.name}</dt>
+                  <dd>{me.name}</dd>
+                </div>
+                <div className="kv">
+                  <dt>{s.email}</dt>
+                  <dd>{me.email}</dd>
+                </div>
+                <div className="kv">
+                  <dt>{s.role}</dt>
+                  <dd>{myRoles?.length ? myRoles.map((r) => t.roles[r as keyof typeof t.roles] ?? r).join(", ") : "—"}</dd>
+                </div>
+              </dl>
             </div>
-          ))}
-        </dl>
-        {/* Restablecer solo existe en la demostración: con Backend los datos son reales. */}
-        {api.capabilities.resetDemo && (
-          <div className="data-reset">
-            <p className="data-reset__text">{s.data.resetText}</p>
-            <button type="button" className="btn btn--danger-outline" onClick={() => setConfirmReset(true)} disabled={reset.isPending}>
-              {reset.isPending && <span className="spinner" aria-hidden="true" />}
-              {reset.isPending ? s.data.resetting : s.data.reset}
-            </button>
-          </div>
+          </Row>
+          <Row title={s.myActivity} desc={s.myActivityDesc}>
+            {!mine.data ? null : mine.data.items.length === 0 ? (
+              <p className="field__hint">{s.noMyActivity}</p>
+            ) : (
+              <ul className="rows">
+                {mine.data.items.map((e) => (
+                  <li key={e.id} className="row">
+                    <span className="row__main">
+                      <span>{sentence(e)}</span>
+                    </span>
+                    <span className="row__end">{relativeTime(e.at, t.locale)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Row>
+          </>
         )}
-      </Block>
+
+        {tab === "preferences" && (
+          <Row title={s.prefsTitle} desc={s.prefsDesc}>
+            <div className="setting">
+              <span className="setting__label" id="pref-theme">
+                {s.theme} {stamp("theme")}
+              </span>
+              <div className="segmented" role="group" aria-labelledby="pref-theme">
+                {(["light", "dark", "system"] as Theme[]).map((v) => (
+                  <button key={v} type="button" aria-pressed={theme === v} onClick={() => (setTheme(v), mark("theme"))}>
+                    {s.themeOpt[v]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="setting">
+              <span className="setting__label" id="pref-lang">
+                {s.language} {stamp("lang")}
+              </span>
+              <div className="segmented" role="group" aria-labelledby="pref-lang">
+                {(["es", "en"] as const).map((v) => (
+                  <button key={v} type="button" aria-pressed={lang === v} onClick={() => (setLang(v), mark("lang"))} lang={v}>
+                    {v === "es" ? "Español" : "English"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="setting">
+              <span className="setting__label" id="pref-density">
+                {s.density} {stamp("density")}
+              </span>
+              <div className="segmented" role="group" aria-labelledby="pref-density">
+                {(["comfortable", "compact"] as Density[]).map((v) => (
+                  <button key={v} type="button" aria-pressed={density === v} onClick={() => (setDensity(v), mark("density"))}>
+                    {s.densityOpt[v]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="setting">
+              <label className="setting__label" htmlFor="pref-size">
+                {s.pageSize} {stamp("size")}
+              </label>
+              <select id="pref-size" className="select select--sm setting__select" value={pageSize} onChange={(e) => (setPageSize(Number(e.target.value)), mark("size"))}>
+                {PAGE_SIZES.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </Row>
+        )}
+
+        {tab === "notifications" && (
+          <>
+            <Row title={s.notifTitle} desc={s.notifDesc}>
+              {NOTIFS.map((k) => (
+                <NotifSwitch key={k} id={k} title={s.notif[k].title} text={s.notif[k].text} onSaved={() => mark(`n-${k}`)} saved={saved === `n-${k}`} savedLabel={s.saved} />
+              ))}
+            </Row>
+            <Row title={s.previewTitle} desc={s.notif.signup.text}>
+              <article className="mail-preview" aria-label={s.previewTitle}>
+                <p className="mail-preview__from">FUNDIGSAC · {me.email}</p>
+                <h3 className="mail-preview__subject">{s.previewSubject(latest?.name ?? "—")}</h3>
+                <p className="mail-preview__body">
+                  {latest && <MethodIcon method={latest.method} size={14} />}
+                  {latest ? s.previewBody(latest.name, t.method[latest.method], latest.company ?? "") : "—"}
+                </p>
+                {latest && (
+                  <Link className="btn mail-preview__cta" href={`/usuarios/${latest.id}`}>
+                    {s.previewCta}
+                  </Link>
+                )}
+              </article>
+            </Row>
+          </>
+        )}
+
+        {tab === "security" && (
+          <>
+            <Row title={s.securityTitle} desc={s.securityDesc}>
+              <div className="setting setting--block">
+                <span className="setting__label">{s.accessMethod}</span>
+                <p className="setting__value">
+                  <IconActive size={16} className="ok-icon" />
+                  {s.accessMethodValue}
+                </p>
+                <p className="field__hint prose">{s.accessMethodText}</p>
+              </div>
+              <div className="setting">
+                <span>
+                  <span className="setting__label">{s.passkeys}</span>
+                  <span className="field__hint">{s.passkeysText}</span>
+                </span>
+                <span className="pill">{s.soon}</span>
+              </div>
+            </Row>
+            <Row title={s.sessionsTitle} desc={s.soon}>
+              <ul className="sessions">
+                {s.devices.map((d, i) => (
+                  <li key={d.name} className="session">
+                    {i === 0 ? <IconDesktop size={20} /> : <IconMobile size={20} />}
+                    <span className="row__main">
+                      <strong>{d.name}</strong>
+                      <span className="row__sub">
+                        {d.place} · {i === 0 ? s.thisDevice : s.lastSeen(relativeTime(otherSeenAt, t.locale))}
+                      </span>
+                    </span>
+                    {i === 0 && <span className="pill pill--active">{s.deviceNow}</span>}
+                  </li>
+                ))}
+              </ul>
+              <button type="button" className="btn" disabled title={s.soon}>
+                {s.closeOthers}
+              </button>
+            </Row>
+          </>
+        )}
+
+        {tab === "data" && (
+          <>
+          <Row title={s.source} desc={BACKEND_MODE ? s.sourceLiveNote : s.sourceNextNote}>
+            <dl className="kvs">
+              {BACKEND_MODE ? (
+                <div className="kv">
+                  <dt>{t.common.live}</dt>
+                  <dd className="num">{s.sourceLive}</dd>
+                </div>
+              ) : (
+                <div className="kv">
+                  <dt>{t.common.preview}</dt>
+                  <dd>{s.sourceNow}</dd>
+                </div>
+              )}
+              <div className="kv" hidden={BACKEND_MODE}>
+                <dt>{s.soon}</dt>
+                <dd className="num">{s.sourceNext}</dd>
+              </div>
+            </dl>
+          </Row>
+          <Row title={s.stored} desc={s.dataDesc}>
+            <table className="table">
+              <tbody>
+                {(Object.keys(counts) as (keyof typeof counts)[]).map((k) => (
+                  <tr key={k}>
+                    <td>{s.modules[k]}</td>
+                    <td className="n num">{counts[k] === undefined ? "—" : formatNumber(counts[k] as number, t.locale)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Row>
+          {/* Restablecer solo existe en la demostración: con Backend los datos son reales. */}
+          {api.capabilities.resetDemo && (
+            <Row title={s.dataTitle} desc={s.resetConfirm}>
+              <p className="setting__value">{sample.data ? s.usersCount(sample.data.statusCounts.all) : "—"}</p>
+              <div>
+                <button type="button" className="btn btn--danger-outline" onClick={() => setConfirmReset(true)} disabled={reset.isPending}>
+                  {reset.isPending && <span className="spinner" aria-hidden="true" />}
+                  {reset.isPending ? s.resetting : s.reset}
+                </button>
+              </div>
+            </Row>
+          )}
+          </>
+        )}
+      </div>
 
       <ConfirmDialog
         open={confirmReset}
-        title={s.data.resetTitle}
-        text={s.data.resetText}
-        confirmLabel={s.data.resetOk}
+        title={s.reset}
+        text={s.resetConfirm}
+        confirmLabel={s.reset}
         busy={reset.isPending}
         onClose={() => setConfirmReset(false)}
         onConfirm={() =>
           reset.mutate(undefined, {
             onSuccess: () => {
               setConfirmReset(false);
-              toast.success(s.data.resetDone);
+              toast.success(t.toast.demoReset);
             },
           })
         }
@@ -311,36 +315,39 @@ function AdminBlocks() {
   );
 }
 
-function Block({ id, title, desc, children }: { id: string; title: string; desc: string; children: React.ReactNode }) {
+function Row({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
   return (
-    <section className="block" id={id} aria-labelledby={`${id}-title`}>
-      <div className="block__label">
-        <h2 id={`${id}-title`} className="block__title">
-          {title}
-        </h2>
-        <p className="block__desc">{desc}</p>
+    <section className="settings-row">
+      <div className="settings-row__label">
+        <h2 className="panel__title">{title}</h2>
+        <p className="panel__meta">{desc}</p>
       </div>
-      <div className="block__body">{children}</div>
+      <div className="panel settings-row__panel">{children}</div>
     </section>
   );
 }
 
-/** Una preferencia: rótulo, ayuda y sus opciones como botones (role=group, aria-pressed). */
-function Choice({ label, hint, id, icon, children }: { label: string; hint: string; id: string; icon?: React.ReactNode; children: React.ReactNode }) {
+function NotifSwitch({ id, title, text, onSaved, saved, savedLabel }: { id: string; title: string; text: string; onSaved: () => void; saved: boolean; savedLabel: string }) {
+  const [value, setValue] = useStoredValue(`fa-notif-${id}`, id === "security" || id === "signup" ? "1" : "0");
   return (
-    <div className="choice">
-      <div className="choice__text">
-        <span className="choice__label" id={id}>
-          {icon && <span className="choice__icon">{icon}</span>}
-          {label}
-        </span>
-        <span className="choice__hint" id={`${id}-hint`}>
-          {hint}
-        </span>
-      </div>
-      <div className="segmented choice__options" role="group" aria-labelledby={id} aria-describedby={`${id}-hint`}>
-        {children}
-      </div>
+    <div className="setting">
+      <span>
+        <label className="setting__label" htmlFor={`notif-${id}`}>
+          {title} {saved && <span className="saved-stamp">{savedLabel}</span>}
+        </label>
+        <span className="field__hint">{text}</span>
+      </span>
+      <input
+        id={`notif-${id}`}
+        type="checkbox"
+        role="switch"
+        className="switch"
+        checked={value === "1"}
+        onChange={(e) => {
+          setValue(e.target.checked ? "1" : "0");
+          onSaved();
+        }}
+      />
     </div>
   );
 }

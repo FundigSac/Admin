@@ -1,77 +1,44 @@
 "use client";
 
 import type { RowSelectionState, SortingState } from "@tanstack/react-table";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useDeferredValue, useId, useState } from "react";
+import { useCallback, useDeferredValue, useState } from "react";
 import { Pager } from "@/components/cases/case-ui";
 import { useSessionUser } from "@/components/shell/session-context";
-import { Skeleton } from "@/components/ui/bits";
-import { IconBlocked, IconClose, IconExport, IconPending, IconSearch, IconSuccess, IconTrash, IconUndo, IconUserPlus } from "@/components/ui/icons";
+import { Avatar, Skeleton, StatusBadge, TitleRow } from "@/components/ui/bits";
+import { IconBlocked, IconClose, IconExport, IconInfo, IconSearch, IconTrash, IconUndo, IconUserPlus } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/toast";
-import { IconFilter } from "@/components/users/account-icons";
 import { ConfirmDialog } from "@/components/users/confirm-dialog";
 import { UserFormDialog } from "@/components/users/user-form-dialog";
-import { useUsersCopy } from "@/components/users/users-copy";
-import { UsersTable } from "@/components/users/users-table";
-import type { SignupMethod, UserStatus } from "@/data/types";
+import { RowMenu, UsersTable, type RowAction } from "@/components/users/users-table";
+import type { SignupMethod, User, UserStatus } from "@/data/types";
 import { api, type RangeKey, type SortKey, type UserListParams } from "@/lib/api";
-import { useDeleteUsers, useSetStatus, useUserList } from "@/lib/api/queries";
-import { downloadText } from "@/lib/format";
+import { useDeleteUsers, usePasswordReset, useResendVerification, useSetStatus, useUserList } from "@/lib/api/queries";
+import { downloadText, formatDate } from "@/lib/format";
 import { PAGE_SIZES, usePrefs } from "@/lib/prefs";
 import "./users.css";
 
 const STATUSES: (UserStatus | "all")[] = ["all", "active", "pending", "disabled"];
-const KINDS = ["all", "customer", "staff"] as const;
-type Kind = (typeof KINDS)[number];
-// En la dirección se usan palabras en español: /usuarios?tipo=personal&estado=pending.
-const KIND_PARAM: Record<Kind, string | null> = { all: null, customer: "clientes", staff: "personal" };
-
 const isStatus = (v: string | null): v is UserStatus => v === "active" || v === "pending" || v === "disabled";
-const kindFrom = (v: string | null): Kind => (v === "personal" ? "staff" : v === "clientes" ? "customer" : "all");
-
-/** Título, frase de propósito y las dos acciones. También es lo que se ve mientras carga la lista. */
-export function AccountsTitle({ onAdd, onDownload, downloading = false, canDownload = false }: { onAdd?: () => void; onDownload?: () => void; downloading?: boolean; canDownload?: boolean }) {
-  const l = useUsersCopy().list;
-  return (
-    <header className="title-row accounts-title">
-      <div>
-        <h1 className="title-row__title">{l.title}</h1>
-        <p className="title-row__sub accounts-title__lead">{l.lead}</p>
-      </div>
-      <div className="title-row__actions">
-        <button type="button" className="btn" onClick={onDownload} disabled={!onDownload || downloading || !canDownload} title={l.downloadHint}>
-          {downloading ? <span className="spinner" aria-hidden="true" /> : <IconExport size={18} aria-hidden="true" />}
-          {downloading ? l.downloading : l.download}
-        </button>
-        <button type="button" className="btn btn--primary" onClick={onAdd} disabled={!onAdd}>
-          <IconUserPlus size={18} aria-hidden="true" />
-          {l.add}
-        </button>
-      </div>
-    </header>
-  );
-}
 
 export function UsersView() {
-  const { pageSize, setPageSize } = usePrefs();
-  const c = useUsersCopy();
-  const l = c.list;
+  const { t, pageSize, setPageSize } = usePrefs();
+  const u = t.users;
   const me = useSessionUser();
   const toast = useToast();
   const router = useRouter();
   const params = useSearchParams();
   const status: UserStatus | "all" = isStatus(params.get("estado")) ? (params.get("estado") as UserStatus) : "all";
-  const kind = kindFrom(params.get("tipo"));
-  const filtersId = useId();
 
   const [q, setQ] = useState("");
   const [method, setMethod] = useState<SignupMethod | "all">("all");
+  const [kind, setKind] = useState<"all" | "customer" | "staff">("all");
   const [range, setRange] = useState<RangeKey>("all");
-  const [moreOpen, setMoreOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([{ id: "registeredAt", desc: true }]);
   const [page, setPage] = useState(0);
   const [selection, setSelection] = useState<RowSelectionState>({});
-  const [formOpen, setFormOpen] = useState(false);
+  const [form, setForm] = useState<{ open: boolean; user: User | null }>({ open: false, user: null });
   const [confirm, setConfirm] = useState<{ kind: "delete" | "disable"; ids: string[] } | null>(null);
   const [exporting, setExporting] = useState(false);
   const query = useDeferredValue(q.trim());
@@ -90,28 +57,24 @@ export function UsersView() {
   const data = list.data;
   const setStatusMut = useSetStatus();
   const del = useDeleteUsers();
+  const resend = useResendVerification();
+  const reset = usePasswordReset();
 
   const selectedIds = Object.keys(selection).filter((id) => selection[id]);
-  const extraFilters = (method !== "all" ? 1 : 0) + (range !== "all" ? 1 : 0);
-  const filtersOn = Boolean(query) || extraFilters > 0 || kind !== "all" || status !== "all";
+  const filtersOn = Boolean(query) || method !== "all" || kind !== "all" || range !== "all";
 
-  const go = (next: { estado?: UserStatus | "all"; tipo?: Kind }) => {
-    const s = new URLSearchParams();
-    const nextKind = KIND_PARAM[next.tipo ?? kind];
-    const nextStatus = next.estado ?? status;
-    if (nextKind) s.set("tipo", nextKind);
-    if (nextStatus !== "all") s.set("estado", nextStatus);
-    const qs = s.toString();
+  const changeStatus = (next: UserStatus | "all") => {
     setPage(0);
     setSelection({});
-    router.replace(qs ? `/usuarios?${qs}` : "/usuarios", { scroll: false });
+    router.replace(next === "all" ? "/usuarios" : `/usuarios?estado=${next}`, { scroll: false });
   };
 
   const clear = () => {
     setQ("");
     setMethod("all");
+    setKind("all");
     setRange("all");
-    go({ estado: "all", tipo: "all" });
+    setPage(0);
   };
 
   const exportCsv = async (ids?: string[]) => {
@@ -121,17 +84,30 @@ export function UsersView() {
       if (ids) {
         const keep = new Set(ids);
         const [head, ...lines] = csv.split("\r\n");
-        csv = [head, ...lines.filter((line) => keep.has(line.split(",")[0].replace(/^﻿/, "")))].join("\r\n");
+        csv = [head, ...lines.filter((l) => keep.has(l.split(",")[0]))].join("\r\n");
       }
       const count = csv.split("\r\n").length - 1;
-      downloadText(`cuentas-fundigsac-${new Date().toISOString().slice(0, 10)}.csv`, csv);
-      toast.success(c.toast.exported(count));
+      downloadText(`usuarios-fundigsac-${new Date().toISOString().slice(0, 10)}.csv`, csv);
+      toast.success(t.toast.exported(count));
     } catch {
-      toast.error(c.error);
+      toast.error(t.common.error);
     } finally {
       setExporting(false);
     }
   };
+
+  const onAction = useCallback(
+    (action: RowAction, user: User) => {
+      if (action === "view") router.push(`/usuarios/${user.id}`);
+      else if (action === "edit") setForm({ open: true, user });
+      else if (action === "disable") setConfirm({ kind: "disable", ids: [user.id] });
+      else if (action === "delete") setConfirm({ kind: "delete", ids: [user.id] });
+      else if (action === "enable") setStatusMut.mutate({ ids: [user.id], status: "active", actor: me.name }, { onSuccess: () => toast.success(t.toast.enabled(1)) });
+      else if (action === "resend") resend.mutate(user.id, { onSuccess: () => toast.success(t.toast.resent) });
+      else if (action === "reset") reset.mutate({ id: user.id, actor: me.name }, { onSuccess: () => toast.success(t.toast.resetSent) });
+    },
+    [router, setStatusMut, resend, reset, me.name, toast, t],
+  );
 
   const runConfirm = () => {
     if (!confirm) return;
@@ -139,202 +115,207 @@ export function UsersView() {
       setConfirm(null);
       setSelection({});
     };
-    const fail = () => toast.error(c.error);
-    if (confirm.kind === "delete") del.mutate({ ids: confirm.ids, actor: me.name }, { onSuccess: () => (toast.success(c.toast.deleted(confirm.ids.length)), done()), onError: fail });
-    else setStatusMut.mutate({ ids: confirm.ids, status: "disabled", actor: me.name }, { onSuccess: () => (toast.success(c.toast.disabled(confirm.ids.length)), done()), onError: fail });
+    if (confirm.kind === "delete") del.mutate({ ids: confirm.ids, actor: me.name }, { onSuccess: () => (toast.success(t.toast.deleted(confirm.ids.length)), done()) });
+    else setStatusMut.mutate({ ids: confirm.ids, status: "disabled", actor: me.name }, { onSuccess: () => (toast.success(t.toast.disabled(confirm.ids.length)), done()) });
   };
 
-  // La propia cuenta nunca se bloquea ni se elimina desde la selección.
-  const mine = data?.items.find((x) => x.email === me.email)?.id;
-  const bulkIds = selectedIds.filter((id) => id !== mine);
+  // Nunca se ofrece suspender o eliminar la propia cuenta.
+  const bulkIds = selectedIds.filter((id) => data?.items.find((x) => x.id === id)?.email !== me.email);
   const from = data ? data.page * data.size + 1 : 0;
   const to = data ? Math.min(data.totalItems, from + data.items.length - 1) : 0;
-  const pending = data?.statusCounts.pending;
 
   return (
     <>
-      <AccountsTitle onAdd={() => setFormOpen(true)} onDownload={() => exportCsv()} downloading={exporting} canDownload={Boolean(data?.totalItems)} />
-
-      <section className="finder" aria-label={l.finder}>
-        <div className="finder__row">
-          <div className="who" role="group" aria-label={l.who}>
-            {KINDS.map((k) => (
-              <button key={k} type="button" className="who__opt" aria-pressed={kind === k} onClick={() => go({ tipo: k })}>
-                {l.whoOpt[k]}
-              </button>
-            ))}
-          </div>
-          <label className="finder__search">
-            <span className="sr-only">{l.search}</span>
-            <IconSearch size={18} className="finder__icon" aria-hidden="true" />
-            <input
-              className="input"
-              type="search"
-              name="q"
-              autoComplete="off"
-              placeholder={l.searchPh}
-              value={q}
-              onChange={(e) => {
-                setQ(e.target.value);
-                setPage(0);
-              }}
-            />
-          </label>
-          <button type="button" className="btn finder__more" aria-expanded={moreOpen} aria-controls={filtersId} onClick={() => setMoreOpen((v) => !v)}>
-            <IconFilter size={18} aria-hidden="true" />
-            <span className="finder__more-text">{l.moreFilters}</span>
-            {extraFilters > 0 && (
-              <span className="finder__count">
-                <span aria-hidden="true">{extraFilters}</span>
-                <span className="sr-only">{l.activeFilters(extraFilters)}</span>
-              </span>
-            )}
-          </button>
-        </div>
-
-        {moreOpen && (
-          <div className="finder__extra fade-in" id={filtersId}>
-            <label className="field finder__field">
-              <span className="field__label">{l.method}</span>
-              <select className="select" value={method} onChange={(e) => (setMethod(e.target.value as SignupMethod | "all"), setPage(0))}>
-                <option value="all">{l.methodAll}</option>
-                {(["email", "google", "facebook"] as const).map((m) => (
-                  <option key={m} value={m}>
-                    {c.method[m]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field finder__field">
-              <span className="field__label">{l.range}</span>
-              <select className="select" value={range} onChange={(e) => (setRange(e.target.value as RangeKey), setPage(0))}>
-                {(["all", "7d", "30d", "90d"] as const).map((r) => (
-                  <option key={r} value={r}>
-                    {l.rangeOpt[r]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        )}
-
-        <div className="states" role="group" aria-label={l.statusLabel}>
-          {STATUSES.map((s) => (
-            <button key={s} type="button" className={`state-chip state-chip--${s}`} aria-pressed={status === s} onClick={() => go({ estado: s })}>
-              {s !== "all" && <span className="pill__dot" aria-hidden="true" />}
-              <span>{l.statusOpt[s]}</span>
-              <span className="state-chip__count num">{data ? data.statusCounts[s] : "·"}</span>
+      <TitleRow
+        title={u.title}
+        sub={data ? (data.statusCounts.pending > 0 ? u.finding(data.statusCounts.pending) : u.lead) : u.lead}
+        actions={
+          <>
+            <button type="button" className="btn" onClick={() => exportCsv()} disabled={exporting || !data?.totalItems}>
+              {exporting ? <span className="spinner" aria-hidden="true" /> : <IconExport size={16} />}
+              {exporting ? u.exporting : u.export}
             </button>
-          ))}
+            <button type="button" className="btn btn--primary" onClick={() => setForm({ open: true, user: null })}>
+              <IconUserPlus size={16} />
+              {u.newUser}
+            </button>
+          </>
+        }
+      />
+
+      <label className="sr-only" htmlFor="users-status">
+        {u.tabs}
+      </label>
+      <select id="users-status" className="select status-select" value={status} onChange={(e) => changeStatus(e.target.value as UserStatus | "all")}>
+        {STATUSES.map((s) => (
+          <option key={s} value={s}>
+            {s === "all" ? t.common.all : u.tabLabel[s]}
+            {data ? ` (${data.statusCounts[s]})` : ""}
+          </option>
+        ))}
+      </select>
+      <div className="tabs status-tabs" role="tablist" aria-label={u.tabs}>
+        {STATUSES.map((s) => (
+          <button key={s} type="button" role="tab" className="tabs__tab" aria-selected={status === s} onClick={() => changeStatus(s)}>
+            {s === "all" ? t.common.all : u.tabLabel[s]}
+            <span className="tabs__count">{data ? data.statusCounts[s] : "·"}</span>
+          </button>
+        ))}
+      </div>
+
+      {status !== "all" && (
+        <p className="status-hint fade-in" key={status}>
+          <IconInfo size={16} />
+          {t.statusHint[status]}
+        </p>
+      )}
+
+      <div className="toolbar users-toolbar">
+        <label className="toolbar__search">
+          <span className="sr-only">{u.searchPh}</span>
+          <IconSearch size={15} className="toolbar__icon" />
+          <input
+            className="input input--sm"
+            type="search"
+            name="q"
+            placeholder={u.searchPh}
+            value={q}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setPage(0);
+            }}
+          />
+        </label>
+        <div className="filters">
+          <label className="sr-only" htmlFor="f-method">
+            {u.method}
+          </label>
+          <select id="f-method" className="select select--sm" value={method} onChange={(e) => (setMethod(e.target.value as SignupMethod | "all"), setPage(0))}>
+            <option value="all">
+              {u.method}: {t.common.all.toLowerCase()}
+            </option>
+            {(["google", "email", "facebook"] as const).map((m) => (
+              <option key={m} value={m}>
+                {t.method[m]}
+              </option>
+            ))}
+          </select>
+          <label className="sr-only" htmlFor="f-kind">
+            {u.kind}
+          </label>
+          <select id="f-kind" className="select select--sm" value={kind} onChange={(e) => (setKind(e.target.value as "all" | "customer" | "staff"), setPage(0))}>
+            <option value="all">
+              {u.kind}: {t.common.all.toLowerCase()}
+            </option>
+            <option value="customer">{t.kind.customer}</option>
+            <option value="staff">{t.kind.staff}</option>
+          </select>
+          <label className="sr-only" htmlFor="f-range">
+            {u.range}
+          </label>
+          <select id="f-range" className="select select--sm" value={range} onChange={(e) => (setRange(e.target.value as RangeKey), setPage(0))}>
+            <option value="all">{u.rangeAll}</option>
+            {(["7d", "30d", "90d"] as const).map((r) => (
+              <option key={r} value={r}>
+                {u.rangeOpt[r]}
+              </option>
+            ))}
+          </select>
           {filtersOn && (
-            <button type="button" className="btn btn--ghost states__clear" onClick={clear}>
-              <IconClose size={16} aria-hidden="true" />
-              {l.clear}
+            <button type="button" className="btn btn--ghost" onClick={clear}>
+              <IconClose size={14} />
+              {u.clear}
             </button>
           )}
         </div>
-      </section>
-
-      {/* Línea de atención: dice qué hacer con lo pendiente. Va junto a la lista porque cambia en el mismo momento que ella y así no empuja nada al cargar. */}
-      <div className={`attention${pending ? " attention--todo" : ""}`} aria-live="polite">
-        {pending === undefined ? (
-          <Skeleton w="60%" h={16} />
-        ) : status === "pending" ? (
-          <>
-            <IconPending size={20} className="attention__icon" aria-hidden="true" />
-            <p className="attention__text">{l.pendingHere}</p>
-            <button type="button" className="btn attention__cta" onClick={() => go({ estado: "all" })}>
-              {l.showAll}
-            </button>
-          </>
-        ) : pending > 0 ? (
-          <>
-            <IconPending size={20} className="attention__icon" aria-hidden="true" />
-            <p className="attention__text">{l.pending(pending)}</p>
-            <button type="button" className="btn attention__cta" onClick={() => go({ estado: "pending" })}>
-              {l.pendingCta(pending)}
-            </button>
-          </>
-        ) : (
-          <>
-            <IconSuccess size={20} className="attention__icon attention__icon--ok" aria-hidden="true" />
-            <p className="attention__text">{l.allConfirmed}</p>
-          </>
-        )}
       </div>
 
       {selectedIds.length > 0 && (
-        <div className="bulk" role="region" aria-label={l.selected(selectedIds.length)}>
-          <div className="bulk__info">
-            <strong>{l.selected(selectedIds.length)}</strong>
-            {mine && selection[mine] && <span className="bulk__note">{l.selfNote}</span>}
-          </div>
-          <div className="bulk__actions">
+        <div className="bulk-bar" role="region" aria-label={u.selected(selectedIds.length)}>
+          <strong>{u.selected(selectedIds.length)}</strong>
+          <div className="bulk-bar__actions">
             <button type="button" className="btn" onClick={() => exportCsv(selectedIds)}>
-              <IconExport size={18} aria-hidden="true" />
-              {l.bulk.download}
+              <IconExport size={16} />
+              {u.bulkExport}
             </button>
-            <button
-              type="button"
-              className="btn"
-              disabled={!bulkIds.length}
-              onClick={() =>
-                setStatusMut.mutate({ ids: bulkIds, status: "active", actor: me.name }, { onSuccess: () => (toast.success(c.toast.enabled(bulkIds.length)), setSelection({})), onError: () => toast.error(c.error) })
-              }
-            >
-              <IconUndo size={18} aria-hidden="true" />
-              {l.bulk.enable}
+            <button type="button" className="btn" disabled={!bulkIds.length} onClick={() => setStatusMut.mutate({ ids: bulkIds, status: "active", actor: me.name }, { onSuccess: () => (toast.success(t.toast.enabled(bulkIds.length)), setSelection({})) })}>
+              <IconUndo size={16} />
+              {u.bulkEnable}
             </button>
             <button type="button" className="btn" disabled={!bulkIds.length} onClick={() => setConfirm({ kind: "disable", ids: bulkIds })}>
-              <IconBlocked size={18} aria-hidden="true" />
-              {l.bulk.disable}
+              <IconBlocked size={16} />
+              {u.bulkDisable}
             </button>
             <button type="button" className="btn btn--danger-outline" disabled={!bulkIds.length} onClick={() => setConfirm({ kind: "delete", ids: bulkIds })}>
-              <IconTrash size={18} aria-hidden="true" />
-              {l.bulk.remove}
+              <IconTrash size={16} />
+              {u.bulkDelete}
             </button>
             <button type="button" className="btn btn--ghost" onClick={() => setSelection({})}>
-              {l.bulk.clear}
+              {u.bulkClear}
             </button>
           </div>
         </div>
       )}
 
       {!data ? (
-        <div className="accounts-loading" role="status" aria-busy="true" aria-label={l.loading}>
+        <div aria-busy="true">
           {Array.from({ length: 8 }, (_, i) => (
-            <div key={i} className="accounts-loading__row">
+            <div key={i} className="case-skel">
               <Skeleton w={32} h={32} />
-              <Skeleton w="28%" h={14} />
-              <Skeleton w={110} h={14} />
-              <Skeleton w={90} h={14} />
+              <Skeleton w="30%" h={14} />
+              <Skeleton w={90} h={22} />
             </div>
           ))}
         </div>
       ) : data.items.length === 0 ? (
-        <div className="empty accounts-empty">
-          <strong>{l.emptyTitle}</strong>
-          <span>{l.emptyText}</span>
+        <div className="empty case-empty">
+          <strong>{u.emptyTitle}</strong>
+          <span>{u.emptyText}</span>
           {filtersOn && (
             <button type="button" className="btn" onClick={clear}>
-              {l.clear}
+              {u.clear}
             </button>
           )}
         </div>
       ) : (
         <>
-          <div className="accounts-frame" role="region" aria-label={l.title} tabIndex={0}>
-            <UsersTable rows={data.items} sorting={sorting} onSortingChange={(s) => (setSorting(s), setPage(0))} selection={selection} onSelectionChange={setSelection} meEmail={me.email} />
+          <div className="table-frame users-frame" tabIndex={0} role="region" aria-label={u.title}>
+            <UsersTable
+              rows={data.items}
+              sorting={sorting}
+              onSortingChange={(s) => (setSorting(s), setPage(0))}
+              selection={selection}
+              onSelectionChange={setSelection}
+              onAction={onAction}
+              meEmail={me.email}
+            />
           </div>
 
-          <div className="accounts-foot">
-            <span className="accounts-foot__range">{l.showing(from, to, data.totalItems)}</span>
-            <label className="accounts-foot__size">
-              <span>{l.perPage}</span>
-              <select className="select" value={pageSize} onChange={(e) => (setPageSize(Number(e.target.value)), setPage(0))}>
-                {PAGE_SIZES.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
+          <ul className="user-cards fade-in">
+            {data.items.map((x) => (
+              <li key={x.id} className="user-card">
+                <Avatar name={x.name} />
+                <Link href={`/usuarios/${x.id}`} className="user-card__main">
+                  <strong>{x.name}</strong>
+                  <span>{x.email}</span>
+                  <span className="user-card__meta">
+                    <StatusBadge status={x.status} />
+                    <span>{formatDate(x.registeredAt, t.locale)}</span>
+                  </span>
+                </Link>
+                <RowMenu user={x} onAction={onAction} isMe={x.email === me.email} />
+              </li>
+            ))}
+          </ul>
+
+          <div className="list-foot">
+            <span className="list-foot__range">{u.showing(from, to, data.totalItems)}</span>
+            <label className="list-foot__size">
+              <span>{u.perPage}</span>
+              <select className="select select--sm" value={pageSize} onChange={(e) => (setPageSize(Number(e.target.value)), setPage(0))}>
+                {PAGE_SIZES.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
                   </option>
                 ))}
               </select>
@@ -344,13 +325,13 @@ export function UsersView() {
         </>
       )}
 
-      <UserFormDialog open={formOpen} user={null} onClose={() => setFormOpen(false)} />
+      <UserFormDialog open={form.open} user={form.user} onClose={() => setForm({ open: false, user: null })} />
       <ConfirmDialog
         open={confirm !== null}
-        title={confirm?.kind === "delete" ? c.confirm.deleteTitle(confirm.ids.length) : c.confirm.disableTitle(confirm?.ids.length ?? 1)}
-        text={confirm?.kind === "delete" ? c.confirm.deleteText : c.confirm.disableText}
-        confirmLabel={confirm?.kind === "delete" ? c.confirm.deleteOk : c.confirm.disableOk}
-        requireWord={confirm?.kind === "delete" ? c.confirm.word : undefined}
+        title={confirm?.kind === "delete" ? t.confirm.deleteTitle(confirm.ids.length) : t.confirm.disableTitle(confirm?.ids.length ?? 1)}
+        text={confirm?.kind === "delete" ? t.confirm.deleteText : t.confirm.disableText}
+        confirmLabel={confirm?.kind === "delete" ? t.confirm.deleteOk : t.confirm.disableOk}
+        requireWord={confirm?.kind === "delete" ? t.confirm.word : undefined}
         busy={del.isPending || setStatusMut.isPending}
         onConfirm={runConfirm}
         onClose={() => setConfirm(null)}

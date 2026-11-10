@@ -1,339 +1,62 @@
-/* Cuentas (brief de diseño §6.3 y §6.5). De arriba hacia abajo: qué es la pantalla y su acción principal, a quién
-   mostrar y en qué estado, una línea que dice qué hay pendiente y la tabla, que en teléfono pasa a tarjetas.
-   Movimiento: solo lo que responde a una acción (barra de selección, filtros extra, página nueva), con opacidad y
-   desplazamiento; nada al llegar a la pantalla. */
+/* Usuarios: tabla con selección, barra de acciones masivas y lista de dos líneas en teléfono. */
 
-.accounts-title {
-  margin-bottom: 24px;
+.users-toolbar {
+  margin-top: 22px;
 }
 
-/* La frase de propósito es un párrafo: se justifica en todos los anchos, como el resto del texto corrido. */
-.title-row .accounts-title__lead {
-  max-width: 76ch;
-  text-align: justify;
-}
-
-/* ===== Buscador: a quién mostrar, búsqueda y filtros extra ===== */
-.finder {
-  display: grid;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.finder__row {
+.filters {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-}
-
-/* "Mostrar": las tres respuestas a "¿a quién busco?", del ancho de su texto. */
-.who {
-  display: inline-flex;
-  flex: none;
-  padding: 3px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--raised);
-}
-
-.who__opt {
-  min-height: calc(var(--control-h) - 8px);
-  padding: 0 14px;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: var(--muted);
-  font-weight: 500;
-  white-space: nowrap;
-  transition: transform var(--t-press) var(--ease);
-}
-
-.who__opt:hover {
-  color: var(--text);
-}
-
-.who__opt[aria-pressed="true"] {
-  background: var(--surface);
-  box-shadow: 0 1px 2px rgb(14 24 32 / 8%), 0 0 0 1px var(--border);
-  color: var(--text);
-  font-weight: 600;
-}
-
-.who__opt:active,
-.state-chip:active {
-  transform: translateY(1px);
-}
-
-.finder__search {
-  position: relative;
-  display: flex;
-  min-width: 220px;
-  flex: 1 1 320px;
-  align-items: center;
-}
-
-.finder__icon {
-  position: absolute;
-  left: 13px;
-  color: var(--faint);
-  pointer-events: none;
-}
-
-.finder__search .input {
-  padding-left: 40px;
-}
-
-.finder__more[aria-expanded="true"] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.finder__count {
-  display: inline-grid;
-  min-width: 20px;
-  height: 20px;
-  place-items: center;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-:root[data-theme="dark"] .finder__count {
-  color: #0b0c0d;
-}
-
-.finder__extra {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: 12px 16px;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--raised);
-}
-
-.finder__field {
-  min-width: 200px;
-  flex: 0 1 260px;
-}
-
-:root[data-theme="dark"] .finder__extra {
-  background: var(--surface);
-}
-
-/* ===== Estados: una fila de fichas de 44 px con su cifra; en teléfono se desplaza dentro de sí misma ===== */
-.states {
-  display: flex;
-  align-items: center;
   gap: 8px;
-  overflow-x: auto;
-  margin: 0 -2px;
-  padding: 2px;
-  scrollbar-width: none;
 }
 
-.states::-webkit-scrollbar {
-  display: none;
+.filters .select {
+  width: auto;
+  min-width: 150px;
 }
 
-.state-chip {
-  --dot: var(--faint);
-  display: inline-flex;
-  min-height: var(--target);
-  flex: none;
-  align-items: center;
-  gap: 8px;
-  padding: 0 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--surface);
-  color: var(--muted);
-  font-weight: 500;
-  white-space: nowrap;
-  transition: transform var(--t-press) var(--ease);
+.users-frame {
+  margin-top: 4px;
 }
 
-.state-chip:hover {
-  border-color: var(--control);
-  color: var(--text);
+.users-table .col-check {
+  width: 36px;
+  padding-right: 0;
 }
 
-.state-chip[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--text);
-  font-weight: 600;
-}
-
-.state-chip--active {
-  --dot: var(--positive);
-}
-
-.state-chip--pending {
-  --dot: #c27c0e;
-}
-
-:root[data-theme="dark"] .state-chip--pending {
-  --dot: var(--warning);
-}
-
-.state-chip--disabled {
-  --dot: var(--negative);
-}
-
-.state-chip__count {
-  min-width: 18px;
-  color: var(--faint);
-  font-weight: 600;
+.users-table .col-actions {
+  width: 44px;
   text-align: right;
 }
 
-.state-chip[aria-pressed="true"] .state-chip__count {
-  color: var(--text);
-}
-
-.states__clear {
-  flex: none;
-  min-height: var(--target);
-}
-
-/* ===== Línea de atención: qué hay pendiente en esta lista y el botón para verlo ===== */
-.attention {
-  display: flex;
-  min-height: 60px;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding: 8px 8px 8px 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--surface);
-}
-
-.attention--todo {
-  border-color: var(--notice-border);
-  background: var(--notice-bg);
-}
-
-.attention__icon {
-  flex: none;
-  color: #b4710b;
-}
-
-:root[data-theme="dark"] .attention__icon {
-  color: var(--warning);
-}
-
-.attention__icon--ok,
-:root[data-theme="dark"] .attention__icon--ok {
-  color: var(--positive);
-}
-
-.attention__text {
-  min-width: 0;
-  flex: 1;
-  text-align: justify;
-}
-
-.attention__cta {
-  flex: none;
-}
-
-/* ===== Barra de selección: aparece al elegir filas (opacidad y 8 px, 200 ms) y se queda arriba al bajar ===== */
-.bulk {
-  position: sticky;
-  z-index: 5;
-  top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 16px;
-  margin-bottom: 12px;
-  padding: 8px 8px 8px 16px;
-  border: 1px solid var(--rule-strong);
-  border-radius: var(--radius-card);
-  background: var(--surface);
-  box-shadow: var(--shadow-float);
-  animation: rise var(--t-ui) var(--ease) both;
-}
-
-.bulk__info {
-  display: grid;
-  gap: 2px;
-}
-
-.bulk__note {
-  color: var(--muted);
-  font-size: var(--fs-small);
-}
-
-.bulk__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-/* ===== Tabla ===== */
-/* position: relative contiene los textos solo para lectores de pantalla (position: absolute) dentro del marco que
-   se desplaza; sin ella ensanchaban la página. */
-.accounts-frame {
-  position: relative;
-  container: accounts / inline-size;
-  overflow-x: auto;
-}
-
-.accounts-frame:focus-visible {
-  outline-offset: 4px;
-}
-
-.accounts-table td {
-  height: var(--row-h);
-}
-
-.accounts-table tbody tr td {
-  transition: background-color var(--t-hover) ease;
-}
-
-.accounts-table tbody tr:hover td {
-  background: var(--raised);
-}
-
-.accounts-table tr.is-selected td,
-.accounts-table tr.is-selected:hover td {
+.users-table tr.is-selected td {
   background: var(--accent-soft);
 }
 
-.accounts-table .col-check {
-  width: 40px;
+.users-table tbody tr {
+  transition: background-color var(--dur-1, 120ms) ease;
 }
 
-.accounts-table .col-person {
-  width: 36%;
-  min-width: 260px;
+.users-table tbody tr:hover td {
+  background: var(--raised);
 }
 
-.accounts-table .col-job {
-  max-width: 260px;
+.users-table tbody tr.is-selected:hover td {
+  background: var(--accent-soft);
 }
 
-.accounts-table .col-open {
-  width: 1%;
+.users-table td.n,
+.users-table th.n {
   text-align: right;
 }
 
-.accounts-table th.n .sort-btn {
+.users-table th.n .sort-btn {
   margin-left: auto;
 }
 
 .sort-btn {
   display: inline-flex;
-  min-height: 32px;
   align-items: center;
   gap: 4px;
   padding: 0;
@@ -349,125 +72,82 @@
   color: var(--text);
 }
 
-.person {
+.user-cell {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.person__text {
-  display: grid;
+.user-cell__name {
+  display: inline-flex;
   min-width: 0;
-  grid-template-columns: minmax(0, auto) 1fr;
   align-items: center;
-  column-gap: 8px;
-}
-
-.person__name {
+  gap: 6px;
   overflow: hidden;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.user-cell__name:hover {
+  text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.person__name:hover {
-  text-decoration: underline;
+/* La identidad se lleva el mayor ancho; la empresa se recorta antes que el nombre. */
+.users-table .col-user {
+  width: 30%;
+  min-width: 240px;
+  max-width: 340px;
 }
 
-.person__email {
-  grid-column: 1 / -1;
+.user-cell__text {
+  min-width: 0;
   overflow: hidden;
-  color: var(--muted);
-  font-size: var(--fs-small);
-  line-height: 18px;
   text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+.users-table .cell-clip {
+  max-width: 220px;
 }
 
 .you-tag {
-  justify-self: start;
   padding: 0 6px;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-control);
+  border-radius: 999px;
+  background: var(--accent-soft);
   color: var(--accent);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 18px;
 }
 
-.job {
-  display: grid;
-  min-width: 0;
-  color: var(--muted);
-}
-
-.job__company {
-  overflow: hidden;
-  color: var(--text);
-  font-size: var(--fs-small);
-  line-height: 18px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.job--staff {
-  color: var(--text);
-  font-weight: 500;
-}
-
-.cell-soft {
-  color: var(--muted);
-}
-
-.method {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.open-btn {
-  gap: 6px;
-  padding: 0 12px;
-}
-
-.open-btn svg {
-  transition: transform var(--t-hover) var(--ease);
-}
-
-.accounts-table tbody tr:hover .open-btn svg {
-  transform: translateX(2px);
-}
-
-@container accounts (max-width: 1240px) {
-  .accounts-table .col-optional {
-    display: none;
-  }
-}
-
-/* ===== Carga y vacío: misma altura que la lista para que nada salte ===== */
-.accounts-loading__row {
+/* Barra de acciones masivas: aparece deslizándose sobre la tabla. */
+.bulk-bar {
+  position: sticky;
+  z-index: 5;
+  top: 8px;
   display: flex;
-  height: var(--row-h);
+  flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
-  border-bottom: 1px solid var(--rule);
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 8px 0;
+  padding: 8px 8px 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-float);
+  animation: rise var(--dur-2, 200ms) var(--ease-out, ease) both;
 }
 
-.accounts-loading__row:first-child {
-  border-top: 1px solid var(--rule-strong);
+.bulk-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
-.accounts-empty {
-  min-height: 240px;
-  align-content: center;
-}
-
-/* ===== Pie de la lista ===== */
-.accounts-foot {
+.list-foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -476,203 +156,220 @@
   margin-top: 16px;
 }
 
-.accounts-foot__range {
+.list-foot__range {
   color: var(--muted);
-  font-size: var(--fs-small);
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
-.accounts-foot__size {
+.list-foot__size {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-left: auto;
   color: var(--muted);
-  font-size: var(--fs-small);
+  font-size: 13px;
 }
 
-.accounts-foot__size .select {
-  width: 84px;
+.list-foot__size .select {
+  width: 76px;
 }
 
-.accounts-foot .pager {
+.list-foot .pager {
   margin-top: 0;
 }
 
-/* ===== Teléfono: cada cuenta es una tarjeta con persona, estado, puesto, fecha y el botón Abrir ===== */
-@media (max-width: 720px) {
-  .accounts-frame {
-    overflow: visible;
-  }
+.user-cards {
+  display: none;
+}
 
-  .accounts-frame .accounts-table tr {
-    position: relative;
-    gap: 6px 12px;
-  }
+/* ===== Formulario de usuario ===== */
+.user-form {
+  display: grid;
+  gap: 16px;
+}
 
-  .accounts-frame .accounts-table tbody tr:hover td,
-  .accounts-frame .accounts-table tr.is-selected td {
-    background: transparent;
-  }
+.user-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
 
-  .accounts-frame .accounts-table tr.is-selected {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-  }
+.user-form__wide {
+  grid-column: 1 / -1;
+}
 
-  .accounts-frame .accounts-table td.off-card {
+.user-form__kind,
+.user-form__roles {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.segmented__option {
+  position: relative;
+}
+
+.segmented__option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented__option span {
+  display: inline-flex;
+  height: 30px;
+  align-items: center;
+  padding: 0 14px;
+  border-radius: var(--radius-control);
+  color: var(--muted);
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-2, 200ms) ease,
+    color var(--dur-2, 200ms) ease;
+}
+
+.segmented__option input:checked + span {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.segmented__option input:focus-visible + span {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.role-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.role-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  transition: border-color var(--dur-2, 200ms) ease;
+}
+
+.role-option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.role-option input {
+  margin-top: 2px;
+}
+
+.role-option > span {
+  display: grid;
+  gap: 2px;
+}
+
+.role-option strong {
+  font-weight: 600;
+}
+
+.role-option > span > span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.confirm-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--pill-negative-bg);
+  color: var(--negative);
+}
+
+.users-frame {
+  container-name: users;
+}
+
+@container users (max-width: 1140px) {
+  .users-table .col-optional {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .users-frame {
     display: none;
   }
 
-  /* La tarjeta manda sobre la tabla: sin alto de fila, sin ancho mínimo de columna y todo alineado a la izquierda. */
-  .accounts-frame .accounts-table td {
-    width: auto;
+  .filters {
+    width: 100%;
+  }
+
+  .filters .select {
     min-width: 0;
-    max-width: none;
-    height: auto;
-    text-align: left;
+    flex: 1 1 140px;
   }
 
-  .accounts-frame .accounts-table .person__email {
-    font-weight: 400;
-  }
-
-  .accounts-frame .accounts-table td[data-primary] {
-    grid-column: 1;
-    grid-row: 1;
-    margin-bottom: 6px;
-  }
-
-  .accounts-frame .accounts-table td[data-select] {
+  .user-cards {
     display: grid;
-    width: var(--target);
-    height: var(--target);
-    grid-column: 2;
-    grid-row: 1;
-    place-items: center;
-    margin: -8px -8px 0 0;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .accounts-frame .accounts-table td[data-select] .checkbox {
-    width: 24px;
-    height: 24px;
-  }
-
-  .accounts-frame .accounts-table td[data-label] {
-    grid-column: 1 / -1;
-    font-size: 15px;
-  }
-
-  .accounts-frame .accounts-table td[data-label]::before {
-    font-size: var(--fs-small);
-  }
-
-  .accounts-frame .accounts-table td[data-action] .btn {
-    height: 48px;
-  }
-
-  /* En la tarjeta el puesto y la empresa van en la misma línea que su rótulo. */
-  .accounts-frame .job,
-  .accounts-frame .job__company {
-    display: inline;
-    white-space: normal;
-  }
-
-  .accounts-frame .job__company::before {
-    color: var(--muted);
-    content: " · ";
-  }
-
-  .person__email {
-    font-size: 14px;
-  }
-
-  .finder__search {
+  .user-card {
+    display: flex;
     min-width: 0;
-    flex-basis: 180px;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
   }
 
-  .accounts-foot__size {
+  .user-card + .user-card {
+    border-top: 1px solid var(--rule);
+  }
+
+  .user-card__main {
+    display: grid;
+    min-width: 0;
+    flex: 1;
+    gap: 2px;
+  }
+
+  .user-card__main strong {
+    font-weight: 600;
+  }
+
+  .user-card__main > span {
+    overflow-wrap: anywhere;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .user-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-top: 4px;
+  }
+
+  .list-foot__size {
     margin-left: 0;
   }
-}
 
-@media (max-width: 600px) {
-  /* "Más filtros" queda como icono de 48 px con su cifra; el nombre sigue para lectores de pantalla. */
-  .finder__more {
-    width: var(--control-h);
-    padding: 0;
-  }
-
-  .finder__more:has(.finder__count) {
-    width: auto;
-    padding: 0 10px;
-  }
-
-  .finder__more-text {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  .finder__row {
-    flex-wrap: wrap;
-  }
-
-  .finder__search {
-    flex: 1 1 0;
-  }
-
-  .who {
-    display: flex;
-    width: 100%;
-  }
-
-  .who__opt {
-    min-height: 42px;
-    flex: 1 1 0;
-    padding: 4px 8px;
-    line-height: 17px;
-    white-space: normal;
-  }
-
-  .attention {
-    flex-wrap: wrap;
-    padding: 12px;
-  }
-
-  .attention__text {
-    flex-basis: calc(100% - 32px);
-  }
-
-  .attention__cta {
-    width: 100%;
-  }
-
-  .bulk {
-    top: 64px;
-  }
-
-  .bulk__actions .btn {
-    flex: 1 1 auto;
-  }
-}
-
-@media (max-width: 1024px) {
-  .bulk {
-    top: 64px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bulk,
-  .who__opt,
-  .state-chip,
-  .open-btn svg {
-    animation: none;
-    transition: none;
+  .user-form__grid,
+  .role-options {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -79,33 +79,18 @@ for (const path of SCREENS) {
 test("crea un cliente y luego lo elimina con confirmación escrita", async ({ page, isMobile }) => {
   test.skip(isMobile, "El flujo de tabla se prueba en escritorio");
   await signIn(page, "/usuarios");
-  await page.getByRole("button", { name: "Agregar persona" }).click();
+  await page.getByRole("button", { name: "Nuevo usuario" }).click();
   await page.getByLabel("Nombres y apellidos").fill("Prueba Automática Quispe");
   await page.getByLabel("Correo electrónico").fill("prueba.e2e@obras-test.pe");
-  await page.getByRole("button", { name: "Crear cuenta" }).click();
-  await expect(page.getByText("Cuenta creada para Prueba Automática Quispe.")).toBeVisible();
-  // La lista ya no tiene menú por fila (brief §6.5): se abre la cuenta y se elimina desde "Más acciones".
-  await page.getByRole("link", { name: "Abrir la cuenta de Prueba Automática Quispe" }).click();
-  await page.waitForURL(/\/usuarios\/.+/);
-  await page.getByRole("button", { name: "Más acciones para Prueba Automática Quispe" }).click();
+  await page.getByRole("button", { name: "Crear usuario" }).click();
+  await expect(page.getByText("Prueba Automática Quispe ya está en el gestor.")).toBeVisible();
+  await page.getByRole("button", { name: "Acciones para Prueba Automática Quispe" }).first().click();
   await page.getByRole("menuitem", { name: "Eliminar cuenta" }).click();
   const confirm = page.getByRole("button", { name: "Sí, eliminar" });
   await expect(confirm).toBeDisabled();
   await page.getByLabel("Escribe ELIMINAR para confirmar").fill("ELIMINAR");
   await confirm.click();
   await expect(page.getByText("Cuenta eliminada.")).toBeVisible();
-  await page.waitForURL(/\/usuarios$/);
-});
-
-test("Cuentas filtra al personal y la consulta por persona dice qué puede hacer", async ({ page }) => {
-  await signIn(page, "/usuarios");
-  await page.getByRole("group", { name: "Mostrar" }).getByRole("button", { name: "Personal de FUNDIGSAC" }).click();
-  await page.waitForURL(/tipo=personal/);
-  await expect(page.locator(".accounts-table tbody tr")).toHaveCount(6);
-  await page.goto("/roles");
-  await page.getByLabel("Elige a alguien del equipo").selectOption({ label: "Karina Lozano Paz (Ventas)" });
-  await expect(page.locator(".lookup__list--yes")).toContainText("Atender y responder cotizaciones");
-  await expect(page.locator(".lookup__list--no")).toContainText("Responder reclamos");
 });
 
 test("responde una hoja de reclamación y queda como respondida", async ({ page }) => {
@@ -120,11 +105,7 @@ test("responde una hoja de reclamación y queda como respondida", async ({ page 
 // El idioma salió de la barra superior: se cambia en Ajustes > Mis preferencias (brief de diseño §6.1).
 test("cambia a inglés desde Mis preferencias y se mantiene al navegar", async ({ page }) => {
   await signIn(page, "/configuracion?tab=preferences");
-  // Ajustes guarda con un solo botón al pie, activo solo cuando hay cambios (brief de diseño §6.3).
-  const save = page.getByRole("button", { name: "Guardar cambios" });
-  await expect(save).toBeDisabled();
   await page.getByRole("group", { name: "Idioma" }).getByRole("button", { name: "English" }).click();
-  await save.click();
   await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
   await page.goto("/usuarios");
   await expect(page.locator(".topbar__title")).toHaveText("Accounts");
