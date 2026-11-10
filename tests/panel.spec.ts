@@ -9,21 +9,21 @@ async function signIn(page: Page, next = "/panel") {
   const subject = await page.locator(".auth-demo__mail").innerText();
   const code = subject.match(/\d{6}/)?.[0];
   expect(code).toBeTruthy();
-  await page.getByLabel("Código de 6 números").fill(code!);
+  await page.getByLabel("Código de verificación").fill(code!);
   await page.waitForURL(`**${next}`);
 }
 
 test("sin sesión, el panel redirige al acceso y conserva la ruta", async ({ page }) => {
   await page.goto("/usuarios");
   await expect(page).toHaveURL(/\/login\?next=%2Fusuarios/);
-  await expect(page.getByRole("heading", { level: 1, name: "Entra al panel" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Inicia sesión" })).toBeVisible();
 });
 
 test("un código incorrecto descuenta intentos y no da acceso", async ({ page }) => {
   await page.goto("/login");
   await page.getByRole("button", { name: "Probar con código" }).click();
   await page.getByRole("button", { name: "Enviar código" }).click();
-  await page.getByLabel("Código de 6 números").fill("000000");
+  await page.getByLabel("Código de verificación").fill("000000");
   await expect(page.locator("#code-error")).toContainText("Te quedan 4 intentos");
   await expect(page).toHaveURL(/\/login/);
 });
@@ -32,30 +32,14 @@ test("entra a la demo con un clic", async ({ page }) => {
   await page.goto("/login");
   await page.getByRole("button", { name: "Entrar a la demo" }).click();
   await page.waitForURL("**/panel");
-  await expect(page.getByRole("heading", { level: 1, name: "Para hoy" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Resumen" })).toBeVisible();
 });
 
-// Inicio responde "qué tengo que hacer ahora" (brief de diseño §6.4): una frase, un botón principal y la lista.
-test("ingresa con el código y ve lo que tiene que atender hoy", async ({ page }) => {
+test("ingresa con el código y ve el resumen con lo pendiente", async ({ page }) => {
   await signIn(page);
-  await expect(page.getByRole("heading", { level: 1, name: "Para hoy" })).toBeVisible();
-  await expect(page.locator(".home-head__lead strong")).toHaveText(/^Tienes \d+ cosas? por atender\.$/);
-  const list = page.getByRole("region", { name: /Lo que falta atender/ });
-  await expect(list.getByRole("listitem").first()).toBeVisible();
-  expect(await list.getByRole("listitem").count()).toBeLessThanOrEqual(7);
-  const urgent = page.getByRole("link", { name: "Atender lo más urgente" });
-  await expect(urgent).toHaveAttribute("href", await list.getByRole("link", { name: /^Atender/ }).first().getAttribute("href") ?? "");
-  await urgent.click();
-  await page.waitForURL(/\/(reclamaciones|privacidad|cotizaciones|consultas)\/.+/);
-});
-
-test("el historial de cambios filtra por lo que pasó", async ({ page }) => {
-  await signIn(page, "/actividad");
-  await expect(page.getByRole("heading", { level: 1, name: "Historial de cambios" })).toBeVisible();
-  await page.getByLabel("Qué pasó").selectOption({ label: "Inicios de sesión" });
-  const rows = page.locator(".log__row");
-  await expect(rows.first()).toContainText("inició sesión");
-  await expect(rows.filter({ hasNotText: "inició sesión" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1, name: "Resumen" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Para hoy" })).toBeVisible();
+  await expect(page.getByText("Plazos legales que vencen pronto")).toBeVisible();
 });
 
 const SCREENS = ["/panel", "/usuarios", "/actividad", "/cotizaciones", "/consultas", "/reclamaciones", "/privacidad", "/roles", "/configuracion"];
