@@ -12,7 +12,6 @@ import { useT } from "@/lib/prefs";
 import { endSession, type SessionUser } from "@/lib/session";
 import { CommandPalette } from "./command-palette";
 import { GuideDialog } from "./guide-dialog";
-import { LangToggle, ThemeToggle } from "./pref-toggles";
 import { buildNav, sectionOf, type NavSection, type QueueKey } from "./nav";
 import { SessionProvider } from "./session-context";
 import { useShellCopy } from "./shell-copy";
@@ -29,36 +28,7 @@ type Props = {
  * Marco del panel. Escritorio: menú de cuatro secciones a la izquierda, barra superior con la sección, la búsqueda
  * y la ayuda, y la hoja de trabajo. Teléfono y tableta: barra inferior fija con las mismas cuatro secciones.
  */
-/**
- * Entrada "Regla de tinta" (Report/04-design-decisions.md): la regla bajo la barra superior se traza en 0,9 s la
- * primera vez que se abre el panel en la sesión. Solo marca el html; el dibujo es CSS. Nunca con movimiento reducido.
- */
-function useIntro() {
-  useEffect(() => {
-    const html = document.documentElement;
-    try {
-      if (sessionStorage.getItem("fx-intro-admin") || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      sessionStorage.setItem("fx-intro-admin", "1");
-    } catch {
-      return;
-    }
-    html.setAttribute("data-intro", "");
-    const done = () => html.removeAttribute("data-intro");
-    const onEnd = (e: AnimationEvent) => {
-      if (e.animationName === "shell-intro-out") done();
-    };
-    window.addEventListener("animationend", onEnd);
-    const timer = window.setTimeout(done, 2000);
-    return () => {
-      window.removeEventListener("animationend", onEnd);
-      window.clearTimeout(timer);
-      done();
-    };
-  }, []);
-}
-
 export function AppShell({ user, permissions, children }: Props) {
-  useIntro();
   const t = useT();
   const c = useShellCopy();
   const pathname = usePathname();
@@ -183,16 +153,7 @@ export function AppShell({ user, permissions, children }: Props) {
               <IconHelp size={20} aria-hidden="true" />
               <span className="topbar__help-text">{c.help}</span>
             </button>
-            <div className="topbar__prefs">
-              <LangToggle />
-              <ThemeToggle />
-            </div>
             {account(true)}
-            {/* Entrada "Regla de tinta": decorativa, una vez por sesión (ver useIntro). */}
-            <div className="shell-intro" aria-hidden="true">
-              <span className="shell-intro__rule" />
-              <span className="shell-intro__tick" />
-            </div>
           </header>
 
           <main id="contenido" className="sheet" tabIndex={-1}>

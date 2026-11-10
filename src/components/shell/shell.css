@@ -164,7 +164,6 @@
 
 /* Barra superior, de izquierda a derecha: sección actual, Buscar y Ayuda. */
 .topbar {
-  position: relative;
   display: flex;
   height: var(--topbar-h);
   flex: none;
@@ -703,64 +702,4 @@ ul.guide__tips {
   .section-tabs {
     display: none !important;
   }
-}
-
-/* Tema e idioma en la barra superior (escritorio); en el teléfono siguen en Ajustes. */
-.topbar__prefs {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-@media (max-width: 600px) {
-  .topbar__prefs {
-    display: none;
-  }
-}
-
-/* Entrada "Regla de tinta": 0,9 s. Capa sin eventos de puntero, solo transform y opacity. */
-.shell-intro {
-  display: none;
-}
-html[data-intro] .shell-intro {
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
-  z-index: 1;
-  display: block;
-  height: 3px;
-  pointer-events: none;
-  animation: shell-intro-out 220ms cubic-bezier(0.4, 0, 1, 1) 680ms forwards;
-}
-.shell-intro__rule,
-.shell-intro__tick {
-  position: absolute;
-  left: 0;
-  transform-origin: left;
-}
-.shell-intro__rule {
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: var(--rule-strong);
-  animation: shell-intro-draw 560ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
-}
-.shell-intro__tick {
-  bottom: 0;
-  width: 40px;
-  height: 3px;
-  background: var(--accent);
-  animation: shell-intro-tick 200ms cubic-bezier(0.16, 1, 0.3, 1) 440ms backwards;
-}
-@keyframes shell-intro-draw {
-  from { transform: scaleX(0); }
-}
-@keyframes shell-intro-tick {
-  from { opacity: 0; transform: scaleX(0.4); }
-}
-@keyframes shell-intro-out {
-  to { opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .shell-intro { display: none !important; }
 }

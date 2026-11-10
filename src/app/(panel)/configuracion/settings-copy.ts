@@ -20,9 +20,6 @@ const es = {
     themeOpt: { light: "Claro", dark: "Oscuro", system: "Igual que mi equipo" },
     size: "Filas por página en Cuentas",
     sizeHint: "Con más filas ves más cuentas sin cambiar de página.",
-    density: "Altura de las filas",
-    densityHint: "Compacta muestra más filas en pantalla. Solo en computadora.",
-    densityOpt: { comfortable: "Normal", compact: "Compacta" },
   },
   account: {
     title: "Tu cuenta",
@@ -97,9 +94,6 @@ const en: SettingsCopy = {
     themeOpt: { light: "Light", dark: "Dark", system: "Same as my device" },
     size: "Rows per page in Accounts",
     sizeHint: "More rows let you see more accounts without changing page.",
-    density: "Row height",
-    densityHint: "Compact shows more rows on screen. Desktop only.",
-    densityOpt: { comfortable: "Normal", compact: "Compact" },
   },
   account: {
     title: "Your account",

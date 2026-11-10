@@ -58,24 +58,22 @@ export function SettingsView() {
   const [draftLang, setDraftLang] = useState<Lang | null>(null);
   const [draftTheme, setDraftTheme] = useState<Theme | null>(null);
   const [draftSize, setDraftSize] = useState<number | null>(null);
-  const [draftDensity, setDraftDensity] = useState<"comfortable" | "compact" | null>(null);
   const nextLang = draftLang ?? lang;
   const nextTheme = draftTheme ?? theme;
   const nextSize = draftSize ?? pageSize;
-  const nextDensity = draftDensity ?? density;
-  const dirty = nextLang !== lang || nextTheme !== theme || nextSize !== pageSize || nextDensity !== density;
+  const dirty = nextLang !== lang || nextTheme !== theme || nextSize !== pageSize;
 
   const discard = () => {
     setDraftLang(null);
     setDraftTheme(null);
     setDraftSize(null);
-    setDraftDensity(null);
   };
 
   const save = () => {
     if (nextTheme !== theme) setTheme(nextTheme);
     if (nextSize !== pageSize) setPageSize(nextSize);
-    if (nextDensity !== density) setDensity(nextDensity);
+    // La densidad compacta se retiró (brief §6.6): quien la tenía guardada vuelve a la normal al guardar.
+    if (density !== "comfortable") setDensity("comfortable");
     if (nextLang !== lang) setLang(nextLang);
     discard();
     toast.success(settingsCopy(nextLang).bar.saved);
@@ -122,16 +120,6 @@ export function SettingsView() {
               </button>
             ))}
           </Choice>
-          {/* Filas compactas solo en escritorio: en el teléfono los controles mantienen 48 px para el dedo. */}
-          <div className="pref-desktop-only">
-            <Choice label={s.prefs.density} hint={s.prefs.densityHint} id="pref-density">
-              {(["comfortable", "compact"] as const).map((v) => (
-                <button key={v} type="button" aria-pressed={nextDensity === v} onClick={() => setDraftDensity(v)}>
-                  {s.prefs.densityOpt[v]}
-                </button>
-              ))}
-            </Choice>
-          </div>
         </Block>
 
         <Block id="cuenta" title={s.account.title} desc={s.account.desc}>
