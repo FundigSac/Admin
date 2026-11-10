@@ -37,7 +37,11 @@ export async function dispatchOutbox(limit = 10): Promise<{ sent: number; failed
         body: JSON.stringify({ from: process.env.MAIL_FROM!.trim(), to: [row.recipient], subject: row.subject, text: row.body }),
         signal: AbortSignal.timeout(8000),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        // Resend explica el rechazo en `message` (dominio sin verificar, clave sin permiso…). Sin datos del correo.
+        const detail = ((await res.json().catch(() => ({}))) as { message?: string }).message ?? "";
+        throw new Error(`HTTP ${res.status} ${detail}`.trim());
+      }
       await sql`update app.email_outbox set status = 'SENT', sent_at = now(), body = null, attempts = attempts + 1, last_error = null where id = ${row.id}`;
       sent++;
     } catch (e) {
