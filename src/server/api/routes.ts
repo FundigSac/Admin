@@ -1,5 +1,6 @@
 import "server-only";
 import { customerRoutes } from "./modules/customers";
+import { healthRoutes } from "./modules/health";
 import { formRoutes } from "./modules/forms";
 import { staffAccountRoutes } from "./modules/staff-accounts";
 import { staffCaseRoutes } from "./modules/staff-cases";
@@ -12,4 +13,5 @@ export const routes = compile({
   ...staffCaseRoutes,
   ...staffAccountRoutes,
   ...customerRoutes,
+  ...healthRoutes,
 });

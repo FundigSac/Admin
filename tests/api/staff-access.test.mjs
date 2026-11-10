@@ -45,3 +45,10 @@ test("sin token: 401; token alterado: 401", async () => {
   const t = await staffLogin(QA.email, QA.id);
   assert.equal((await call("GET", "/staff/profile", undefined, t.accessToken.slice(0, -2) + "xx")).status, 401);
 });
+
+test("health responde ok con la base y solo cifras de la bandeja", async () => {
+  const r = await call("GET", "/health");
+  assert.equal(r.status, 200);
+  assert.equal(r.json.db.ok, true);
+  assert.deepEqual(Object.keys(r.json.mail).sort(), ["configured", "failedLastDay", "oldestPendingMinutes", "pending"]);
+});

@@ -13,6 +13,12 @@ export function env() {
   return out;
 }
 export const E = env();
+// Candado: desde el 10/11/2026 la base de .env.development.local es producción. Estas pruebas crean y borran datos,
+// así que solo corren contra una base de pruebas declarada con TEST_DATABASE_URL (y la API levantada con esa base).
+if (!process.env.TEST_DATABASE_URL) {
+  throw new Error("Pruebas de API bloqueadas: define TEST_DATABASE_URL con una base de pruebas (nunca la de producción).");
+}
+E.DATABASE_URL = process.env.TEST_DATABASE_URL;
 export const BASE = process.env.API_BASE ?? "http://127.0.0.1:3100/api/v1";
 export const sql = postgres(E.DATABASE_URL, { prepare: false, max: 1, max_pipeline: 1, infer: true, ssl: "require" });
 
