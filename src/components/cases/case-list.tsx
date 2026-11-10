@@ -49,6 +49,9 @@ export function CaseList<M extends CaseModule>({ module, base, title, lead, find
 
   const setStatus = (value: string) => {
     setPage(0);
+    // Sin cambio de estado no hay navegación: «Limpiar filtros» con solo la búsqueda no recarga la ruta (esa
+    // navegación pendiente interrumpía la siguiente si la persona se iba enseguida a otra cola).
+    if (value === status) return;
     router.replace(value === "all" ? base : `${base}?estado=${value}`, { scroll: false });
   };
 

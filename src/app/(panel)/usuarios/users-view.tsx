@@ -68,6 +68,7 @@ export function UsersView() {
   const changeStatus = (next: UserStatus | "all") => {
     setPage(0);
     setSelection({});
+    if (next === status) return;
     router.replace(next === "all" ? "/usuarios" : `/usuarios?estado=${next}`, { scroll: false });
   };
 
