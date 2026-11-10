@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useSessionUser } from "@/components/shell/session-context";
-import { IconMail, IconWhatsapp } from "@/components/ui/icons";
+import { Skeleton } from "@/components/ui/bits";
+import { IconArrowLeft, IconCopy, IconMail, IconWhatsapp } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/toast";
 import type { CaseEvent } from "@/data/types";
 import { api, type CaseMap, type CaseModule } from "@/lib/api";
@@ -10,6 +12,72 @@ import { useStaff, useUpdateCase } from "@/lib/api/queries";
 import { usePrefs } from "@/lib/prefs";
 import { Timeline } from "./case-ui";
 import "./cases.css";
+
+/** Encabezado de un caso: miga de pan, código como h1, estado y acciones. */
+export function CaseHeader({ base, list, title, code, pill, meta, actions }: { base: string; list: string; title?: string; code: string; pill: React.ReactNode; meta: React.ReactNode[]; actions?: React.ReactNode }) {
+  const { t } = usePrefs();
+  const toast = useToast();
+  return (
+    <header className="case-head">
+      <Link href={base} className="case-head__back">
+        <IconArrowLeft size={14} />
+        {t.cases.common.back(list)}
+      </Link>
+      <div className="case-head__row">
+        <div className="case-head__id">
+          <h1 className="case-head__title">
+            {title && <>{title} </>}
+            {/* El código nunca se parte entre líneas. */}
+            <span className="nowrap code">{code}</span>
+          </h1>
+          <button
+            type="button"
+            className="icon-btn icon-btn--sm"
+            aria-label={t.cases.common.copyCode}
+            title={t.cases.common.copyCode}
+            onClick={() => navigator.clipboard?.writeText(code).then(() => toast.success(t.toast.copied))}
+          >
+            <IconCopy size={15} />
+          </button>
+          {pill}
+        </div>
+        {actions && <div className="case-head__actions">{actions}</div>}
+      </div>
+      <ul className="case-head__meta">
+        {meta.map((m, i) => (
+          <li key={i}>{m}</li>
+        ))}
+      </ul>
+    </header>
+  );
+}
+
+export function CaseLoading() {
+  return (
+    <div aria-busy="true">
+      <Skeleton w={160} h={14} />
+      <div style={{ height: 14 }} />
+      <Skeleton w={260} h={30} />
+      <div style={{ height: 24 }} />
+      <div className="case-grid">
+        <Skeleton h={320} />
+        <Skeleton h={320} />
+      </div>
+    </div>
+  );
+}
+
+export function CaseMissing({ base, list }: { base: string; list: string }) {
+  const { t } = usePrefs();
+  return (
+    <div className="empty case-empty">
+      <strong>{t.cases.common.notFound}</strong>
+      <Link href={base} className="btn">
+        {t.cases.common.back(list)}
+      </Link>
+    </div>
+  );
+}
 
 /** Contacto con acciones directas: correo y WhatsApp abren la app correspondiente. */
 export function ContactCard({ name, email, phone, extra }: { name: string; email: string; phone: string | null; extra?: React.ReactNode }) {
