@@ -50,6 +50,7 @@ import {
   UsersThree,
   Warning,
   WarningCircle,
+  WarningOctagon,
   WhatsappLogo,
   X,
   type Icon as PhosphorIcon,
@@ -95,6 +96,9 @@ export const IconBlocked = make(Prohibit, "bold");
 export const IconAlert = make(WarningCircle, "fill");
 export const IconWarning = make(Warning, "fill");
 export const IconSuccess = make(CheckCircle, "fill");
+/* Plazo legal: círculo (en plazo), triángulo (vence pronto) y octágono (vencido). La forma distingue sin color. */
+export const IconOnTime = make(Clock, "bold");
+export const IconOverdue = make(WarningOctagon, "fill");
 
 /* Controles */
 export const IconSearch = bold(MagnifyingGlass);

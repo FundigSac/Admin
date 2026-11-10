@@ -1,6 +1,6 @@
 "use client";
 
-import { IconAlert, IconChevronLeft, IconChevronRight, IconClock } from "@/components/ui/icons";
+import { IconChevronLeft, IconChevronRight, IconOnTime, IconOverdue, IconWarning } from "@/components/ui/icons";
 import type { CaseEvent } from "@/data/types";
 import { businessDaysLeft } from "@/lib/business-days";
 import { RelTime } from "@/components/ui/bits";
@@ -20,18 +20,34 @@ export function CasePill({ tone, children }: { tone: Tone; children: React.React
   );
 }
 
-/** Plazo legal en días hábiles: gris si sobra tiempo, ámbar a 3 días o menos, rojo si venció. */
+export type DeadlineState = "ok" | "soon" | "late";
+
+/** En plazo con más de 3 días hábiles, vence pronto a 3 o menos (incluido el último día), vencido después. */
+export function deadlineState(left: number): DeadlineState {
+  return left < 0 ? "late" : left <= 3 ? "soon" : "ok";
+}
+
+const DEADLINE_ICON = { ok: IconOnTime, soon: IconWarning, late: IconOverdue } as const;
+
+/**
+ * Plazo legal en días hábiles (X12-1): "En plazo / Vence pronto / Vencido" con ícono de forma propia (círculo,
+ * triángulo, octágono), un marco que crece con la urgencia (sin marco, contorno, relleno) y el texto. El color
+ * refuerza, pero quien no lo distingue lee el mismo estado.
+ */
 export function DeadlineChip({ dueAt, closed, compact }: { dueAt: number; closed: boolean; compact?: boolean }) {
   const t = useT();
   const d = t.cases.due;
   if (closed) return <span className="deadline deadline--closed">{compact ? "—" : d.dueOn(formatDate(dueAt, t.locale))}</span>;
   const left = businessDaysLeft(dueAt);
-  const tone = left < 0 ? "late" : left <= 3 ? "soon" : "ok";
-  const label = left < 0 ? d.overdue(left) : left === 0 ? d.today : d.left(left);
+  const state = deadlineState(left);
+  const detail = left < 0 ? d.overdue(left) : left === 0 ? d.today : d.left(left);
+  const short = left < 0 ? d.overdueShort(left) : left === 0 ? d.todayShort : d.leftShort(left);
+  const Icon = DEADLINE_ICON[state];
   return (
-    <span className={`deadline deadline--${tone}`} title={d.dueOn(formatDate(dueAt, t.locale))}>
-      {tone === "ok" ? <IconClock size={14} /> : <IconAlert size={14} />}
-      {label}
+    <span className={`deadline deadline--${state}`} data-state={state} title={`${d.state[state]}: ${detail}. ${d.dueOn(formatDate(dueAt, t.locale))}`}>
+      <Icon size={14} className="deadline__icon" />
+      <span className="deadline__state">{d.state[state]}</span>
+      <span className="deadline__detail">{compact ? short : detail}</span>
     </span>
   );
 }

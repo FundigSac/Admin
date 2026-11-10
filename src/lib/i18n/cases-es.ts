@@ -40,9 +40,14 @@ export const casesEs = {
     next: "Página siguiente",
   },
   due: {
-    today: "Vence hoy",
-    left: (d: number) => (d === 1 ? "Queda 1 día hábil" : `Quedan ${d} días hábiles`),
-    overdue: (d: number) => (d === -1 ? "Vencido hace 1 día hábil" : `Vencido hace ${-d} días hábiles`),
+    // Estado del plazo legal (X12-1): la palabra acompaña siempre al ícono y al color.
+    state: { ok: "En plazo", soon: "Vence pronto", late: "Vencido" },
+    today: "vence hoy",
+    left: (d: number) => (d === 1 ? "queda 1 día hábil" : `quedan ${d} días hábiles`),
+    overdue: (d: number) => (d === -1 ? "hace 1 día hábil" : `hace ${-d} días hábiles`),
+    todayShort: "hoy",
+    leftShort: (d: number) => (d === 1 ? "1 día" : `${d} días`),
+    overdueShort: (d: number) => (d === -1 ? "hace 1 día" : `hace ${-d} días`),
     dueOn: (date: string) => `Plazo: ${date}`,
   },
   events: {

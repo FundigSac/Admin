@@ -15,6 +15,27 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Estado en palabra; el detalle (días) va detrás de un punto medio, más tenue. */
+.deadline__state {
+  font-weight: 600;
+}
+
+.deadline__detail::before {
+  content: "· ";
+}
+
+.deadline__icon {
+  flex: none;
+}
+
+/* La urgencia también cambia la forma del marco: sin marco, contorno, relleno (WCAG 1.4.1, no solo color). */
+.deadline--soon,
+.deadline--late {
+  padding: 1px 7px 1px 5px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+}
+
 .deadline--soon {
   color: var(--pill-warning-ink);
   font-weight: 600;
@@ -25,7 +46,9 @@
 }
 
 .deadline--late {
-  color: var(--negative);
+  border-color: var(--negative);
+  background: var(--pill-negative-bg);
+  color: var(--pill-negative-ink);
   font-weight: 600;
 }
 

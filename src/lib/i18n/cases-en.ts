@@ -40,9 +40,13 @@ export const casesEn: CasesCopy = {
     next: "Next page",
   },
   due: {
-    today: "Due today",
+    state: { ok: "On time", soon: "Due soon", late: "Overdue" },
+    today: "due today",
     left: (d) => (d === 1 ? "1 business day left" : `${d} business days left`),
-    overdue: (d) => (d === -1 ? "Overdue by 1 business day" : `Overdue by ${-d} business days`),
+    overdue: (d) => (d === -1 ? "by 1 business day" : `by ${-d} business days`),
+    todayShort: "today",
+    leftShort: (d) => (d === 1 ? "1 day" : `${d} days`),
+    overdueShort: (d) => (d === -1 ? "1 day" : `${-d} days`),
     dueOn: (date) => `Deadline: ${date}`,
   },
   events: {
