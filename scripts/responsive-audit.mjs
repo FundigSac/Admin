@@ -63,9 +63,6 @@ for (const route of ROUTES) {
         if (cs.display === "none" || cs.visibility === "hidden" || el.closest("dialog:not([open]), [aria-hidden='true'], .sr-only, svg")) continue;
         const r = el.getBoundingClientRect();
         if (r.width === 0 || r.height === 0) continue;
-        // Caja de 1 × 1 px: texto oculto a la vista y leído solo por lectores de pantalla (el mismo patrón de .sr-only,
-        // aplicado por media query, como "Ayuda" en la barra del teléfono). No es texto cortado.
-        if (r.width <= 1 && r.height <= 1) continue;
         const frame = clipped(el);
         // Fuera de la pantalla sin un contenedor que lo recorte o lo deje desplazar.
         if (!frame && (r.right > vw + 1 || r.left < -1)) issues.push(`outside viewport: ${label(el)} (${Math.round(r.left)}→${Math.round(r.right)})`);
