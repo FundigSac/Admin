@@ -58,7 +58,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               {item.tone === "success" ? <IconSuccess size={20} /> : <IconAlert size={20} />}
             </span>
             <p className="toast__text">{item.text}</p>
-            <button type="button" className="icon-btn icon-btn--sm" onClick={() => dismiss(item.id)} aria-label={t.common.close}>
+            <button type="button" className="icon-btn icon-btn--sm" onClick={() => dismiss(item.id)} aria-label={t.common.dismissMessage}>
               <IconClose size={16} aria-hidden="true" />
             </button>
           </div>
