@@ -587,37 +587,3 @@
     transition: none;
   }
 }
-
-/* Cuentas que esperan confirmar su correo, con Reenviar por persona. */
-.pending {
-  margin-top: 28px;
-}
-.pending__list {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-}
-.pending__row {
-  display: flex;
-  min-height: var(--row-h);
-  align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-}
-.pending__row + .pending__row {
-  border-top: 1px solid var(--border);
-}
-.pending__main {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  flex-direction: column;
-}
-.pending__main a {
-  overflow-wrap: anywhere;
-  font-weight: 600;
-}
-.pending__sub {
-  color: var(--muted);
-  font-size: 13px;
-}

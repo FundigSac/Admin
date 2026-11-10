@@ -9,12 +9,11 @@ import { CLAIM_TONE, INQUIRY_TONE, PRIVACY_TONE, QUOTE_TONE } from "@/components
 import { resolvePermissions } from "@/components/shell/access";
 import { buildNav } from "@/components/shell/nav";
 import { useSessionUser } from "@/components/shell/session-context";
-import { Avatar, Skeleton } from "@/components/ui/bits";
-import { useToast } from "@/components/ui/toast";
+import { Skeleton } from "@/components/ui/bits";
 import { IconArrowRight, IconChevronRight, IconComplaints, IconInquiries, IconPrivacy, IconQuotes, type AppIcon } from "@/components/ui/icons";
 import type { Claim, Inquiry, PrivacyRequest, Quote } from "@/data/types";
 import { api, type CaseListParams, type CaseModule, type QueueCounts } from "@/lib/api";
-import { keys, useQueueCounts, useResendVerification } from "@/lib/api/queries";
+import { keys, useQueueCounts } from "@/lib/api/queries";
 import { businessDaysLeft } from "@/lib/business-days";
 import { formatNumber, relativeTime } from "@/lib/format";
 import { usePrefs } from "@/lib/prefs";
@@ -220,8 +219,6 @@ export function OverviewView() {
 
       <Shortcuts queues={q} pending={pending.data?.pending} can={can} canAccounts={canAccounts} />
 
-      {canAccounts && <PendingAccounts list={pending.data?.pendingOldest} />}
-
       {canAccounts && <Numbers />}
     </div>
   );
@@ -296,54 +293,6 @@ function Shortcuts({ queues, pending, can, canAccounts }: { queues?: QueueCounts
               <span className="shortcut__label">{item.label}</span>
               <IconChevronRight size={16} className="shortcut__go" aria-hidden="true" />
             </Link>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-/**
- * Cuentas que esperan confirmar su correo, la más antigua primero, con "Reenviar" a mano (como el inicio anterior
- * al rediseño). Solo para quien administra cuentas; si no hay ninguna, no ocupa espacio.
- */
-function PendingAccounts({ list }: { list?: { id: string; name: string; registeredAt: number }[] }) {
-  const { t } = usePrefs();
-  const c = useHomeCopy().pending;
-  const toast = useToast();
-  const resend = useResendVerification();
-  const [sent, setSent] = useState<string[]>([]);
-  if (!list || list.length === 0) return null;
-  return (
-    <section className="pending" aria-labelledby="pending-title">
-      <h2 id="pending-title" className="shortcuts__title">
-        {c.title}
-      </h2>
-      <ul className="pending__list">
-        {list.map((u) => (
-          <li key={u.id} className="pending__row">
-            <Avatar name={u.name} size="sm" />
-            <span className="pending__main">
-              <Link href={`/usuarios/${u.id}`}>{u.name}</Link>
-              <span className="pending__sub">{c.waiting(relativeTime(u.registeredAt, t.locale))}</span>
-            </span>
-            <button
-              type="button"
-              className="btn"
-              aria-label={c.resendFor(u.name)}
-              disabled={sent.includes(u.id) || (resend.isPending && resend.variables === u.id)}
-              onClick={() =>
-                resend.mutate(u.id, {
-                  onSuccess: () => {
-                    setSent((s) => [...s, u.id]);
-                    toast.success(c.sent);
-                  },
-                  onError: () => toast.error(c.failed),
-                })
-              }
-            >
-              {sent.includes(u.id) ? c.sent : c.resend}
-            </button>
           </li>
         ))}
       </ul>
