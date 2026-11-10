@@ -196,7 +196,8 @@
 .auth-panel__legal {
   color: var(--faint);
   font-size: 12px;
-  text-align: center;
+  text-align: justify;
+  text-align-last: center;
   text-wrap: balance;
 }
 
@@ -343,4 +344,13 @@
     height: 46px;
     font-size: 20px;
   }
+}
+
+/* Texto corrido del acceso: justificado como el resto de párrafos (una línea sola queda igual). */
+.auth-visual__lead,
+.auth-head__sub,
+.auth-demo__text,
+.auth-why {
+  text-align: justify;
+  hyphens: manual;
 }

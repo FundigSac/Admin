@@ -146,3 +146,11 @@ table,
     scroll-behavior: auto !important;
   }
 }
+
+/* Texto corrido de varias líneas: justificado como el resto de párrafos. Una línea sola queda igual. */
+.title-row__sub,
+.not-found p:not(.not-found__code),
+.panel__meta.panel__meta--prose {
+  text-align: justify;
+  hyphens: manual;
+}

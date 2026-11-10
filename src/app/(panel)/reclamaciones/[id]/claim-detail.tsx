@@ -83,7 +83,7 @@ export function ClaimDetail({ id }: { id: string }) {
                 <h2 id="sheet-title" className="panel__title">
                   {c.sheet}
                 </h2>
-                <p className="panel__meta">
+                <p className="panel__meta panel__meta--prose">
                   {c.provider}: {c.providerText}
                 </p>
               </div>
