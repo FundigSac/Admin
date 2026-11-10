@@ -29,7 +29,7 @@ export function QuoteDetail({ id }: { id: string }) {
   const move = (status: QuoteStatus, label: string) =>
     update.mutate(
       { id: x.id, patch: { status, assignee: x.assignee ?? me.name }, event: { label }, actor: me.name },
-      { onSuccess: () => toast.success(t.cases.common.updated) },
+      { onSuccess: () => toast.saved(t.cases.common.updated) },
     );
 
   const step = FLOW.indexOf(x.status);

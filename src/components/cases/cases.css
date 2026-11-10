@@ -293,6 +293,37 @@
   font-size: 15px;
 }
 
+/* Cambio guardado (X8-5): franja fija bajo el encabezado, con borde a la izquierda como las notas del libro. */
+.flash {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 10px 8px 10px 12px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--positive);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  animation: fade-in var(--t-ui) var(--ease);
+}
+
+.flash__icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--positive);
+}
+
+.flash__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+}
+
+.flash__text time {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .nowrap {
   white-space: nowrap;
 }

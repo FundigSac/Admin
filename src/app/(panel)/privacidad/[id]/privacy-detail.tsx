@@ -29,7 +29,7 @@ export function PrivacyDetail({ id }: { id: string }) {
   const at = ORDER.indexOf(x.status);
   const next = ORDER[at + 1];
   const advance = () =>
-    next && update.mutate({ id: x.id, patch: { status: next }, event: { label: next }, actor: me.name }, { onSuccess: () => toast.success(t.cases.common.updated) });
+    next && update.mutate({ id: x.id, patch: { status: next }, event: { label: next }, actor: me.name }, { onSuccess: () => toast.saved(t.cases.common.updated) });
 
   return (
     <>

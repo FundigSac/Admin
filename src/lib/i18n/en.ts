@@ -33,6 +33,8 @@ export const en: Copy = {
     copy: "Copy",
     copied: "Copied",
     limaTime: (when) => `${when} (Lima time)`,
+    savedAt: (time) => `Saved at ${time}`,
+    dismissMessage: "Dismiss message",
   },
   nav: {
     skip: "Skip to content",

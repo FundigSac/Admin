@@ -34,6 +34,8 @@ export const es = {
     copy: "Copiar",
     copied: "Copiado",
     limaTime: (when: string) => `${when} (hora de Lima)`,
+    savedAt: (time: string) => `Guardado a las ${time}`,
+    dismissMessage: "Cerrar mensaje",
   },
   nav: {
     skip: "Saltar al contenido",

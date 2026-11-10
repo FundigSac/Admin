@@ -39,7 +39,7 @@ export function ClaimDetail({ id }: { id: string }) {
       {
         onSuccess: () => {
           setAnswer("");
-          toast.success(c.sentToast);
+          toast.saved(c.sentToast);
         },
       },
     );
@@ -63,7 +63,7 @@ export function ClaimDetail({ id }: { id: string }) {
                 type="button"
                 className="btn"
                 disabled={update.isPending}
-                onClick={() => update.mutate({ id: x.id, patch: { status: "in_progress", assignee: x.assignee ?? me.name }, event: { label: "assigned", note: x.assignee ?? me.name }, actor: me.name }, { onSuccess: () => toast.success(t.cases.common.updated) })}
+                onClick={() => update.mutate({ id: x.id, patch: { status: "in_progress", assignee: x.assignee ?? me.name }, event: { label: "assigned", note: x.assignee ?? me.name }, actor: me.name }, { onSuccess: () => toast.saved(t.cases.common.updated) })}
               >
                 {c.attend}
               </button>

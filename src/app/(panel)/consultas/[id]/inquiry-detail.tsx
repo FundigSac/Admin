@@ -36,14 +36,14 @@ export function InquiryDetail({ id }: { id: string }) {
       {
         onSuccess: () => {
           setReply("");
-          toast.success(c.sent);
+          toast.saved(c.sent);
         },
       },
     );
   };
 
   const setStatus = (status: "closed" | "answered") =>
-    update.mutate({ id: x.id, patch: { status }, event: { label: status === "closed" ? "closed" : "reviewing" }, actor: me.name }, { onSuccess: () => toast.success(t.cases.common.updated) });
+    update.mutate({ id: x.id, patch: { status }, event: { label: status === "closed" ? "closed" : "reviewing" }, actor: me.name }, { onSuccess: () => toast.saved(t.cases.common.updated) });
 
   return (
     <>

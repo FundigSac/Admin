@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useSessionUser } from "@/components/shell/session-context";
 import { Skeleton, TitleCount } from "@/components/ui/bits";
 import { IconArrowLeft, IconCopy, IconMail, IconWhatsapp } from "@/components/ui/icons";
-import { useToast } from "@/components/ui/toast";
+import { SavedFlash, useToast } from "@/components/ui/toast";
 import type { CaseEvent } from "@/data/types";
 import { api, type CaseMap, type CaseModule } from "@/lib/api";
 import { useStaff, useUpdateCase } from "@/lib/api/queries";
@@ -48,6 +48,7 @@ export function CaseHeader({ base, list, title, code, pill, meta, actions }: { b
           <li key={i}>{m}</li>
         ))}
       </ul>
+      <SavedFlash />
     </header>
   );
 }
@@ -135,7 +136,7 @@ export function AssigneeCard<M extends CaseModule>({ module, item, roles }: { mo
   const assign = (name: string) =>
     update.mutate(
       { id: item.id, patch: { assignee: name } as unknown as Partial<CaseMap[M]>, event: { label: "assigned", note: name }, actor: me.name },
-      { onSuccess: () => toast.success(c.updated) },
+      { onSuccess: () => toast.saved(c.updated) },
     );
 
   return (
@@ -190,7 +191,7 @@ export function HistoryCard<M extends CaseModule>({ module, item }: { module: M;
             {
               onSuccess: () => {
                 setNote("");
-                toast.success(c.noteAdded);
+                toast.saved(c.noteAdded);
               },
             },
           );
