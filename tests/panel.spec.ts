@@ -52,6 +52,8 @@ for (const path of SCREENS) {
     await signIn(page, path);
     await expect(page.locator("main h1")).toBeVisible();
     await page.waitForLoadState("networkidle");
+    // En desarrollo Next puede insertar el <title> después del primer pintado (WebKit lo deja ver): se espera.
+    await expect(page).toHaveTitle(/\S/);
     const axe = await new AxeBuilder({ page }).disableRules(["color-contrast"]).analyze();
     const serious = axe.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
     expect(serious.map((v) => `${v.id}: ${v.nodes.length}`)).toEqual([]);
@@ -122,9 +124,12 @@ test("el menú tiene nueve entradas en tres grupos y las colas muestran su conta
 test("Ctrl K abre la búsqueda y encuentra a una persona", async ({ page, isMobile }) => {
   test.skip(isMobile, "El atajo de teclado es de computadora");
   await signIn(page);
-  await page.keyboard.press("Control+k");
   const box = page.getByRole("combobox");
-  await expect(box).toBeFocused();
+  // El atajo existe desde la hidratación; si la tecla llega antes, se vuelve a pulsar.
+  await expect(async () => {
+    await page.keyboard.press("Control+k");
+    await expect(box).toBeFocused({ timeout: 1500 });
+  }).toPass({ timeout: 15_000 });
   await box.fill("Karina Lozano");
   const option = page.getByRole("option", { name: /Karina Lozano Paz/ });
   await expect(option).toBeVisible();
@@ -169,7 +174,8 @@ test("el resumen lista las cuentas por verificar y permite reenviar", async ({ p
 test("la entrada Regla de tinta se ve una vez por sesión y no bloquea el panel", async ({ page }) => {
   await signIn(page);
   await expect(page.locator("html")).not.toHaveAttribute("data-intro", /.*/, { timeout: 2500 });
-  expect(await page.evaluate(() => sessionStorage.getItem("fx-intro-admin"))).toBe("1");
+  // La marca la pone un efecto tras la hidratación, que en WebKit llega más tarde.
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem("fx-intro-admin"))).toBe("1");
   await page.reload();
   await expect(page.locator("html")).not.toHaveAttribute("data-intro", /.*/);
   await expect(page.locator(".shell-intro")).toBeHidden();
@@ -182,6 +188,8 @@ const LISTS = ["/usuarios", "/actividad", "/cotizaciones", "/consultas", "/recla
 
 /** Cambia la base de demostración del navegador y recarga: solo datos de demo, nunca la API real. */
 async function editDemoDb(page: Page, edit: string) {
+  // La base de demostración se guarda con la primera consulta, que puede llegar después del título.
+  await page.waitForFunction((key) => localStorage.getItem(key) !== null, DB_KEY);
   await page.evaluate(
     ([key, body]) => {
       const db = JSON.parse(localStorage.getItem(key)!);
@@ -199,17 +207,21 @@ async function seriousAxe(page: Page) {
 }
 
 test("X8-1 sin coincidencias: cada lista dice que no hay resultados y ofrece quitar filtros", async ({ page }) => {
-  await signIn(page, "/usuarios");
+  // Se entra por el resumen: Firefox aborta un goto a la misma URL que acaba de cargar (NS_BINDING_ABORTED).
+  await signIn(page, "/panel");
   for (const path of LISTS) {
     await page.goto(path);
     const search = page.locator("main").getByRole("searchbox");
     await expect(page.locator("main h1")).toBeVisible();
-    await search.fill("zzzz-sin-coincidencias");
     const empty = page.getByRole("status").filter({ hasText: "Ningún resultado con estos filtros" });
-    await expect(empty).toBeVisible();
+    // WebKit hidrata más tarde: si el texto llega antes, React lo descarta y hay que volver a escribirlo.
+    await expect(async () => {
+      await search.fill("zzzz-sin-coincidencias");
+      await expect(empty).toBeVisible({ timeout: 1500 });
+    }).toPass({ timeout: 15_000 });
     await expect(empty).toHaveAttribute("data-empty", "filtered");
     expect(await seriousAxe(page)).toEqual([]);
-    await empty.getByRole("button", { name: "Quitar filtros" }).click();
+    await empty.getByRole("button", { name: "Limpiar filtros" }).click();
     await expect(search).toHaveValue("");
     await expect(page.locator("[data-empty]")).toHaveCount(0);
   }
