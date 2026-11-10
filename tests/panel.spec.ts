@@ -185,3 +185,13 @@ test("la entrada Regla de tinta se ve una vez por sesión y no bloquea el panel"
   await expect(page.locator("html")).not.toHaveAttribute("data-intro", /.*/);
   await expect(page.locator(".shell-intro")).toBeHidden();
 });
+
+test("el inicio lista las cuentas por confirmar y permite reenviar el correo", async ({ page }) => {
+  await signIn(page);
+  const section = page.getByRole("region", { name: "Esperan confirmar su correo" });
+  await expect(section).toBeVisible();
+  const first = section.getByRole("button", { name: /^Reenviar el correo de confirmación a / }).first();
+  await first.click();
+  await expect(first).toHaveText("Enviado");
+  await expect(first).toBeDisabled();
+});

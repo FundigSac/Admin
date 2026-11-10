@@ -37,6 +37,14 @@ const es = {
     items: (v: number) => (v === 1 ? "1 producto" : `${n(v)} productos`),
   },
   state: { late: "Plazo vencido", soon: "Vence pronto" },
+  pending: {
+    title: "Esperan confirmar su correo",
+    waiting: (ago: string) => `Se registró ${ago}`,
+    resend: "Reenviar",
+    resendFor: (name: string) => `Reenviar el correo de confirmación a ${name}`,
+    sent: "Enviado",
+    failed: "No se pudo reenviar. Inténtalo de nuevo.",
+  },
   shortcuts: {
     title: "Ir directo a",
     quotes: "Cotizaciones nuevas",
@@ -121,6 +129,14 @@ const en: HomeCopy = {
     items: (v: number) => (v === 1 ? "1 product" : `${nEn(v)} products`),
   },
   state: { late: "Overdue", soon: "Due soon" },
+  pending: {
+    title: "Waiting to confirm their email",
+    waiting: (ago: string) => `Signed up ${ago}`,
+    resend: "Resend",
+    resendFor: (name: string) => `Resend the confirmation email to ${name}`,
+    sent: "Sent",
+    failed: "Could not resend. Try again.",
+  },
   shortcuts: {
     title: "Go straight to",
     quotes: "New quotes",
