@@ -94,3 +94,83 @@ test("cambia a inglés y se mantiene al navegar", async ({ page, isMobile }) => 
   await page.goto("/usuarios");
   await expect(page.getByRole("heading", { level: 1, name: "Users" })).toBeVisible();
 });
+
+// Diseño del 2026-10-20: estas pruebas fijan lo que el dueño pidió recuperar del panel.
+test("el resumen muestra todas sus partes", async ({ page }) => {
+  await signIn(page);
+  await expect(page.getByRole("navigation", { name: "Para hoy" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Resumen" }).first()).toBeVisible();
+  for (const name of [/De registro a cotización/, /Cómo llegan/, /Últimos registros/, /Por verificar/, /Plazos legales que vencen pronto/]) {
+    await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+  }
+});
+
+test("el menú tiene nueve entradas en tres grupos y las colas muestran su contador", async ({ page, isMobile }) => {
+  await signIn(page, "/cotizaciones");
+  if (isMobile) await page.getByRole("button", { name: "Abrir menú" }).click();
+  const nav = page.getByRole("complementary", { name: "Navegación principal" });
+  await expect(nav.getByRole("link", { name: /^(Resumen|Usuarios|Actividad|Cotizaciones|Consultas|Reclamaciones|Privacidad|Roles y permisos|Configuración)/ })).toHaveCount(9);
+  for (const group of ["General", "Atención", "Administración"]) await expect(nav.getByText(group, { exact: true })).toBeVisible();
+  await expect(nav.getByRole("link", { name: /^Cotizaciones/ })).toHaveAttribute("aria-current", "page");
+  await expect(nav.locator(".nav-count").first()).toHaveText(/^\d+$/);
+  await nav.getByRole("link", { name: /^Reclamaciones/ }).click();
+  await page.waitForURL("**/reclamaciones");
+  if (isMobile) await page.getByRole("button", { name: "Abrir menú" }).click();
+  await expect(page.getByRole("complementary", { name: "Navegación principal" }).getByRole("link", { name: /^Reclamaciones/ })).toHaveAttribute("aria-current", "page");
+});
+
+test("Ctrl K abre la búsqueda y encuentra a una persona", async ({ page, isMobile }) => {
+  test.skip(isMobile, "El atajo de teclado es de computadora");
+  await signIn(page);
+  await page.keyboard.press("Control+k");
+  const box = page.getByRole("combobox");
+  await expect(box).toBeFocused();
+  await box.fill("Karina Lozano");
+  const option = page.getByRole("option", { name: /Karina Lozano Paz/ });
+  await expect(option).toBeVisible();
+  await option.click();
+  await page.waitForURL(/\/usuarios\/.+/);
+});
+
+test("la barra superior cambia el tema", async ({ page, isMobile }) => {
+  test.skip(isMobile, "En el teléfono el tema está en el menú");
+  await signIn(page);
+  const bar = page.locator(".topbar");
+  await expect(bar.getByRole("group", { name: "Idioma" })).toBeVisible();
+  const toggle = bar.getByRole("button", { name: /modo (oscuro|claro)/i });
+  const before = await page.locator("html").getAttribute("data-theme");
+  await toggle.click();
+  await expect(page.locator("html")).not.toHaveAttribute("data-theme", before ?? "");
+});
+
+test("Configuración permite filas compactas", async ({ page }) => {
+  await signIn(page, "/configuracion?tab=preferences");
+  await page.getByRole("group", { name: /Densidad de la tabla/ }).getByRole("button", { name: "Compacta" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-density", "compact");
+});
+
+test("la actividad filtra por tipo de evento", async ({ page }) => {
+  await signIn(page, "/actividad");
+  await page.getByLabel("Tipo de evento").selectOption({ label: "Inicio de sesión" });
+  const rows = page.locator(".feed__row");
+  await expect(rows.first()).toContainText("Inicio de sesión");
+  await expect(rows.filter({ hasNotText: "Inicio de sesión" })).toHaveCount(0);
+});
+
+test("el resumen lista las cuentas por verificar y permite reenviar", async ({ page }) => {
+  await signIn(page);
+  const section = page.getByRole("region", { name: /Por verificar/ });
+  const first = section.getByRole("button", { name: /^Reenviar verificación a / }).first();
+  await first.click();
+  await expect(first).toHaveText("Enviado");
+  await expect(first).toBeDisabled();
+});
+
+test("la entrada Regla de tinta se ve una vez por sesión y no bloquea el panel", async ({ page }) => {
+  await signIn(page);
+  await expect(page.locator("html")).not.toHaveAttribute("data-intro", /.*/, { timeout: 2500 });
+  expect(await page.evaluate(() => sessionStorage.getItem("fx-intro-admin"))).toBe("1");
+  await page.reload();
+  await expect(page.locator("html")).not.toHaveAttribute("data-intro", /.*/);
+  await expect(page.locator(".shell-intro")).toBeHidden();
+});
