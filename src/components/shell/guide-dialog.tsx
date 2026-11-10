@@ -3,29 +3,25 @@
 import { CasePill, type Tone } from "@/components/cases/case-ui";
 import { Dialog } from "@/components/ui/dialog";
 import { usePrefs } from "@/lib/prefs";
-import type { NavSection } from "./nav";
-import { useShellCopy } from "./shell-copy";
+import { NAV, navLabel } from "./app-shell";
 
-/** Ayuda: qué hay en cada sección del menú y cómo leer los estados, en una sola pantalla. */
-export function GuideDialog({ open, onClose, nav }: { open: boolean; onClose: () => void; nav: NavSection[] }) {
+/** Guía rápida: qué hay en cada sección y cómo leer los colores, en una sola pantalla. */
+export function GuideDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = usePrefs();
-  const c = useShellCopy();
   const g = t.guide;
   return (
-    <Dialog open={open} onClose={onClose} title={c.help} description={g.sub}>
+    <Dialog open={open} onClose={onClose} title={g.title} description={g.sub}>
       <div className="guide">
         <section>
           <h3 className="guide__title">{g.sectionsTitle}</h3>
           <dl className="guide__list">
-            {nav.map(({ key, icon: Icon }) => (
+            {NAV.flatMap((group) => group.items).map(({ key, icon: Icon }) => (
               <div key={key} className="guide__item">
                 <dt>
-                  <Icon size={20} />
-                  {c.nav[key]}
+                  <Icon size={18} />
+                  {navLabel(t, key)}
                 </dt>
-                <dd>
-                  <p>{c.guide.sections[key]}</p>
-                </dd>
+                <dd>{g.sections[key]}</dd>
               </div>
             ))}
           </dl>
@@ -33,10 +29,10 @@ export function GuideDialog({ open, onClose, nav }: { open: boolean; onClose: ()
         <section>
           <h3 className="guide__title">{g.colorsTitle}</h3>
           <ul className="guide__colors">
-            {g.colors.map((col) => (
-              <li key={col.tone}>
-                <CasePill tone={col.tone as Tone}>{col.label}</CasePill>
-                <span>{col.text}</span>
+            {g.colors.map((c) => (
+              <li key={c.tone}>
+                <CasePill tone={c.tone as Tone}>{c.label}</CasePill>
+                <span>{c.text}</span>
               </li>
             ))}
             <li>
@@ -51,7 +47,7 @@ export function GuideDialog({ open, onClose, nav }: { open: boolean; onClose: ()
         <section>
           <h3 className="guide__title">{g.tipsTitle}</h3>
           <ul className="guide__tips">
-            {c.guide.tips.map((tip) => (
+            {g.tips.map((tip) => (
               <li key={tip}>{tip}</li>
             ))}
           </ul>

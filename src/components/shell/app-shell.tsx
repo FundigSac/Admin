@@ -1,54 +1,78 @@
 "use client";
 
-import Image from "next/image";
+import { IconHelp, IconActivity, IconComplaints, IconInquiries, IconPrivacy, IconQuotes, IconClose, IconMenu, IconOverview, IconRoles, IconSearch, IconSettings, IconSignOut, IconUpDown, IconUsers, type AppIcon } from "@/components/ui/icons";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar, Logo } from "@/components/ui/bits";
-import { IconHelp, IconSearch, IconSettings, IconSignOut, IconUpDown } from "@/components/ui/icons";
 import { Menu, MenuItem } from "@/components/ui/menu";
 import { useQueueCounts } from "@/lib/api/queries";
+import type { Copy } from "@/lib/i18n/es";
 import { useT } from "@/lib/prefs";
 import { endSession, type SessionUser } from "@/lib/session";
 import { CommandPalette } from "./command-palette";
 import { GuideDialog } from "./guide-dialog";
-import { buildNav, sectionOf, type NavSection, type QueueKey } from "./nav";
+import { LangToggle, ThemeToggle } from "./pref-toggles";
 import { SessionProvider } from "./session-context";
-import { useShellCopy } from "./shell-copy";
 import "./shell.css";
 
-type Props = {
-  user: SessionUser;
-  /** Permisos efectivos de la sesión; null cuando la sesión no informa roles (demostración: lo ve todo). */
-  permissions: string[] | null;
-  children: React.ReactNode;
-};
+export type NavKey = "overview" | "users" | "activity" | "roles" | "settings" | "quotes" | "inquiries" | "claims" | "privacy";
+type NavItem = { href: string; key: NavKey; icon: AppIcon };
+type QueueKey = "quotes" | "inquiries" | "claims" | "privacy";
+type NavGroup = "general" | "service" | "admin";
 
-/**
- * Marco del panel. Escritorio: menú de cuatro secciones a la izquierda, barra superior con la sección, la búsqueda
- * y la ayuda, y la hoja de trabajo. Teléfono y tableta: barra inferior fija con las mismas cuatro secciones.
- */
-export function AppShell({ user, permissions, children }: Props) {
+export function navLabel(t: Copy, key: NavKey) {
+  return key === "quotes" || key === "inquiries" || key === "claims" || key === "privacy" ? t.cases.nav[key] : t.nav[key];
+}
+
+function groupLabel(t: Copy, group: NavGroup) {
+  return group === "service" ? t.cases.nav.group : t.nav[group];
+}
+
+export const NAV: { group: NavGroup; items: NavItem[] }[] = [
+  {
+    group: "general",
+    items: [
+      { href: "/panel", key: "overview", icon: IconOverview },
+      { href: "/usuarios", key: "users", icon: IconUsers },
+      { href: "/actividad", key: "activity", icon: IconActivity },
+    ],
+  },
+  {
+    group: "service",
+    items: [
+      { href: "/cotizaciones", key: "quotes", icon: IconQuotes },
+      { href: "/consultas", key: "inquiries", icon: IconInquiries },
+      { href: "/reclamaciones", key: "claims", icon: IconComplaints },
+      { href: "/privacidad", key: "privacy", icon: IconPrivacy },
+    ],
+  },
+  {
+    group: "admin",
+    items: [
+      { href: "/roles", key: "roles", icon: IconRoles },
+      { href: "/configuracion", key: "settings", icon: IconSettings },
+    ],
+  },
+];
+
+export function AppShell({ user, children }: { user: SessionUser; children: React.ReactNode }) {
   const t = useT();
-  const c = useShellCopy();
   const pathname = usePathname();
   const router = useRouter();
+  const [navOpen, setNavOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [lastPath, setLastPath] = useState(pathname);
   const queues = useQueueCounts();
 
-  const nav = useMemo(() => buildNav(permissions), [permissions]);
-  const currentKey = sectionOf(pathname);
-  const current = nav.find((s) => s.key === currentKey);
+  // Al navegar se cierra el menú del teléfono (ajuste de estado durante el render, sin efecto).
+  if (lastPath !== pathname) {
+    setLastPath(pathname);
+    setNavOpen(false);
+  }
 
-  const waiting = (key?: QueueKey) => (key && queues.data ? queues.data[key] : 0);
-  const sectionWaiting = (s: NavSection) => s.pages.reduce((sum, p) => sum + waiting(p.queue), 0);
-
-  // Las pestañas de sección solo aparecen en la portada de cada lista, no dentro de una ficha.
-  const tabs = current && current.pages.length > 1 && current.pages.some((p) => p.href === pathname) ? current.pages : null;
-
-  const modules = useMemo(() => nav.flatMap((s) => s.pages.flatMap((p) => (p.queue ? [p.queue] : []))), [nav]);
-  const canManageUsers = nav.some((s) => s.key === "accounts");
+  const current = NAV.flatMap((g) => g.items).find((i) => pathname === i.href || pathname.startsWith(`${i.href}/`));
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -61,51 +85,22 @@ export function AppShell({ user, permissions, children }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setNavOpen(false);
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [navOpen]);
+
   const logout = async () => {
     await endSession();
     router.replace("/login");
     router.refresh();
   };
-
-  const account = (compact: boolean) => (
-    <Menu
-      placement={compact ? "bottom" : "top"}
-      align={compact ? "end" : "start"}
-      className={compact ? "topbar__account" : "sidebar__account"}
-      trigger={(p) =>
-        compact ? (
-          <button type="button" className="account-icon" aria-label={c.account(user.name)} {...p}>
-            <Avatar name={user.name} size="sm" />
-          </button>
-        ) : (
-          <button type="button" className="account-btn" aria-label={c.account(user.name)} {...p}>
-            <Avatar name={user.name} size="sm" />
-            <span className="account-btn__text">
-              <strong>{user.name}</strong>
-              <span>{user.email}</span>
-            </span>
-            <IconUpDown size={16} aria-hidden="true" />
-          </button>
-        )
-      }
-    >
-      <MenuItem icon={<IconSettings size={18} />} onSelect={() => router.push("/configuracion?tab=preferences")}>
-        {c.preferences}
-      </MenuItem>
-      <div className="menu__sep" role="separator" />
-      <MenuItem icon={<IconSignOut size={18} />} onSelect={logout}>
-        {c.logout}
-      </MenuItem>
-    </Menu>
-  );
-
-  const count = (n: number, solid: boolean) =>
-    n > 0 ? (
-      <span className={`count${solid ? "" : " count--soft"}`}>
-        <span aria-hidden="true">{n}</span>
-        <span className="sr-only">{c.pending(n)}</span>
-      </span>
-    ) : null;
 
   return (
     <SessionProvider user={user}>
@@ -113,102 +108,108 @@ export function AppShell({ user, permissions, children }: Props) {
         {t.nav.skip}
       </a>
       <div className="app">
-        <aside className="sidebar">
-          <Link href="/panel" aria-label={c.homeLink} className="sidebar__logo">
-            <Logo priority />
-          </Link>
-
-          <nav className="sidebar__nav" aria-label={c.nav.label}>
-            <ul className="side-list">
-              {nav.map((s) => {
-                const Icon = s.icon;
-                const active = s.key === currentKey;
-                return (
-                  <li key={s.key}>
-                    <Link href={s.href} className="side-item" aria-current={active ? "page" : undefined}>
-                      <Icon size={22} weight={active ? "fill" : "duotone"} aria-hidden="true" />
-                      <span className="side-item__label">{c.nav[s.key]}</span>
-                      {count(sectionWaiting(s), true)}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-
-          {account(false)}
-        </aside>
-
-        <div className="frame">
-          <header className="topbar">
-            <Link href="/panel" aria-label={c.homeLink} className="topbar__brand">
-              <Image src="/brand/fundigsac-icon.svg" alt="" width={28} height={28} />
+        <aside className={`sidebar${navOpen ? " is-open" : ""}`} aria-label={t.nav.main}>
+          <div className="sidebar__brand">
+            <Link href="/panel" aria-label={t.nav.home} className="sidebar__logo">
+              <Logo priority />
             </Link>
-            <div className="topbar__title">{currentKey ? c.nav[currentKey] : c.app}</div>
-            <button type="button" className="search-field" onClick={() => setPaletteOpen(true)} aria-keyshortcuts="Control+K" aria-haspopup="dialog">
-              <IconSearch size={18} aria-hidden="true" />
-              <span className="search-field__text">{c.search}</span>
+            <button type="button" className="icon-btn sidebar__close" onClick={() => setNavOpen(false)} aria-label={t.nav.closeMenu}>
+              <IconClose size={18} aria-hidden="true" />
             </button>
-            <button type="button" className="btn btn--ghost topbar__help" onClick={() => setGuideOpen(true)} aria-haspopup="dialog">
-              <IconHelp size={20} aria-hidden="true" />
-              <span className="topbar__help-text">{c.help}</span>
-            </button>
-            {account(true)}
-          </header>
+          </div>
+          <p className="sidebar__scope">{t.common.app}</p>
 
-          <main id="contenido" className="sheet" tabIndex={-1}>
-            {tabs && current && (
-              <nav className="section-tabs" aria-label={current.key === "requests" ? c.subnav.requests : c.subnav.settings}>
-                <ul className="section-tabs__list">
-                  {tabs.map((p) => {
-                    const Icon = p.icon;
-                    const active = p.href === pathname;
+          <nav className="sidebar__nav">
+            {NAV.map((group) => (
+              <div key={group.group} className="sidebar__group">
+                <p className="sidebar__label">{groupLabel(t, group.group)}</p>
+                <ul className="sidebar__list">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = current?.href === item.href;
                     return (
-                      <li key={p.href}>
-                        <Link href={p.href} className="section-tab" aria-current={active ? "page" : undefined}>
-                          <Icon size={18} weight={active ? "fill" : "duotone"} aria-hidden="true" />
-                          <span>{c.pages[p.key]}</span>
-                          {count(waiting(p.queue), false)}
+                      <li key={item.href}>
+                        <Link href={item.href} className="nav-item" aria-current={active ? "page" : undefined}>
+                          <Icon size={16} aria-hidden="true" />
+                          <span className="nav-item__label">{navLabel(t, item.key)}</span>
+                          {queues.data && item.key in queues.data && (queues.data[item.key as QueueKey] as number) > 0 ? (
+                            <span className="nav-count" aria-label={`${queues.data[item.key as QueueKey]}`}>
+                              {queues.data[item.key as QueueKey] as number}
+                            </span>
+                          ) : null}
                         </Link>
                       </li>
                     );
                   })}
                 </ul>
-              </nav>
+              </div>
+            ))}
+          </nav>
+
+          <div className="sidebar__mobile-prefs">
+            <button type="button" className="btn" onClick={() => setGuideOpen(true)}>
+              <IconHelp size={16} />
+              {t.guide.open}
+            </button>
+            <LangToggle />
+            <ThemeToggle className="icon-btn icon-btn--outline" />
+          </div>
+
+          <Menu
+            placement="top"
+            align="start"
+            className="sidebar__account"
+            trigger={(p) => (
+              <button type="button" className="account-btn" {...p}>
+                <Avatar name={user.name} size="sm" />
+                <span className="account-btn__text">
+                  <strong>{user.name}</strong>
+                  <span>{user.email}</span>
+                </span>
+                <IconUpDown size={15} aria-hidden="true" />
+              </button>
             )}
-            <div className="route">{children}</div>
+          >
+            <MenuItem icon={<IconSettings size={16} />} onSelect={() => router.push("/configuracion")}>
+              {t.nav.profile}
+            </MenuItem>
+            <div className="menu__sep" role="separator" />
+            <MenuItem icon={<IconSignOut size={16} />} onSelect={logout}>
+              {t.nav.logout}
+            </MenuItem>
+          </Menu>
+        </aside>
+        {navOpen && <div className="sidebar-scrim" onClick={() => setNavOpen(false)} aria-hidden="true" />}
+
+        <div className="frame">
+          <header className="topbar">
+            <button type="button" className="icon-btn topbar__menu" onClick={() => setNavOpen(true)} aria-label={t.nav.openMenu} aria-expanded={navOpen}>
+              <IconMenu size={19} aria-hidden="true" />
+            </button>
+            <span className="topbar__title">{current ? navLabel(t, current.key) : t.common.app}</span>
+            <button type="button" className="search-btn" onClick={() => setPaletteOpen(true)} aria-keyshortcuts="Control+K">
+              <IconSearch size={15} aria-hidden="true" />
+              <span className="search-btn__text">{t.topbar.search}</span>
+              <kbd className="kbd">{t.topbar.shortcut}</kbd>
+            </button>
+            <div className="topbar__end">
+              <button type="button" className="icon-btn" onClick={() => setGuideOpen(true)} aria-label={t.guide.open} title={t.guide.open}>
+                <IconHelp size={19} />
+              </button>
+              <LangToggle />
+              <ThemeToggle />
+            </div>
+          </header>
+          <main id="contenido" className="sheet" tabIndex={-1}>
+            {/* La clave por ruta reinicia la llegada escalonada de cada pantalla. */}
+            <div key={pathname} className="route">
+              {children}
+            </div>
           </main>
         </div>
       </div>
-
-      <nav className="tabbar" aria-label={c.nav.label}>
-        <ul className="tabbar__list">
-          {nav.map((s) => {
-            const Icon = s.icon;
-            const active = s.key === currentKey;
-            const n = sectionWaiting(s);
-            return (
-              <li key={s.key}>
-                <Link href={s.href} className="tabbar__item" aria-current={active ? "page" : undefined}>
-                  <span className="tabbar__icon">
-                    <Icon size={24} weight={active ? "fill" : "duotone"} aria-hidden="true" />
-                    {n > 0 && (
-                      <span className="tabbar__badge" aria-hidden="true">
-                        {n > 99 ? "99+" : n}
-                      </span>
-                    )}
-                  </span>
-                  <span className="tabbar__label">{c.nav[s.key]}</span>
-                  {n > 0 && <span className="sr-only">{c.pending(n)}</span>}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} nav={nav} modules={modules} canSearchPeople={canManageUsers} />
-      <GuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} nav={nav} />
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <GuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
     </SessionProvider>
   );
 }

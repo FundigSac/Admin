@@ -1,5 +1,4 @@
-/* ===== Botones: un solo primario por pantalla (relleno petróleo), secundario blanco con borde, terciario de texto.
-   El color cambia al instante; solo el desplazamiento de 1 px al presionar se anima (brief §6.7). ===== */
+/* ===== Botones: un primario casi negro por pantalla, secundario blanco con borde, terciario de texto ===== */
 .btn {
   display: inline-flex;
   height: var(--control-h);
@@ -7,7 +6,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 0 16px;
+  padding: 0 12px;
   border: 1px solid var(--control);
   border-radius: var(--radius-control);
   background: var(--surface);
@@ -15,7 +14,10 @@
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
-  transition: transform var(--t-press) var(--ease);
+  transition:
+    background-color var(--t-hover) ease,
+    border-color var(--t-hover) ease,
+    transform var(--t-press) var(--ease);
 }
 
 .btn:hover:not(:disabled) {
@@ -74,9 +76,9 @@
 }
 
 .btn--lg {
-  height: 48px;
-  padding: 0 20px;
-  font-size: 16px;
+  height: 44px;
+  padding: 0 18px;
+  font-size: 15px;
 }
 
 .icon-btn {
@@ -89,7 +91,9 @@
   border-radius: var(--radius-control);
   background: transparent;
   color: var(--muted);
-  transition: transform var(--t-press) var(--ease);
+  transition:
+    background-color var(--t-hover) ease,
+    color var(--t-hover) ease;
 }
 
 .icon-btn:hover {
@@ -107,8 +111,8 @@
 }
 
 .icon-btn--sm {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
 }
 
 .spinner {
@@ -165,8 +169,8 @@
 }
 
 .lang-toggle button {
-  min-width: 40px;
-  height: 34px;
+  min-width: 36px;
+  height: 30px;
   padding: 0 8px;
   border: 0;
   border-radius: var(--radius-control);
@@ -218,12 +222,15 @@
 .select,
 .textarea {
   width: 100%;
-  height: var(--control-h);
+  height: 38px;
   padding: 0 12px;
   border: 1px solid var(--control);
   border-radius: var(--radius-control);
   background: var(--surface);
   color: var(--text);
+  transition:
+    border-color var(--t-hover) ease,
+    box-shadow var(--t-hover) ease;
 }
 
 .field__control .input {
@@ -295,17 +302,6 @@
   font-size: 13px;
 }
 
-/* Ayudas, errores, rótulos y subtítulos de una o dos líneas: alineados al inicio aunque sean <p>. Justificados en
-   320 px abrían huecos entre palabras; el texto corrido (ayuda, fichas) sí se justifica. */
-.field__hint,
-.field__error,
-.label-caps,
-.toast__text,
-.title-row__sub,
-.dialog__sub {
-  text-align: start;
-}
-
 .check {
   display: inline-flex;
   align-items: center;
@@ -326,6 +322,9 @@ input.checkbox {
   appearance: none;
   background: var(--surface);
   cursor: pointer;
+  transition:
+    background-color var(--t-press) ease,
+    border-color var(--t-press) ease;
 }
 
 .check input:checked,
@@ -362,6 +361,7 @@ input.checkbox:indeterminate {
   appearance: none;
   background: var(--control);
   cursor: pointer;
+  transition: background-color var(--t-ui) ease;
 }
 
 .switch::after {
@@ -434,12 +434,14 @@ input.checkbox:indeterminate {
   font-weight: 600;
 }
 
-/* Rótulo de dato sobre una cifra o una columna: 13 px en minúscula normal (sin versalitas). */
+/* Etiqueta de dato: versalitas pequeñas sobre una cifra o una columna. */
 .label-caps {
   color: var(--muted);
   font-size: var(--fs-label);
-  font-weight: 600;
-  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 16px;
+  text-transform: uppercase;
 }
 
 /* ===== Estado: una marca cuadrada del color del tono y el texto en tinta (el color nunca va solo).
@@ -568,7 +570,6 @@ input.checkbox:indeterminate {
 .tabs__tab {
   position: relative;
   display: inline-flex;
-  min-height: var(--target);
   flex: none;
   align-items: center;
   gap: 6px;
@@ -578,6 +579,7 @@ input.checkbox:indeterminate {
   color: var(--muted);
   font-weight: 500;
   white-space: nowrap;
+  transition: color var(--t-hover) ease;
 }
 
 .tabs__tab:hover {
@@ -590,8 +592,8 @@ input.checkbox:indeterminate {
   font-weight: 600;
 }
 
-/* Indicador de la pestaña elegida: siempre presente y plegado; al elegir crece con scaleX (150 ms). */
-.tabs__tab::after {
+.tabs__tab[aria-selected="true"]::after,
+.tabs__tab[aria-current="page"]::after {
   position: absolute;
   right: 0;
   bottom: -1px;
@@ -599,13 +601,6 @@ input.checkbox:indeterminate {
   height: 2px;
   background: var(--accent);
   content: "";
-  transform: scaleX(0);
-  transition: transform 150ms var(--ease);
-}
-
-.tabs__tab[aria-selected="true"]::after,
-.tabs__tab[aria-current="page"]::after {
-  transform: scaleX(1);
 }
 
 .tabs__count {
@@ -626,7 +621,7 @@ input.checkbox:indeterminate {
 }
 
 .segmented button {
-  height: 36px;
+  height: 30px;
   padding: 0 11px;
   border: 0;
   border-radius: var(--radius-control);
@@ -665,15 +660,6 @@ input.checkbox:indeterminate {
 .dialog::backdrop {
   background: rgb(8 14 20 / 48%);
   animation: fade-in var(--t-ui) ease;
-}
-
-/* Salida: 140 ms, el 70 % de la entrada, con la misma ruta a la inversa. */
-.dialog[open][data-closing] {
-  animation: dialog-out 140ms cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-
-.dialog[data-closing]::backdrop {
-  animation: fade-out 140ms ease forwards;
 }
 
 .dialog--sm {
@@ -728,19 +714,6 @@ input.checkbox:indeterminate {
   }
 }
 
-@keyframes dialog-out {
-  to {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
-@keyframes fade-out {
-  to {
-    opacity: 0;
-  }
-}
-
 @media (max-width: 560px) {
   .dialog {
     width: 100vw;
@@ -776,7 +749,7 @@ input.checkbox:indeterminate {
 .menu__item {
   display: flex;
   width: 100%;
-  min-height: 40px;
+  min-height: 34px;
   align-items: center;
   gap: 10px;
   padding: 0 10px;
@@ -900,10 +873,6 @@ input.checkbox:indeterminate {
   color: var(--text);
 }
 
-.empty :where(p) {
-  text-align: inherit;
-}
-
 .notice {
   padding: 10px 12px;
   border: 1px solid var(--notice-border);
@@ -927,35 +896,28 @@ input.checkbox:indeterminate {
   font-weight: 600;
 }
 
-/* ===== Título de pantalla: qué es y para qué sirve en una frase, y la acción principal al lado =====
-   En teléfono la acción baja y ocupa el ancho, al alcance del pulgar. */
+/* ===== Título de pantalla: un sustantivo a 24px, una línea gris con el hallazgo ===== */
 .title-row {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 16px 24px;
+  gap: 12px 16px;
   margin-bottom: 28px;
-}
-
-.title-row > :first-child {
-  min-width: min(100%, 280px);
-  flex: 1 1 420px;
 }
 
 .title-row__title {
   font-size: var(--fs-title);
   font-weight: 600;
-  line-height: 30px;
-  letter-spacing: -0.015em;
+  line-height: 32px;
+  letter-spacing: -0.02em;
 }
 
 .title-row__sub {
-  max-width: 68ch;
-  margin-top: 6px;
+  max-width: 720px;
+  margin-top: 4px;
   color: var(--muted);
   font-size: 15px;
-  line-height: 22px;
 }
 
 .title-row__actions {
@@ -1015,6 +977,7 @@ input.checkbox:indeterminate {
   border-radius: 50%;
   background: transparent;
   color: var(--faint);
+  transition: color var(--t-hover) ease;
 }
 
 .infotip__btn:hover,
@@ -1044,39 +1007,18 @@ input.checkbox:indeterminate {
   animation: menu-in var(--t-press) var(--ease);
 }
 
-/* En pantallas táctiles todo control llega a 44 px (brief §6.6) y los campos usan 16 px para que el teléfono no
-   amplíe la página al escribir. */
+/* En pantallas táctiles los controles pequeños crecen hasta un área cómoda para el dedo. */
 @media (max-width: 600px) {
   .card-link {
-    min-height: var(--target);
+    min-height: 36px;
   }
 
-  .segmented button,
-  .panel__head .segmented--sm button,
-  .lang-toggle button {
-    height: var(--target);
+  .panel__head .segmented--sm button {
+    height: 34px;
   }
 
   .icon-btn--sm {
-    width: var(--target);
-    height: var(--target);
-  }
-
-  .menu__item {
-    min-height: var(--target);
-  }
-
-  .input,
-  .select,
-  .textarea {
-    font-size: 16px;
-  }
-
-  .title-row__actions {
-    width: 100%;
-  }
-
-  .title-row__actions > .btn {
-    flex: 1 1 auto;
+    width: 36px;
+    height: 36px;
   }
 }

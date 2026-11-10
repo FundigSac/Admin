@@ -27,7 +27,6 @@ import {
   EnvelopeSimpleOpen,
   GearSix,
   HourglassMedium,
-  House,
   IdentificationBadge,
   Info,
   Question,
@@ -47,7 +46,6 @@ import {
   SquaresFour,
   Sun,
   Trash,
-  Tray,
   UserPlus,
   UsersThree,
   Warning,
@@ -76,8 +74,6 @@ const line = (C: PhosphorIcon) => make(C, "regular");
 const bold = (C: PhosphorIcon) => make(C, "bold");
 
 /* Navegación y módulos */
-export const IconHome = duo(House);
-export const IconRequests = duo(Tray);
 export const IconOverview = duo(SquaresFour);
 export const IconUsers = duo(UsersThree);
 export const IconQuotes = duo(ClipboardText);

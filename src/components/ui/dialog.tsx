@@ -1,7 +1,7 @@
 "use client";
 
 import { IconClose } from "@/components/ui/icons";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef } from "react";
 import { useT } from "@/lib/prefs";
 
 type Props = {
@@ -15,40 +15,18 @@ type Props = {
   children?: React.ReactNode;
 };
 
-/** Duración de la salida: un 70 % de la entrada (200 ms), solo opacidad y desplazamiento. */
-const EXIT_MS = 140;
-
 /** Diálogo modal sobre <dialog>: el navegador atrapa el foco, cierra con Esc y devuelve el foco al disparador. */
 export function Dialog({ open, onClose, title, description, icon, size = "md", footer, children }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
   const t = useT();
   const titleId = useId();
   const descId = useId();
-  // El contenido sigue montado durante la salida para que no se vacíe la caja mientras se desvanece.
-  const [shown, setShown] = useState(open);
-  if (open && !shown) setShown(true);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (open) {
-      delete el.dataset.closing;
-      if (!el.open) el.showModal();
-      return;
-    }
-    if (!el.open) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      el.close();
-      setTimeout(() => setShown(false), 0);
-      return;
-    }
-    el.dataset.closing = "";
-    const timer = setTimeout(() => {
-      delete el.dataset.closing;
-      el.close();
-      setShown(false);
-    }, EXIT_MS);
-    return () => clearTimeout(timer);
+    if (open && !el.open) el.showModal();
+    if (!open && el.open) el.close();
   }, [open]);
 
   return (
@@ -57,9 +35,7 @@ export function Dialog({ open, onClose, title, description, icon, size = "md", f
       className={`dialog${size === "sm" ? " dialog--sm" : ""}`}
       aria-labelledby={titleId}
       aria-describedby={description ? descId : undefined}
-      onClose={() => {
-        if (open) onClose();
-      }}
+      onClose={onClose}
       onCancel={(e) => {
         e.preventDefault();
         onClose();
@@ -69,7 +45,7 @@ export function Dialog({ open, onClose, title, description, icon, size = "md", f
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      {shown && (
+      {open && (
         <>
           <div className="dialog__head">
             {icon}
