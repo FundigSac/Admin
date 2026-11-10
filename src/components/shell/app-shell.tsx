@@ -56,7 +56,36 @@ export const NAV: { group: NavGroup; items: NavItem[] }[] = [
   },
 ];
 
+/**
+ * Entrada "Regla de tinta" (Report/04-design-decisions.md): la regla bajo la barra superior se traza en 0,9 s la
+ * primera vez que se abre el panel en la sesión. Solo marca el html; el dibujo es CSS. Nunca con movimiento reducido.
+ */
+function useIntro() {
+  useEffect(() => {
+    const html = document.documentElement;
+    try {
+      if (sessionStorage.getItem("fx-intro-admin") || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      sessionStorage.setItem("fx-intro-admin", "1");
+    } catch {
+      return;
+    }
+    html.setAttribute("data-intro", "");
+    const done = () => html.removeAttribute("data-intro");
+    const onEnd = (e: AnimationEvent) => {
+      if (e.animationName === "shell-intro-out") done();
+    };
+    window.addEventListener("animationend", onEnd);
+    const timer = window.setTimeout(done, 2000);
+    return () => {
+      window.removeEventListener("animationend", onEnd);
+      window.clearTimeout(timer);
+      done();
+    };
+  }, []);
+}
+
 export function AppShell({ user, children }: { user: SessionUser; children: React.ReactNode }) {
+  useIntro();
   const t = useT();
   const pathname = usePathname();
   const router = useRouter();
@@ -198,6 +227,11 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
               </button>
               <LangToggle />
               <ThemeToggle />
+            </div>
+            {/* Entrada "Regla de tinta": decorativa, una vez por sesión (ver useIntro). */}
+            <div className="shell-intro" aria-hidden="true">
+              <span className="shell-intro__rule" />
+              <span className="shell-intro__tick" />
             </div>
           </header>
           <main id="contenido" className="sheet" tabIndex={-1}>
