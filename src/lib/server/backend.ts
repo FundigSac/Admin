@@ -11,10 +11,25 @@ export type BackendResult<T> =
 
 const TIMEOUT_MS = 10_000;
 
-/** URL base de la API (BACKEND_URL), o null si falta o no es http(s). */
+const SELF = "self";
+
+async function inProcess(path: string, init: RequestInit): Promise<Response> {
+  const [{ dispatch }, { routes }] = await Promise.all([import("@/server/api/router"), import("@/server/api/routes")]);
+  const url = new URL(path, "http://api.internal");
+  const segments = url.pathname.replace(/^\/api\/v1\//, "").split("/").filter(Boolean);
+  const response = await dispatch(routes, new Request(url, init), segments);
+  if (init.method !== "GET") {
+    const [{ after }, { dispatchOutbox, mailConfigured }] = await Promise.all([import("next/server"), import("@/server/api/mail")]);
+    if (mailConfigured()) after(() => dispatchOutbox(10).catch(() => undefined));
+  }
+  return response;
+}
+
+/** URL base de la API (BACKEND_URL), `self` si la API corre en este proyecto, o null si falta o no es http(s). */
 export function backendUrl(): string | null {
   const raw = process.env.BACKEND_URL?.trim().replace(/\/+$/, "");
   if (!raw) return null;
+  if (raw === SELF) return SELF;
   try {
     const url = new URL(raw);
     return url.protocol === "http:" || url.protocol === "https:" ? url.origin + url.pathname.replace(/\/+$/, "") : null;
@@ -48,15 +63,17 @@ export async function callBackend<T>(path: string, options: CallOptions = {}): P
   const ip = clientIp(options.request);
   if (ip) headers.set("X-Forwarded-For", ip);
   let response: Response;
+  const init: RequestInit = {
+    method: options.method ?? (options.body === undefined ? "GET" : "POST"),
+    headers,
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    cache: "no-store",
+    redirect: "manual",
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  };
   try {
-    response = await fetch(`${base}${path}`, {
-      method: options.method ?? (options.body === undefined ? "GET" : "POST"),
-      headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
-      cache: "no-store",
-      redirect: "manual",
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
+    // La API vive en este mismo proyecto (BACKEND_URL=self): se atiende en el proceso, sin salir a la red.
+    response = base === SELF ? await inProcess(path, init) : await fetch(`${base}${path}`, init);
   } catch {
     return { ok: false, status: 503, problem: { code: "BACKEND_UNREACHABLE" }, reason: "unreachable" };
   }
