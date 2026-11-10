@@ -1,6 +1,23 @@
 "use client";
 
-import { IconHelp, IconActivity, IconComplaints, IconInquiries, IconPrivacy, IconQuotes, IconClose, IconMenu, IconOverview, IconRoles, IconSearch, IconSettings, IconSignOut, IconUpDown, IconUsers, type AppIcon } from "@/components/ui/icons";
+import {
+  IconHelp,
+  IconActivity,
+  IconComplaints,
+  IconInquiries,
+  IconPrivacy,
+  IconQuotes,
+  IconClose,
+  IconMenu,
+  IconOverview,
+  IconRoles,
+  IconSearch,
+  IconSettings,
+  IconSignOut,
+  IconUpDown,
+  IconUsers,
+  type AppIcon,
+} from "@/components/ui/icons";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -16,13 +33,27 @@ import { LangToggle, ThemeToggle } from "./pref-toggles";
 import { SessionProvider } from "./session-context";
 import "./shell.css";
 
-export type NavKey = "overview" | "users" | "activity" | "roles" | "settings" | "quotes" | "inquiries" | "claims" | "privacy";
+export type NavKey =
+  | "overview"
+  | "users"
+  | "activity"
+  | "roles"
+  | "settings"
+  | "quotes"
+  | "inquiries"
+  | "claims"
+  | "privacy";
 type NavItem = { href: string; key: NavKey; icon: AppIcon };
 type QueueKey = "quotes" | "inquiries" | "claims" | "privacy";
 type NavGroup = "general" | "service" | "admin";
 
 export function navLabel(t: Copy, key: NavKey) {
-  return key === "quotes" || key === "inquiries" || key === "claims" || key === "privacy" ? t.cases.nav[key] : t.nav[key];
+  return key === "quotes" ||
+    key === "inquiries" ||
+    key === "claims" ||
+    key === "privacy"
+    ? t.cases.nav[key]
+    : t.nav[key];
 }
 
 function groupLabel(t: Copy, group: NavGroup) {
@@ -64,7 +95,11 @@ function useIntro() {
   useEffect(() => {
     const html = document.documentElement;
     try {
-      if (sessionStorage.getItem("fx-intro-admin") || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (
+        sessionStorage.getItem("fx-intro-admin") ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      )
+        return;
       sessionStorage.setItem("fx-intro-admin", "1");
     } catch {
       return;
@@ -84,7 +119,31 @@ function useIntro() {
   }, []);
 }
 
-export function AppShell({ user, children }: { user: SessionUser; children: React.ReactNode }) {
+/**
+ * Permiso que pide cada sección. Con Backend el menú solo muestra lo que el rol puede abrir (la API igual responde 403
+ * a lo demás); en la demostración (`permissions` null) se ve todo.
+ */
+const NEEDS: Partial<Record<NavKey, string>> = {
+  users: "users:manage",
+  activity: "users:manage",
+  roles: "users:manage",
+  quotes: "quote:read",
+  inquiries: "inquiry:read",
+  claims: "complaint:read",
+  privacy: "privacy:read",
+};
+
+export function AppShell({
+  user,
+  permissions = null,
+  children,
+}: {
+  user: SessionUser;
+  permissions?: string[] | null;
+  children: React.ReactNode;
+}) {
+  const allowed = (key: NavKey) =>
+    !permissions || !NEEDS[key] || permissions.includes(NEEDS[key]!);
   useIntro();
   const t = useT();
   const pathname = usePathname();
@@ -101,7 +160,9 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
     setNavOpen(false);
   }
 
-  const current = NAV.flatMap((g) => g.items).find((i) => pathname === i.href || pathname.startsWith(`${i.href}/`));
+  const current = NAV.flatMap((g) => g.items).find(
+    (i) => pathname === i.href || pathname.startsWith(`${i.href}/`),
+  );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -137,46 +198,79 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
         {t.nav.skip}
       </a>
       <div className="app">
-        <aside className={`sidebar${navOpen ? " is-open" : ""}`} aria-label={t.nav.main}>
+        <aside
+          className={`sidebar${navOpen ? " is-open" : ""}`}
+          aria-label={t.nav.main}
+        >
           <div className="sidebar__brand">
-            <Link href="/panel" aria-label={t.nav.home} className="sidebar__logo">
+            <Link
+              href="/panel"
+              aria-label={t.nav.home}
+              className="sidebar__logo"
+            >
               <Logo priority />
             </Link>
-            <button type="button" className="icon-btn sidebar__close" onClick={() => setNavOpen(false)} aria-label={t.nav.closeMenu}>
+            <button
+              type="button"
+              className="icon-btn sidebar__close"
+              onClick={() => setNavOpen(false)}
+              aria-label={t.nav.closeMenu}
+            >
               <IconClose size={18} aria-hidden="true" />
             </button>
           </div>
           <p className="sidebar__scope">{t.common.app}</p>
 
           <nav className="sidebar__nav">
-            {NAV.map((group) => (
-              <div key={group.group} className="sidebar__group">
-                <p className="sidebar__label">{groupLabel(t, group.group)}</p>
-                <ul className="sidebar__list">
-                  {group.items.map((item) => {
-                    const Icon = item.icon;
-                    const active = current?.href === item.href;
-                    return (
-                      <li key={item.href}>
-                        <Link href={item.href} className="nav-item" aria-current={active ? "page" : undefined}>
-                          <Icon size={16} aria-hidden="true" />
-                          <span className="nav-item__label">{navLabel(t, item.key)}</span>
-                          {queues.data && item.key in queues.data && (queues.data[item.key as QueueKey] as number) > 0 ? (
-                            <span className="nav-count" aria-label={`${queues.data[item.key as QueueKey]}`}>
-                              {queues.data[item.key as QueueKey] as number}
+            {NAV.map((g) => ({
+              ...g,
+              items: g.items.filter((i) => allowed(i.key)),
+            }))
+              .filter((g) => g.items.length > 0)
+              .map((group) => (
+                <div key={group.group} className="sidebar__group">
+                  <p className="sidebar__label">{groupLabel(t, group.group)}</p>
+                  <ul className="sidebar__list">
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const active = current?.href === item.href;
+                      return (
+                        <li key={item.href}>
+                          <Link
+                            href={item.href}
+                            className="nav-item"
+                            aria-current={active ? "page" : undefined}
+                          >
+                            <Icon size={16} aria-hidden="true" />
+                            <span className="nav-item__label">
+                              {navLabel(t, item.key)}
                             </span>
-                          ) : null}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
+                            {queues.data &&
+                            item.key in queues.data &&
+                            (queues.data[item.key as QueueKey] as number) >
+                              0 ? (
+                              <span
+                                className="nav-count"
+                                aria-label={`${queues.data[item.key as QueueKey]}`}
+                              >
+                                {queues.data[item.key as QueueKey] as number}
+                              </span>
+                            ) : null}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
           </nav>
 
           <div className="sidebar__mobile-prefs">
-            <button type="button" className="btn" onClick={() => setGuideOpen(true)}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => setGuideOpen(true)}
+            >
               <IconHelp size={16} />
               {t.guide.open}
             </button>
@@ -199,7 +293,10 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
               </button>
             )}
           >
-            <MenuItem icon={<IconSettings size={16} />} onSelect={() => router.push("/configuracion")}>
+            <MenuItem
+              icon={<IconSettings size={16} />}
+              onSelect={() => router.push("/configuracion")}
+            >
               {t.nav.profile}
             </MenuItem>
             <div className="menu__sep" role="separator" />
@@ -208,21 +305,46 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
             </MenuItem>
           </Menu>
         </aside>
-        {navOpen && <div className="sidebar-scrim" onClick={() => setNavOpen(false)} aria-hidden="true" />}
+        {navOpen && (
+          <div
+            className="sidebar-scrim"
+            onClick={() => setNavOpen(false)}
+            aria-hidden="true"
+          />
+        )}
 
         <div className="frame">
           <header className="topbar">
-            <button type="button" className="icon-btn topbar__menu" onClick={() => setNavOpen(true)} aria-label={t.nav.openMenu} aria-expanded={navOpen}>
+            <button
+              type="button"
+              className="icon-btn topbar__menu"
+              onClick={() => setNavOpen(true)}
+              aria-label={t.nav.openMenu}
+              aria-expanded={navOpen}
+            >
               <IconMenu size={19} aria-hidden="true" />
             </button>
-            <span className="topbar__title">{current ? navLabel(t, current.key) : t.common.app}</span>
-            <button type="button" className="search-btn" onClick={() => setPaletteOpen(true)} aria-keyshortcuts="Control+K">
+            <span className="topbar__title">
+              {current ? navLabel(t, current.key) : t.common.app}
+            </span>
+            <button
+              type="button"
+              className="search-btn"
+              onClick={() => setPaletteOpen(true)}
+              aria-keyshortcuts="Control+K"
+            >
               <IconSearch size={15} aria-hidden="true" />
               <span className="search-btn__text">{t.topbar.search}</span>
               <kbd className="kbd">{t.topbar.shortcut}</kbd>
             </button>
             <div className="topbar__end">
-              <button type="button" className="icon-btn" onClick={() => setGuideOpen(true)} aria-label={t.guide.open} title={t.guide.open}>
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => setGuideOpen(true)}
+                aria-label={t.guide.open}
+                title={t.guide.open}
+              >
                 <IconHelp size={19} />
               </button>
               <LangToggle />
@@ -242,7 +364,10 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
           </main>
         </div>
       </div>
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+      />
       <GuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
     </SessionProvider>
   );
