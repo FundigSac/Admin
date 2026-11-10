@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useState } from "react";
-import { Skeleton, TitleRow } from "@/components/ui/bits";
+import { EmptyState, Skeleton, TitleRow } from "@/components/ui/bits";
 import { IconInfo, IconSearch } from "@/components/ui/icons";
 import type { CaseMap, CaseModule, CaseSort } from "@/lib/api";
 import { useCaseList } from "@/lib/api/queries";
@@ -128,10 +128,20 @@ export function CaseList<M extends CaseModule>({ module, base, title, lead, find
           ))}
         </div>
       ) : data.items.length === 0 ? (
-        <div className="empty case-empty">
-          <strong>{c.emptyTitle}</strong>
-          <span>{c.emptyText}</span>
-        </div>
+        status !== "all" || query || (total ?? 0) > 0 ? (
+          <EmptyState
+            kind="filtered"
+            title={c.filteredTitle}
+            text={c.filteredText}
+            clearLabel={c.clearFilters}
+            onClear={() => {
+              setQ("");
+              setStatus("all");
+            }}
+          />
+        ) : (
+          <EmptyState kind="none" title={t.cases[module].empty.title} text={t.cases[module].empty.text} />
+        )
       ) : (
         <>
           <div className="table-frame case-table" tabIndex={0} role="region" aria-label={title}>

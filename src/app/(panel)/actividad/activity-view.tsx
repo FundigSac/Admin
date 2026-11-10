@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useDeferredValue, useState } from "react";
-import { RelTime, Skeleton, TitleRow } from "@/components/ui/bits";
+import { EmptyState, RelTime, Skeleton, TitleRow } from "@/components/ui/bits";
 import {
   IconActive,
   IconBlocked,
@@ -109,9 +109,20 @@ export function ActivityView() {
           ))}
         </div>
       ) : data.items.length === 0 ? (
-        <div className="empty case-empty">
-          <strong>{a.empty}</strong>
-        </div>
+        type !== "all" || query || (total ?? 0) > 0 ? (
+          <EmptyState
+            kind="filtered"
+            title={a.filteredTitle}
+            text={a.filteredText}
+            clearLabel={a.clearFilters}
+            onClear={() => {
+              setQ("");
+              setType("all");
+            }}
+          />
+        ) : (
+          <EmptyState kind="none" title={a.empty} text={a.emptyText} />
+        )
       ) : (
         <div className="feed">
           {[...groups].map(([key, events]) => (

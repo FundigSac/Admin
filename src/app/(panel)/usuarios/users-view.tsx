@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useDeferredValue, useState } from "react";
 import { Pager } from "@/components/cases/case-ui";
 import { useSessionUser } from "@/components/shell/session-context";
-import { Avatar, Skeleton, StatusBadge, TitleRow } from "@/components/ui/bits";
+import { Avatar, EmptyState, Skeleton, StatusBadge, TitleRow } from "@/components/ui/bits";
 import { IconBlocked, IconClose, IconExport, IconInfo, IconSearch, IconTrash, IconUndo, IconUserPlus } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/toast";
 import { ConfirmDialog } from "@/components/users/confirm-dialog";
@@ -271,15 +271,20 @@ export function UsersView() {
           ))}
         </div>
       ) : data.items.length === 0 ? (
-        <div className="empty case-empty">
-          <strong>{u.emptyTitle}</strong>
-          <span>{u.emptyText}</span>
-          {filtersOn && (
-            <button type="button" className="btn" onClick={clear}>
-              {u.clear}
-            </button>
-          )}
-        </div>
+        filtersOn || status !== "all" || (total ?? 0) > 0 ? (
+          <EmptyState
+            kind="filtered"
+            title={u.filteredTitle}
+            text={u.filteredText}
+            clearLabel={u.clearFilters}
+            onClear={() => {
+              clear();
+              changeStatus("all");
+            }}
+          />
+        ) : (
+          <EmptyState kind="none" title={u.emptyTitle} text={u.emptyText} />
+        )
       ) : (
         <>
           <div className="table-frame users-frame" tabIndex={0} role="region" aria-label={u.title}>

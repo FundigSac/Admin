@@ -873,6 +873,18 @@ input.checkbox:indeterminate {
   color: var(--text);
 }
 
+/* Qué aparecerá o por qué no hay resultados: justificado y con la última línea al centro, en una medida legible. */
+.empty__text {
+  max-width: 60ch;
+  text-align: justify;
+  text-align-last: center;
+  hyphens: auto;
+}
+
+.empty .btn {
+  margin-top: 8px;
+}
+
 .notice {
   padding: 10px 12px;
   border: 1px solid var(--notice-border);

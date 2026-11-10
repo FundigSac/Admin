@@ -9,8 +9,9 @@ export const casesEn: CasesCopy = {
     sort: "Sort",
     sortOpt: { newest: "Newest", oldest: "Oldest", due: "Due first" },
     results: (v) => `${n(v)} ${v === 1 ? "case" : "cases"}`,
-    emptyTitle: "No cases match these filters",
-    emptyText: "Try another search or another status.",
+    filteredTitle: "No results with these filters",
+    filteredText: "No case matches the search or the selected status. Clear the filters to see the whole queue.",
+    clearFilters: "Clear filters",
     all: "All",
     received: "Received",
     assignee: "Owner",
@@ -68,6 +69,7 @@ export const casesEn: CasesCopy = {
   },
   quotes: {
     title: "Quotes",
+    empty: { title: "No quotes yet", text: "Price requests from /cotizar, product pages and the cart will appear here, with their line items and project." },
     lead: "Price requests from /cotizar, product pages and the cart.",
     finding: (v) => (v === 0 ? "No new quotes are waiting for an owner." : v === 1 ? "1 new quote is waiting for an owner." : `${v} new quotes are waiting for an owner.`),
     status: { new: "New", reviewing: "Under review", sent: "Quoted", won: "Won", lost: "Lost" },
@@ -97,6 +99,7 @@ export const casesEn: CasesCopy = {
   },
   inquiries: {
     title: "Inquiries",
+    empty: { title: "No inquiries yet", text: "Messages sent from /contacto asking for documents or a meeting will appear here, ready to answer by email." },
     lead: "Messages from the /contacto form: documentation and meetings.",
     finding: (v) => (v === 0 ? "Every inquiry has a reply." : v === 1 ? "1 inquiry is waiting for a reply." : `${v} inquiries are waiting for a reply.`),
     status: { new: "Unanswered", answered: "Answered", closed: "Closed" },
@@ -118,6 +121,7 @@ export const casesEn: CasesCopy = {
   },
   claims: {
     title: "Complaints Book",
+    empty: { title: "No complaints yet", text: "Complaints Book sheets will appear here with their 15 business-day legal deadline and the reply channel the consumer chose." },
     lead: "Sheets filed at /reclamaciones. Answer within 15 business days, no extensions.",
     finding: (v, soon) =>
       v === 0 ? "No sheets are waiting for an answer." : soon > 0 ? `${v} ${v === 1 ? "sheet" : "sheets"} pending; ${soon} due in 3 business days or less.` : `${v} ${v === 1 ? "sheet" : "sheets"} pending, all within the deadline.`,
@@ -161,6 +165,7 @@ export const casesEn: CasesCopy = {
   },
   privacy: {
     title: "Privacy",
+    empty: { title: "No requests yet", text: "Account and data deletion requests made from /eliminar-cuenta will appear here, with their 10 business-day legal deadline." },
     lead: "Account and data deletion requests (/eliminar-cuenta). Deadline: 10 business days.",
     finding: (v) => (v === 0 ? "No open requests." : v === 1 ? "1 deletion request in progress." : `${v} deletion requests in progress.`),
     status: { received: "Received", identity: "Verifying identity", processing: "Deleting data", done: "Completed" },

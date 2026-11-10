@@ -9,8 +9,9 @@ export const casesEs = {
     sort: "Ordenar",
     sortOpt: { newest: "Más recientes", oldest: "Más antiguas", due: "Vencen primero" },
     results: (v: number) => `${n(v)} ${v === 1 ? "caso" : "casos"}`,
-    emptyTitle: "No hay casos con estos filtros",
-    emptyText: "Prueba con otra búsqueda o con otro estado.",
+    filteredTitle: "Ningún resultado con estos filtros",
+    filteredText: "Ningún caso coincide con la búsqueda o el estado elegido. Quita los filtros para ver la cola completa.",
+    clearFilters: "Quitar filtros",
     all: "Todos",
     received: "Recibido",
     assignee: "Responsable",
@@ -69,6 +70,7 @@ export const casesEs = {
   } as Record<string, string | ((who: string) => string)>,
   quotes: {
     title: "Cotizaciones",
+    empty: { title: "Aún no hay cotizaciones", text: "Aquí aparecerán los pedidos de precio que lleguen desde /cotizar, las fichas de producto y el carrito, con sus partidas y el proyecto." },
     lead: "Pedidos de precio desde /cotizar, las fichas de producto y el carrito.",
     finding: (v: number) => (v === 0 ? "No hay cotizaciones nuevas sin responsable." : v === 1 ? "1 cotización nueva espera responsable." : `${v} cotizaciones nuevas esperan responsable.`),
     status: { new: "Nueva", reviewing: "En revisión", sent: "Cotizada", won: "Ganada", lost: "Perdida" },
@@ -98,6 +100,7 @@ export const casesEs = {
   },
   inquiries: {
     title: "Consultas",
+    empty: { title: "Aún no hay consultas", text: "Aquí aparecerán los mensajes enviados desde /contacto para pedir documentación o una reunión, listos para responder por correo." },
     lead: "Mensajes del formulario de /contacto: documentación y reuniones.",
     finding: (v: number) => (v === 0 ? "Todas las consultas tienen respuesta." : v === 1 ? "1 consulta espera respuesta." : `${v} consultas esperan respuesta.`),
     status: { new: "Sin responder", answered: "Respondida", closed: "Cerrada" },
@@ -119,6 +122,7 @@ export const casesEs = {
   },
   claims: {
     title: "Libro de Reclamaciones",
+    empty: { title: "Aún no hay reclamaciones", text: "Aquí aparecerán las hojas del Libro de Reclamaciones con su plazo legal de 15 días hábiles y el medio de respuesta que eligió el consumidor." },
     lead: "Hojas registradas en /reclamaciones. Plazo de respuesta: 15 días hábiles improrrogables.",
     finding: (v: number, soon: number) =>
       v === 0 ? "No hay hojas pendientes de respuesta." : soon > 0 ? `${v} ${v === 1 ? "hoja pendiente" : "hojas pendientes"}; ${soon} ${soon === 1 ? "vence" : "vencen"} en 3 días hábiles o menos.` : `${v} ${v === 1 ? "hoja pendiente" : "hojas pendientes"} de respuesta, todas dentro del plazo.`,
@@ -162,6 +166,7 @@ export const casesEs = {
   },
   privacy: {
     title: "Privacidad",
+    empty: { title: "Aún no hay solicitudes", text: "Aquí aparecerán los pedidos de eliminación de cuenta y datos hechos desde /eliminar-cuenta, con su plazo legal de 10 días hábiles." },
     lead: "Solicitudes de eliminación de cuenta y datos (/eliminar-cuenta). Plazo: 10 días hábiles.",
     finding: (v: number) => (v === 0 ? "No hay solicitudes abiertas." : v === 1 ? "1 solicitud de eliminación en curso." : `${v} solicitudes de eliminación en curso.`),
     status: { received: "Recibida", identity: "Verificando identidad", processing: "Eliminando datos", done: "Completada" },

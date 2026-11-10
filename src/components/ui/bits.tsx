@@ -1,6 +1,6 @@
 "use client";
 
-import { IconMail } from "@/components/ui/icons";
+import { IconClose, IconMail } from "@/components/ui/icons";
 import Image from "next/image";
 import { useState } from "react";
 import type { SignupMethod, UserStatus } from "@/data/types";
@@ -107,5 +107,24 @@ export function RelTime({ at, className, recent }: { at: number; className?: str
     <time className={className} dateTime={new Date(at).toISOString()} title={exact}>
       {text}
     </time>
+  );
+}
+
+/**
+ * Lista vacía en dos versiones (X8-1). "none": aún no hay registros y se explica qué aparecerá ahí. "filtered": hay
+ * registros pero ninguno cumple la búsqueda o los filtros, y se ofrece quitarlos. Se anuncia con role="status".
+ */
+export function EmptyState({ kind, title, text, clearLabel, onClear }: { kind: "none" | "filtered"; title: string; text: string; clearLabel?: string; onClear?: () => void }) {
+  return (
+    <div className="empty case-empty" role="status" data-empty={kind}>
+      <strong>{title}</strong>
+      <span className="empty__text">{text}</span>
+      {kind === "filtered" && onClear && clearLabel && (
+        <button type="button" className="btn" onClick={onClear}>
+          <IconClose size={14} />
+          {clearLabel}
+        </button>
+      )}
+    </div>
   );
 }
