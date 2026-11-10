@@ -8,7 +8,7 @@ import { mkdirSync } from "node:fs";
 
 const base = process.argv[2]?.startsWith("http") ? process.argv[2] : "http://127.0.0.1:3110";
 const shots = process.argv.includes("--shots");
-const WIDTHS = [320, 375, 414, 600, 768, 900, 1024, 1180, 1280, 1440, 1920];
+const WIDTHS = [320, 360, 375, 390, 414, 600, 768, 900, 1024, 1180, 1280, 1440, 1920];
 const ROUTES = [
   "/login",
   "/panel",
