@@ -5,6 +5,7 @@ import { AssigneeCard, CaseHeader, CaseLoading, CaseMissing, ContactCard, Histor
 import { CasePill, Field } from "@/components/cases/case-ui";
 import { QUOTE_TONE } from "@/components/cases/tones";
 import { useSessionUser } from "@/components/shell/session-context";
+import { TitleCount } from "@/components/ui/bits";
 import { useToast } from "@/components/ui/toast";
 import type { QuoteStatus } from "@/data/types";
 import { useCase, useUpdateCase } from "@/lib/api/queries";
@@ -72,6 +73,7 @@ export function QuoteDetail({ id }: { id: string }) {
               <div>
                 <h2 id="items-title" className="panel__title">
                   {c.requested}
+                  <TitleCount n={x.items.length} />
                 </h2>
                 <p className="panel__meta">{c.family[x.family]}</p>
               </div>

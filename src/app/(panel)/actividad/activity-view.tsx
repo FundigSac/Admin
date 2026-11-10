@@ -50,6 +50,8 @@ export function ActivityView() {
   const query = useDeferredValue(q.trim());
   const list = useActivity({ page: 0, size, q: query || undefined, type });
   const data = list.data;
+  // El título cuenta todos los eventos; el contador de la barra, los que cumplen los filtros.
+  const total = useActivity({ page: 0, size: 1, type: "all" }).data?.totalItems;
 
   const [today] = useState(() => dayKey(Date.now()));
   const label = (key: number) => (key === today ? a.today : key === today - 86_400_000 ? a.yesterday : formatDate(key, t.locale, { weekday: "long", day: "numeric", month: "long" }));
@@ -71,7 +73,7 @@ export function ActivityView() {
 
   return (
     <>
-      <TitleRow title={a.title} sub={a.lead} />
+      <TitleRow title={a.title} count={total} sub={a.lead} />
 
       <div className="toolbar activity-toolbar">
         <label className="toolbar__search">

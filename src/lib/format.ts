@@ -24,8 +24,8 @@ export function formatTime(t: number, locale: string) {
   return new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(t);
 }
 
-export function relativeTime(t: number, locale: string, now = Date.now()) {
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+export function relativeTime(t: number, locale: string, now = Date.now(), style: Intl.RelativeTimeFormatStyle = "long") {
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto", style });
   const diff = t - now;
   const abs = Math.abs(diff);
   if (abs < MIN) return rtf.format(0, "second");

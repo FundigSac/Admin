@@ -6,7 +6,7 @@ import { useState } from "react";
 import { ColumnChart } from "@/components/charts/column-chart";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { InfoTip } from "@/components/ui/info-tip";
-import { Avatar, MethodIcon, RelTime, Skeleton, StatusBadge, TitleRow } from "@/components/ui/bits";
+import { Avatar, MethodIcon, RelTime, Skeleton, StatusBadge, TitleCount, TitleRow } from "@/components/ui/bits";
 import { useToast } from "@/components/ui/toast";
 import type { DashboardStats, RangeKey } from "@/lib/api";
 import { useQueueCounts, useResendVerification, useStats } from "@/lib/api/queries";
@@ -383,7 +383,8 @@ function DueList() {
       <div className="panel panel--list">
         <div className="panel__head panel__head--list">
           <h2 id="due-title" className="panel__title">
-            {o.dueTitle} <InfoTip label={o.what(o.dueTitle)} text={o.help.due} />
+            {o.dueTitle}
+            <TitleCount n={queues.data?.due.length} /> <InfoTip label={o.what(o.dueTitle)} text={o.help.due} />
           </h2>
         </div>
         {!queues.data ? (
@@ -420,7 +421,8 @@ function PendingList({ s }: { s?: DashboardStats }) {
       <div className="panel panel--list">
         <div className="panel__head panel__head--list">
           <h2 id="pending-title" className="panel__title">
-            {o.pendingTitle} <InfoTip label={o.what(o.pendingTitle)} text={o.help.pendingList} />
+            {o.pendingTitle}
+            <TitleCount n={s?.pending} /> <InfoTip label={o.what(o.pendingTitle)} text={o.help.pendingList} />
           </h2>
         </div>
         {!s ? (

@@ -54,6 +54,8 @@ export function UsersView() {
     sort: { id: (sorting[0]?.id ?? "registeredAt") as SortKey, desc: sorting[0]?.desc ?? true },
   };
   const list = useUserList(listParams);
+  // Total sin filtros para el título y para distinguir "aún no hay cuentas" de "ningún resultado con estos filtros".
+  const total = useUserList({ page: 0, size: 1, status: "all" }).data?.totalItems;
   const data = list.data;
   const setStatusMut = useSetStatus();
   const del = useDeleteUsers();
@@ -128,6 +130,7 @@ export function UsersView() {
     <>
       <TitleRow
         title={u.title}
+        count={total}
         sub={data ? (data.statusCounts.pending > 0 ? u.finding(data.statusCounts.pending) : u.lead) : u.lead}
         actions={
           <>

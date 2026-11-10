@@ -44,6 +44,8 @@ export function CaseList<M extends CaseModule>({ module, base, title, lead, find
   const query = useDeferredValue(q.trim());
   const list = useCaseList(module, { page, size: 12, q: query || undefined, status, sort });
   const data = list.data;
+  // Total sin búsqueda ni estado: da el conteo del título y separa "aún no hay registros" de "ningún resultado".
+  const total = useCaseList(module, { page: 0, size: 1, status: "all", sort: defaultSort }).data?.statusCounts.all;
 
   const setStatus = (value: string) => {
     setPage(0);
@@ -52,7 +54,7 @@ export function CaseList<M extends CaseModule>({ module, base, title, lead, find
 
   return (
     <>
-      <TitleRow title={title} sub={finding ?? lead} actions={actions} />
+      <TitleRow title={title} count={total} sub={finding ?? lead} actions={actions} />
 
       <label className="sr-only" htmlFor={`${module}-status`}>
         {c.status}

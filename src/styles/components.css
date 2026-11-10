@@ -913,6 +913,13 @@ input.checkbox:indeterminate {
   letter-spacing: -0.02em;
 }
 
+/* Conteo del título: misma línea, tinta tenue y peso normal para que el nombre siga mandando. */
+.title-count {
+  color: var(--muted);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
 .title-row__sub {
   max-width: 720px;
   margin-top: 4px;

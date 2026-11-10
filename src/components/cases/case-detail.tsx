@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSessionUser } from "@/components/shell/session-context";
-import { Skeleton } from "@/components/ui/bits";
+import { Skeleton, TitleCount } from "@/components/ui/bits";
 import { IconArrowLeft, IconCopy, IconMail, IconWhatsapp } from "@/components/ui/icons";
 import { useToast } from "@/components/ui/toast";
 import type { CaseEvent } from "@/data/types";
@@ -173,7 +173,10 @@ export function HistoryCard<M extends CaseModule>({ module, item }: { module: M;
 
   return (
     <section className="panel side-panel">
-      <h2 className="panel__title">{c.history}</h2>
+      <h2 className="panel__title">
+        {c.history}
+        <TitleCount n={history.length} />
+      </h2>
       {/* Con Backend, las notas internas existen solo en las reclamaciones (la API no las guarda en las demás colas). */}
       {api.capabilities.caseNotes.includes(module) && (
       <form

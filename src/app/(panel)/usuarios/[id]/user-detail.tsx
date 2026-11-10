@@ -8,7 +8,7 @@ import { CasePill, Field } from "@/components/cases/case-ui";
 import { QUOTE_TONE } from "@/components/cases/tones";
 import { useSessionUser } from "@/components/shell/session-context";
 import { AnimatedNumber } from "@/components/ui/animated-number";
-import { Avatar, MethodChip, RelTime, StatusBadge } from "@/components/ui/bits";
+import { Avatar, MethodChip, RelTime, StatusBadge, TitleCount } from "@/components/ui/bits";
 import { IconArrowLeft, IconBlocked, IconCopy, IconEdit, IconMore, IconSend, IconTrash, IconUndo } from "@/components/ui/icons";
 import { Menu, MenuItem } from "@/components/ui/menu";
 import { useToast } from "@/components/ui/toast";
@@ -179,6 +179,7 @@ export function UserDetail({ id }: { id: string }) {
               <div className="panel__head">
                 <h2 id="uq-title" className="panel__title">
                   {t.cases.quotes.title}
+                  <TitleCount n={quotes.data?.totalItems} />
                 </h2>
                 <Link className="card-link" href="/cotizaciones">
                   {t.common.viewAll}

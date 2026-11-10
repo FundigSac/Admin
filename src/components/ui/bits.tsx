@@ -4,7 +4,7 @@ import { IconMail } from "@/components/ui/icons";
 import Image from "next/image";
 import { useState } from "react";
 import type { SignupMethod, UserStatus } from "@/data/types";
-import { formatLimaDateTime, formatTime, initials, relativeTime } from "@/lib/format";
+import { formatLimaDateTime, formatNumber, formatTime, initials, relativeTime } from "@/lib/format";
 import { useT } from "@/lib/prefs";
 
 export function Logo({ className, priority }: { className?: string; priority?: boolean }) {
@@ -70,11 +70,21 @@ export function Skeleton({ w, h = 14 }: { w?: number | string; h?: number }) {
   return <span className="skeleton" style={{ width: w ?? "100%", height: h }} aria-hidden="true" />;
 }
 
-export function TitleRow({ title, sub, actions, className }: { title: string; sub?: React.ReactNode; actions?: React.ReactNode; className?: string }) {
+/** Conteo junto al título de una tabla o sección (X8-2, X9-2): "Reclamaciones (12)". Forma parte del nombre del encabezado. */
+export function TitleCount({ n }: { n: number | undefined }) {
+  const t = useT();
+  if (n === undefined) return null;
+  return <span className="title-count"> ({formatNumber(n, t.locale)})</span>;
+}
+
+export function TitleRow({ title, count, sub, actions, className }: { title: string; count?: number; sub?: React.ReactNode; actions?: React.ReactNode; className?: string }) {
   return (
     <header className={`title-row${className ? ` ${className}` : ""}`}>
       <div>
-        <h1 className="title-row__title">{title}</h1>
+        <h1 className="title-row__title">
+          {title}
+          <TitleCount n={count} />
+        </h1>
         {sub && <p className="title-row__sub">{sub}</p>}
       </div>
       {actions && <div className="title-row__actions">{actions}</div>}
@@ -92,7 +102,7 @@ export function RelTime({ at, className, recent }: { at: number; className?: str
   const exact = t.common.limaTime(formatLimaDateTime(at, t.locale));
   // Se fija al montar: la frase no cambia sola mientras se lee y el render queda puro.
   const [now] = useState(() => Date.now());
-  const text = recent && now - at >= 86_400_000 ? formatTime(at, t.locale) : relativeTime(at, t.locale, now);
+  const text = recent && now - at >= 86_400_000 ? formatTime(at, t.locale) : relativeTime(at, t.locale, now, "short");
   return (
     <time className={className} dateTime={new Date(at).toISOString()} title={exact}>
       {text}

@@ -27,7 +27,7 @@
 
 .feed__row {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 72px;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   min-height: 48px;
@@ -76,6 +76,7 @@
   color: var(--muted);
   font-size: 13px;
   text-align: right;
+  white-space: nowrap;
 }
 
 .feed__more {
@@ -84,7 +85,7 @@
 
 @media (max-width: 560px) {
   .feed__row {
-    grid-template-columns: 24px minmax(0, 1fr) 56px;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
     gap: 10px;
   }
 
